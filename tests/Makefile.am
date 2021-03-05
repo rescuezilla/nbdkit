@@ -1835,8 +1835,8 @@ test_ext2_SOURCES = test-ext2.c test.h
 test_ext2_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_ext2_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
-TESTS += test-ext2-exportname.sh
-EXTRA_DIST += test-ext2-exportname.sh
+TESTS += test-ext2-exportname.sh test-ext2-parallel.sh
+EXTRA_DIST += test-ext2-exportname.sh test-ext2-parallel.sh
 
 check_DATA += ext2.img
 CLEANFILES += ext2.img

@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <errno.h>
+#include <stdbool.h>
 
 /* Inlining is broken in the ext2fs header file.  Disable it by
  * defining the following:
@@ -54,6 +55,14 @@
  * name is opt-in (see ext2_config_complete).
  */
 static const char *file;
+
+/* Filesystem handle, shared between all client connections. */
+static ext2_filsys fs;
+
+/* Plugin access shared between all client connections, and doubles as
+ * the "name" parameter for ext2fs_open.
+ */
+static nbdkit_next *plugin;
 
 static void
 ext2_load (void)
@@ -89,7 +98,8 @@ ext2_config_complete (nbdkit_next_config_complete *next, nbdkit_backend *nxdata)
   if (strcmp (file, "exportname") == 0)
     file = NULL;
   else if (file[0] != '/') {
-    nbdkit_error ("the file parameter must refer to an absolute path");
+    nbdkit_error ("the file parameter must be 'exportname' or refer to "
+                  "an absolute path");
     return -1;
   }
 
@@ -100,13 +110,87 @@ ext2_config_complete (nbdkit_next_config_complete *next, nbdkit_backend *nxdata)
   "ext2file=<FILENAME>  (required) Absolute name of file to serve inside\n" \
   "                     the disk image, or 'exportname' for client choice."
 
+/* Opening more than one instance of the filesystem in parallel is a
+ * recipe for disaster, so instead we open a single instance during
+ * after_fork to share among all client connections.
+ */
+static int
+ext2_after_fork (nbdkit_backend *nxdata)
+{
+  CLEANUP_FREE char *name = NULL;
+  int fs_flags;
+  int64_t r;
+  errcode_t err;
+
+  /* It would be desirable for ‘nbdkit -r’ to behave the same way as
+   * ‘mount -o ro’.  But we don't know the state of the readonly flag
+   * until ext2_open is called, so for now we can't do that.  We could
+   * add a knob during .config if desired; but until then, we blindly
+   * request write access to the underlying plugin, for journal
+   * replay.
+   *
+   * Similarly, there is no sane way to pass the client's exportname
+   * through to the plugin (whether or not .config was set to serve a
+   * single file or to let the client choose by exportname), so
+   * blindly ask for "" and rely on the plugin's default.
+   */
+  plugin = nbdkit_next_context_open (nxdata, 0, "", true);
+  if (plugin == NULL) {
+    nbdkit_error ("unable to open plugin");
+    return -1;
+  }
+  if (plugin->prepare (plugin) == -1)
+    goto fail;
+
+  fs_flags = 0;
+#ifdef EXT2_FLAG_64BITS
+  fs_flags |= EXT2_FLAG_64BITS;
+#endif
+  r = plugin->get_size (plugin);
+  if (r == -1)
+    goto fail;
+  /* XXX See note above about a knob for read-only */
+  r = plugin->can_write (plugin);
+  if (r == -1)
+    goto fail;
+  if (r == 1)
+    fs_flags |= EXT2_FLAG_RW;
+
+  name = nbdkit_io_encode (plugin);
+  if (!name) {
+    nbdkit_error ("nbdkit_io_encode: %m");
+    goto fail;
+  }
+
+  err = ext2fs_open (name, fs_flags, 0, 0, nbdkit_io_manager, &fs);
+  if (err != 0) {
+    nbdkit_error ("open: %s", error_message (err));
+    goto fail;
+  }
+
+  return 0;
+
+ fail:
+  plugin->finalize (plugin);
+  nbdkit_next_context_close (plugin);
+  return -1;
+}
+
+static void
+ext2_cleanup (nbdkit_backend *nxdata)
+{
+  if (fs)
+    ext2fs_close (fs);
+  plugin->finalize (plugin);
+  nbdkit_next_context_close (plugin);
+}
+
 /* The per-connection handle. */
 struct handle {
   const char *exportname;       /* Client export name. */
-  ext2_filsys fs;               /* Filesystem handle. */
   ext2_ino_t ino;               /* Inode of open file. */
   ext2_file_t file;             /* File handle. */
-  nbdkit_next *next;            /* "name" parameter to ext2fs_open. */
+  nbdkit_context *context;      /* Access to the filter context. */
 };
 
 /* Export list. */
@@ -117,18 +201,17 @@ ext2_list_exports (nbdkit_next_list_exports *next, nbdkit_backend *nxdata,
   /* If we are honoring export names, the default export "" won't
    * work, and we must not leak export names from the underlying
    * plugin.  Advertising all filenames within the ext2 image could be
-   * huge, and even if we wanted to, it would require that we could
-   * open the plugin prior to the client reaching our .open.  So leave
-   * the list empty instead.
+   * huge, although we could do it if we wanted to since the
+   * filesystem was already opened in .after_fork.
    */
   if (!file)
     return 0;
 
   /* If we are serving a specific ext2file, we don't care what export
-   * name the user passes, but the underlying plugin might; there's no
-   * harm in advertising that list.
+   * name the user passes, but it's too late to pass that on to the
+   * underlying plugin, so advertise just "".
    */
-  return next (nxdata, readonly, exports);
+  return nbdkit_use_default_export (exports);
 }
 
 /* Default export. */
@@ -170,17 +253,7 @@ ext2_open (nbdkit_next_open *next, nbdkit_context *nxdata,
     return NULL;
   }
 
-  /* If file == NULL (ie. using exportname) then don't
-   * pass the client exportname to the lower layers.
-   */
-  exportname = file ? exportname : "";
-
-  /* Request write access to the underlying plugin, for journal replay. */
-  if (next (nxdata, 0, exportname) == -1) {
-    free (h);
-    return NULL;
-  }
-
+  h->context = nxdata;
   return h;
 }
 
@@ -189,36 +262,12 @@ ext2_prepare (nbdkit_next *next, void *handle, int readonly)
 {
   struct handle *h = handle;
   errcode_t err;
-  int fs_flags;
   int file_flags;
   struct ext2_inode inode;
-  int64_t r;
   CLEANUP_FREE char *name = NULL;
   const char *fname = file ?: h->exportname;
   CLEANUP_FREE char *absname = NULL;
-
-  fs_flags = 0;
-#ifdef EXT2_FLAG_64BITS
-  fs_flags |= EXT2_FLAG_64BITS;
-#endif
-  r = next->get_size (next);
-  if (r == -1)
-    return -1;
-  r = next->can_write (next);
-  if (r == -1)
-    return -1;
-  if (r == 0)
-    readonly = 1;
-
-  if (!readonly)
-    fs_flags |= EXT2_FLAG_RW;
-
-  h->next = next;
-  name = nbdkit_io_encode (next);
-  if (!name) {
-    nbdkit_error ("nbdkit_io_encode: %m");
-    return -1;
-  }
+  nbdkit_next *old;
 
   if (fname[0] != '/') {
     if (asprintf (&absname, "/%s", fname) < 0) {
@@ -228,53 +277,58 @@ ext2_prepare (nbdkit_next *next, void *handle, int readonly)
     fname = absname;
   }
 
-  err = ext2fs_open (name, fs_flags, 0, 0, nbdkit_io_manager, &h->fs);
-  if (err != 0) {
-    nbdkit_error ("open: %s", error_message (err));
-    goto err0;
-  }
-
   if (strcmp (fname, "/") == 0)
     /* probably gonna fail, but we'll catch it later */
     h->ino = EXT2_ROOT_INO;
   else {
-    err = ext2fs_namei (h->fs, EXT2_ROOT_INO, EXT2_ROOT_INO,
+    err = ext2fs_namei (fs, EXT2_ROOT_INO, EXT2_ROOT_INO,
                         &fname[1], &h->ino);
     if (err != 0) {
       nbdkit_error ("%s: namei: %s", fname, error_message (err));
-      goto err1;
+      return -1;
     }
   }
 
   /* Check that fname is a regular file.
    * XXX This won't follow symlinks, we'd have to do that manually.
    */
-  err = ext2fs_read_inode (h->fs, h->ino, &inode);
+  err = ext2fs_read_inode (fs, h->ino, &inode);
   if (err != 0) {
     nbdkit_error ("%s: inode: %s", fname, error_message (err));
-    goto err1;
+    return -1;
   }
   if (!LINUX_S_ISREG (inode.i_mode)) {
     nbdkit_error ("%s: must be a regular file in the disk image", fname);
-    goto err1;
+    return -1;
   }
 
   file_flags = 0;
   if (!readonly)
     file_flags |= EXT2_FILE_WRITE;
-  err = ext2fs_file_open2 (h->fs, h->ino, NULL, file_flags, &h->file);
+  err = ext2fs_file_open2 (fs, h->ino, NULL, file_flags, &h->file);
   if (err != 0) {
     nbdkit_error ("%s: open: %s", fname, error_message (err));
-    goto err1;
+    return -1;
   }
 
+  /* Associate our shared backend with this connection, so we don't
+   * have to override every single callback function.
+   */
+  old = nbdkit_context_set_next (h->context, plugin);
+  assert (old == NULL);
   return 0;
+}
 
- err1:
-  ext2fs_close (h->fs);
-  h->fs = NULL;
- err0:
-  return -1;
+static int
+ext2_finalize (nbdkit_next *next, void *handle)
+{
+  struct handle *h = handle;
+  nbdkit_next *old;
+
+  /* Ensure our shared plugin handle survives past this connection. */
+  old = nbdkit_context_set_next (h->context, NULL);
+  assert (old == next);
+  return 0;
 }
 
 /* Free up the per-connection handle. */
@@ -283,10 +337,8 @@ ext2_close (void *handle)
 {
   struct handle *h = handle;
 
-  if (h->fs) {
+  if (h->file)
     ext2fs_file_close (h->file);
-    ext2fs_close (h->fs);
-  }
   free (h);
 }
 
@@ -306,12 +358,10 @@ ext2_can_cache (nbdkit_next *next, void *handle)
 static int
 ext2_can_multi_conn (nbdkit_next *next, void *handle)
 {
-  /* Since we do not permit parallel connections, it does not matter
-   * what we advertise here, and we could just as easily inherit the
-   * plugin's .can_multi_conn.  But realistically, if we adjust
-   * .thread_model, we cannot advertise support unless .flush is
-   * consistent, and that would require inspecting the ext2 source
-   * code, so for now, we hard-code a safe answer.
+  /* Although we permit parallel client connections multiplexed into
+   * the single shared filesystem handle, we absolutely know that ext2
+   * does not share caches between separate opens of the same inode.
+   * Hard-code the only correct answer.
    */
   return 0;
 }
@@ -324,7 +374,7 @@ ext2_can_flush (nbdkit_next *next, void *handle)
    * plugin ability, since ext2 wants to flush the filesystem into
    * permanent storage when possible.
    */
-  if (next->can_flush (next) == -1)
+  if (plugin->can_flush (plugin) == -1)
     return -1;
   return 1;
 }
@@ -340,7 +390,7 @@ ext2_can_zero (nbdkit_next *next, void *handle)
    * though we don't implement .zero, the file system wants to know if
    * it can use next->zero() during io_zeroout.
    */
-  if (next->can_zero (next) == -1)
+  if (plugin->can_zero (plugin) == -1)
     return -1;
   return NBDKIT_ZERO_EMULATE;
 }
@@ -353,26 +403,22 @@ ext2_can_trim (nbdkit_next *next, void *handle)
    * implement .trim, the file system wants to know if it can use
    * next->trim() during io_discard.
    */
-  if (next->can_trim (next) == -1)
+  if (plugin->can_trim (plugin) == -1)
     return -1;
   return 0;
 }
 
-/* It might be possible to relax this, but it's complicated.
- *
- * It's desirable for ‘nbdkit -r’ to behave the same way as
- * ‘mount -o ro’.  But we don't know the state of the readonly flag
- * until ext2_open is called (because the NBD client can also request
- * a readonly connection).  So we could not set the "ro" flag if we
- * opened the filesystem any earlier (eg in ext2_config).
- *
- * So out of necessity we have one ext2_filsys handle per connection,
- * but if we allowed parallel work on those handles then we would get
- * data corruption, so we need to serialize connections.
+/* ext2 is generally not re-entrant; even if the underlying plugin
+ * supports parallel actions, at most one thread should be
+ * manipulating the ext2 filesystem.  Since multiple clients are
+ * sharing the same common handle into the plugin, this tells nbdkit
+ * to execute only one action at a time.
  */
 static int ext2_thread_model (int next_thread_model)
 {
-  return NBDKIT_THREAD_MODEL_SERIALIZE_CONNECTIONS;
+  if (next_thread_model == NBDKIT_THREAD_MODEL_SERIALIZE_CONNECTIONS)
+    return next_thread_model;
+  return NBDKIT_THREAD_MODEL_SERIALIZE_ALL_REQUESTS;
 }
 
 /* Description. */
@@ -382,7 +428,7 @@ ext2_export_description (nbdkit_next *next, void *handle)
   struct handle *h = handle;
   const char *fname = file ?: h->exportname;
   const char *slash = fname[0] == '/' ? "" : "/";
-  const char *base = next->export_description (next);
+  const char *base = plugin->export_description (plugin);
 
   if (!base)
     return NULL;
@@ -510,10 +556,13 @@ static struct nbdkit_filter filter = {
   .config_complete    = ext2_config_complete,
   .config_help        = ext2_config_help,
   .thread_model       = ext2_thread_model,
+  .after_fork         = ext2_after_fork,
+  .cleanup            = ext2_cleanup,
   .list_exports       = ext2_list_exports,
   .default_export     = ext2_default_export,
   .open               = ext2_open,
   .prepare            = ext2_prepare,
+  .finalize           = ext2_finalize,
   .close              = ext2_close,
   .can_fua            = ext2_can_fua,
   .can_cache          = ext2_can_cache,
