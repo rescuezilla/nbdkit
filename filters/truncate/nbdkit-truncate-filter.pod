@@ -110,6 +110,7 @@ L<nbdkit-blocksize-filter(1)>,
 L<nbdkit-blocksize-policy-filter(1)>,
 L<nbdkit-cache-filter(1)>,
 L<nbdkit-cow-filter(1)>,
+L<nbdkit-map-filter(1)>,
 L<nbdkit-offset-filter(1)>,
 L<nbdkit-partition-filter(1)>.
 
