@@ -62,6 +62,11 @@
  *
  *   string_vector names = empty_vector;
  *
+ * or
+ *
+ *   string_vector names;
+ *   names = (string_vector)empty_vector;
+ *
  * where ‘names.ptr[]’ will be an array of strings and ‘names.len’
  * will be the number of strings.  There are no get/set accessors.  To
  * iterate over the strings you can use the ‘.ptr’ field directly:
@@ -69,7 +74,8 @@
  *   for (size_t i = 0; i < names.len; ++i)
  *     printf ("%s\n", names.ptr[i]);
  *
- * Initializing with ‘empty_vector’ sets ‘.ptr = NULL’ and ‘.len = 0’.
+ * Initializing with ‘empty_vector’, or assigning the compound literal
+ * ‘(string_vector)empty_vector’, sets ‘.ptr = NULL’ and ‘.len = 0’.
  *
  * DEFINE_VECTOR_TYPE also defines utility functions.  For the full
  * list see the definition below, but useful functions include:
