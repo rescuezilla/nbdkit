@@ -98,8 +98,9 @@ nozero_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
   return next (nxdata, key, value);
 }
 
-#define nozero_config_help \
-  "zeromode=<MODE>      One of 'none' (default), 'emulate', 'notrim', 'plugin'.\n" \
+#define nozero_config_help                                               \
+  "zeromode=<MODE>      One of 'none' (default), 'emulate', 'notrim',\n" \
+  "                     'plugin'.\n"                                     \
   "fastzeromode=<MODE>  One of 'default', 'none', 'slow', 'ignore'.\n"
 
 /* Check that desired mode is supported by plugin. */
