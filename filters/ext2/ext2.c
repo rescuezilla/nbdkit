@@ -96,9 +96,9 @@ ext2_config_complete (nbdkit_next_config_complete *next, nbdkit_backend *nxdata)
   return next (nxdata);
 }
 
-#define ext2_config_help \
-  "ext2file=<FILENAME>  (required) Absolute name of file to serve inside the\n" \
-  "                     disk image, or 'exportname' for client choice."
+#define ext2_config_help                                                    \
+  "ext2file=<FILENAME>  (required) Absolute name of file to serve inside\n" \
+  "                     the disk image, or 'exportname' for client choice."
 
 /* The per-connection handle. */
 struct handle {
