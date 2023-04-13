@@ -171,7 +171,7 @@ xs_init (pTHX)
 
   /* This macro defines flags such as $Nbdkit::FLAG_MAY_TRIM
    * See also
-   * https://github.com/Perl/perl5/blob/5de22a40933c620b62e1f431457593777b99793d/os2/os2.c#L4563
+   * https://github.com/Perl/perl5/blob/5de22a40933c/os2/os2.c#L4563
    */
 #define DEFINE_FLAG(n)                           \
   gv = gv_fetchpv ("Nbdkit::" #n, TRUE, SVt_PV); \
