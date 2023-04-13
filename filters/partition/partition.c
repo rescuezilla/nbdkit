@@ -72,7 +72,8 @@ partition_config_complete (nbdkit_next_config_complete *next,
                            nbdkit_backend *nxdata)
 {
   if (partnum == 0) {
-    nbdkit_error ("you must supply the partition parameter on the command line");
+    nbdkit_error ("you must supply the partition parameter on the command "
+                  "line");
     return -1;
   }
 
