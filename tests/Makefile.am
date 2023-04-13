@@ -818,8 +818,14 @@ test_file_block_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_file_block_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
 # floppy plugin test.
-TESTS += test-floppy.sh
-EXTRA_DIST += test-floppy.sh
+TESTS += \
+	test-floppy.sh \
+	test-floppy-size.sh \
+	$(NULL)
+EXTRA_DIST += \
+	test-floppy.sh \
+	test-floppy-size.sh \
+	$(NULL)
 
 # full plugin test.
 TESTS += test-full.sh
