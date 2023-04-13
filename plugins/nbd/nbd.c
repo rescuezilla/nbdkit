@@ -379,25 +379,30 @@ nbdplug_after_fork (void)
   return 0;
 }
 
-#define nbdplug_config_help \
-  "[uri=]<URI>            URI of an NBD socket to connect to (if supported).\n" \
-  "socket=<SOCKNAME>      The Unix socket to connect to.\n" \
+#define nbdplug_config_help                                                 \
+  "[uri=]<URI>            URI of an NBD socket to connect to (if\n"         \
+  "                       supported).\n"                                    \
+  "socket=<SOCKNAME>      The Unix socket to connect to.\n"                 \
   "hostname=<HOST>        The hostname for the TCP socket to connect to.\n" \
-  "port=<PORT>            TCP/VSOCK port or service name to use (default 10809).\n" \
-  "vsock=<CID>            The cid for the VSOCK socket to connect to.\n" \
-  "command=<COMMAND>      Command to run.\n" \
-  "arg=<ARG>              Parameters for command.\n" \
-  "socket-fd=<FD>         Socket file descriptor to connect to.\n" \
-  "export=<NAME>          Export name to connect to (default \"\").\n" \
-  "dynamic-export=<BOOL>  True to enable export name pass-through.\n" \
-  "retry=<N>              Retry connection up to N seconds (default 0).\n" \
-  "shared=<BOOL>          True to share one server connection among all clients,\n" \
-  "                       rather than a connection per client (default false).\n" \
-  "tls=<MODE>             How to use TLS; one of 'off', 'on', or 'require'.\n" \
-  "tls-certificates=<DIR> Directory containing files for X.509 certificates.\n" \
-  "tls-verify=<BOOL>      True (default for X.509) to validate server.\n" \
-  "tls-username=<NAME>    Override username presented in X.509 TLS.\n" \
-  "tls-psk=<FILE>         File containing Pre-Shared Key for TLS.\n" \
+  "port=<PORT>            TCP/VSOCK port or service name to use (default\n" \
+  "                       10809).\n"                                        \
+  "vsock=<CID>            The cid for the VSOCK socket to connect to.\n"    \
+  "command=<COMMAND>      Command to run.\n"                                \
+  "arg=<ARG>              Parameters for command.\n"                        \
+  "socket-fd=<FD>         Socket file descriptor to connect to.\n"          \
+  "export=<NAME>          Export name to connect to (default \"\").\n"      \
+  "dynamic-export=<BOOL>  True to enable export name pass-through.\n"       \
+  "retry=<N>              Retry connection up to N seconds (default 0).\n"  \
+  "shared=<BOOL>          True to share one server connection among all\n"  \
+  "                       clients, rather than a connection per client\n"   \
+  "                       (default false).\n"                               \
+  "tls=<MODE>             How to use TLS; one of 'off', 'on', or\n"         \
+  "                       'require'.\n"                                     \
+  "tls-certificates=<DIR> Directory containing files for X.509\n"           \
+  "                       certificates.\n"                                  \
+  "tls-verify=<BOOL>      True (default for X.509) to validate server.\n"   \
+  "tls-username=<NAME>    Override username presented in X.509 TLS.\n"      \
+  "tls-psk=<FILE>         File containing Pre-Shared Key for TLS.\n"        \
 
 static void
 nbdplug_dump_plugin (void)
