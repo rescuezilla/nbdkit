@@ -141,14 +141,17 @@ exportname_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
   return next (nxdata, key, value);
 }
 
-#define exportname_config_help \
+#define exportname_config_help                                              \
   "default-export=<NAME>     Canonical name for the \"\" default export.\n" \
-  "exportname-list=<MODE>    Which exports to advertise: keep (default), error,\n" \
-  "                          empty, defaultonly, explicit.\n" \
-  "exportname-strict=<BOOL>  Limit clients to explicit exports (default false).\n" \
-  "exportname=<NAME>         Add an explicit export name, may be repeated.\n" \
-  "exportdesc=<MODE>         Set descriptions according to mode: keep (default),\n" \
-  "                          none, fixed:STRING, script:SCRIPT.\n" \
+  "exportname-list=<MODE>    Which exports to advertise: keep (default),\n" \
+  "                          error, empty, defaultonly, explicit.\n"        \
+  "exportname-strict=<BOOL>  Limit clients to explicit exports (default\n"  \
+  "                          false).\n"                                     \
+  "exportname=<NAME>         Add an explicit export name, may be\n"         \
+  "                          repeated.\n"                                   \
+  "exportdesc=<MODE>         Set descriptions according to mode: keep\n"    \
+  "                          (default), none, fixed:STRING,\n"              \
+  "                          script:SCRIPT.\n"                              \
 
 static const char *
 get_desc (const char *name, const char *def)
