@@ -908,7 +908,7 @@ static struct backend plugin_functions = {
 /* Register and load a plugin. */
 struct backend *
 plugin_register (size_t index, const char *filename,
-                 void *dl, struct nbdkit_plugin *(*plugin_init) (void))
+                 void *dl, plugin_init_function plugin_init)
 {
   struct backend_plugin *p;
   const struct nbdkit_plugin *plugin;

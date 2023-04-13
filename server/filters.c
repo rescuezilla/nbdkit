@@ -660,7 +660,7 @@ static struct backend filter_functions = {
 /* Register and load a filter. */
 struct backend *
 filter_register (struct backend *next, size_t index, const char *filename,
-                 void *dl, struct nbdkit_filter *(*filter_init) (void))
+                 void *dl, filter_init_function filter_init)
 {
   struct backend_filter *f;
   const struct nbdkit_filter *filter;

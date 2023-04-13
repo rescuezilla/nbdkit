@@ -79,8 +79,10 @@
 #endif
 
 static char *make_random_fifo (void);
-static struct backend *open_plugin_so (size_t i, const char *filename, int short_name);
-static struct backend *open_filter_so (struct backend *next, size_t i, const char *filename, int short_name);
+static struct backend *open_plugin_so (size_t i, const char *filename,
+                                       int short_name);
+static struct backend *open_filter_so (struct backend *next, size_t i,
+                                       const char *filename, int short_name);
 static void start_serving (void);
 static void write_pidfile (void);
 static bool is_config_key (const char *key, size_t len);

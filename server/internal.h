@@ -508,14 +508,17 @@ extern int backend_cache (struct context *c,
   __attribute__ ((__nonnull__ (1, 5)));
 
 /* plugins.c */
+typedef struct nbdkit_plugin *(*plugin_init_function) (void);
 extern struct backend *plugin_register (size_t index, const char *filename,
-                                        void *dl, struct nbdkit_plugin *(*plugin_init) (void))
+                                        void *dl,
+                                        plugin_init_function plugin_init)
   __attribute__ ((__nonnull__ (2, 3, 4)));
 
 /* filters.c */
+typedef struct nbdkit_filter *(*filter_init_function) (void);
 extern struct backend *filter_register (struct backend *next, size_t index,
                                         const char *filename, void *dl,
-                                        struct nbdkit_filter *(*filter_init) (void))
+                                        filter_init_function filter_init)
   __attribute__ ((__nonnull__ (1, 3, 4, 5)));
 
 /* locks.c */
