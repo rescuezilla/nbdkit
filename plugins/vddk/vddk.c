@@ -205,7 +205,8 @@ vddk_config (const char *key, const char *value)
     if (r64 == -1)
       return -1;
     if (r64 <= 0 || (r64 & 511) != 0) {
-      nbdkit_error ("create-size must be greater than zero and a multiple of 512");
+      nbdkit_error ("create-size must be greater than zero and a multiple of "
+                    "512");
       return -1;
     }
     create_size = r64;
@@ -361,7 +362,8 @@ vddk_config_complete (void)
     }
 
     if (create_size == 0) {
-      nbdkit_error ("if using create=true you must specify the size using the create-size parameter");
+      nbdkit_error ("if using create=true you must specify the size using the "
+                    "create-size parameter");
       return -1;
     }
   }
@@ -382,7 +384,8 @@ missing_required_symbol (const char *fn)
 {
   nbdkit_error ("required VDDK symbol \"%s\" is missing. "
                 "VDDK version must be >= 6.5. "
-                "See nbdkit-vddk-plugin(1) man page section \"SUPPORTED VERSIONS OF VDDK\". "
+                "See nbdkit-vddk-plugin(1) man page "
+                "section \"SUPPORTED VERSIONS OF VDDK\". "
                 "Original dlopen error: %s\n",
                 fn, dlerror ());
   exit (EXIT_FAILURE);
@@ -455,7 +458,8 @@ load_library (bool load_error_is_fatal)
     nbdkit_error ("%s\n\n"
                   "If '%s' is located on a non-standard path you may need to\n"
                   "set libdir=/path/to/vmware-vix-disklib-distrib.\n\n"
-                  "See nbdkit-vddk-plugin(1) man page section \"LIBRARY LOCATION\" for details.",
+                  "See nbdkit-vddk-plugin(1) man page "
+                  "section \"LIBRARY LOCATION\" for details.",
                   orig_error ? : "(unknown error)", libs[0].soname);
     exit (EXIT_FAILURE);
   }
