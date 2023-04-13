@@ -63,8 +63,9 @@ noparallel_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
   return next (nxdata, key, value);
 }
 
-#define noparallel_config_help \
-  "serialize=<MODE>      'requests' (default), 'all-requests', or 'connections'.\n" \
+#define noparallel_config_help                                       \
+  "serialize=<MODE>      'requests' (default), 'all-requests', or\n" \
+  "                      'connections'.\n"                           \
 
 /* Apply runtime reduction to thread model. */
 static int
