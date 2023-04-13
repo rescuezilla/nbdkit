@@ -119,7 +119,8 @@ cache_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
     if (r == -1)
       return -1;
     if (r < 4096 || !is_power_of_2 (r) || r > UINT_MAX) {
-      nbdkit_error ("cache-min-block-size is not a power of 2, or is too small or too large");
+      nbdkit_error ("cache-min-block-size is not a power of 2, or is too small "
+                    "or too large");
       return -1;
     }
     min_block_size = r;
