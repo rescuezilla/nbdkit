@@ -87,7 +87,8 @@ struct nbdkit_plugin {
 
 #if NBDKIT_API_VERSION == 1
   int (*pread) (void *handle, void *buf, uint32_t count, uint64_t offset);
-  int (*pwrite) (void *handle, const void *buf, uint32_t count, uint64_t offset);
+  int (*pwrite) (void *handle, const void *buf, uint32_t count,
+                 uint64_t offset);
   int (*flush) (void *handle);
   int (*trim) (void *handle, uint32_t count, uint64_t offset);
   int (*zero) (void *handle, uint32_t count, uint64_t offset, int may_trim);
