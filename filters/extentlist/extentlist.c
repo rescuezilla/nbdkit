@@ -226,15 +226,16 @@ parse_extentlist (void)
    */
   for (i = 0; i < extents.len-1; ++i) {
     end = extents.ptr[i].offset + extents.ptr[i].length;
-    if (end < extents.ptr[i+1].offset)
-      if (extent_list_insert (&extents,
-                              (struct extent){.offset = end,
-                                              .length = extents.ptr[i+1].offset - end,
-                                              .type = HOLE},
-                              i+1) == -1) {
+    if (end < extents.ptr[i+1].offset) {
+      struct extent extent = { .offset = end,
+                               .length = extents.ptr[i+1].offset - end,
+                               .type = HOLE };
+
+      if (extent_list_insert (&extents, extent, i+1) == -1) {
         nbdkit_error ("realloc: %m");
         exit (EXIT_FAILURE);
       }
+    }
   }
 
   /* If there's a gap at the end, insert a hole|zero extent. */
