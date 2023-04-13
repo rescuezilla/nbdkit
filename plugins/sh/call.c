@@ -237,7 +237,7 @@ call3 (const char *wbuf, size_t wbuflen, /* sent to stdin (can be NULL) */
 
     /* Note the assignment of environ avoids using execvpe which is a
      * GNU extension.  See also:
-     * https://github.com/libguestfs/libnbd/commit/dc64ac5cdd0bc80ca4e18935ad0e8801d11a8644
+     * https://github.com/libguestfs/libnbd/commit/dc64ac5cdd0b
      */
     environ = env;
     execvp (argv[0], (char **) argv);
