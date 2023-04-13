@@ -132,12 +132,13 @@ extern int win_send (int fd, const void *buf, size_t len, int flags);
  * Note: Don't use this for things which can never work on Windows
  * (eg. Unix socket support).  Those should just give regular errors.
  */
-#define NOT_IMPLEMENTED_ON_WINDOWS(feature)                             \
-  do {                                                                  \
+#define NOT_IMPLEMENTED_ON_WINDOWS(feature)                                    \
+  do {                                                                         \
     fprintf (stderr, "nbdkit: %s is not implemented for Windows.\n", feature); \
-    fprintf (stderr, "You can help by contributing to the Windows port, see\n"); \
-    fprintf (stderr, "nbdkit README in the source for how to contribute.\n"); \
-    exit (EXIT_FAILURE);                                                \
+    fprintf (stderr, "You can help by contributing to the Windows port,\n");   \
+    fprintf (stderr, "see nbdkit README in the source for how to\n");          \
+    fprintf (stderr, "contribute.\n");                                         \
+    exit (EXIT_FAILURE);                                                       \
   } while (0)
 
 #else /* !WIN32 */
