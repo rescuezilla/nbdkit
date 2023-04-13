@@ -61,14 +61,20 @@
 #define OEM_NAME "MSWIN4.1"
 
 static ssize_t visit (const char *dir, struct virtual_floppy *floppy);
-static int visit_subdirectory (const char *dir, const char *name, const struct stat *statbuf, size_t di, struct virtual_floppy *floppy);
-static int visit_file (const char *dir, const char *name, const struct stat *statbuf, size_t di, struct virtual_floppy *floppy);
+static int visit_subdirectory (const char *dir, const char *name,
+                               const struct stat *statbuf, size_t di,
+                               struct virtual_floppy *floppy);
+static int visit_file (const char *dir, const char *name,
+                       const struct stat *statbuf, size_t di,
+                       struct virtual_floppy *floppy);
 static int create_mbr (struct virtual_floppy *floppy);
 static void chs_too_large (uint8_t *out);
-static int create_partition_boot_sector (const char *label, struct virtual_floppy *floppy);
+static int create_partition_boot_sector (const char *label,
+                                         struct virtual_floppy *floppy);
 static int create_fsinfo (struct virtual_floppy *floppy);
 static int create_fat (struct virtual_floppy *floppy);
-static void write_fat_file (uint32_t first_cluster, uint32_t nr_clusters, struct virtual_floppy *floppy);
+static void write_fat_file (uint32_t first_cluster, uint32_t nr_clusters,
+                            struct virtual_floppy *floppy);
 static int create_regions (struct virtual_floppy *floppy);
 
 void
@@ -140,8 +146,9 @@ create_virtual_floppy (const char *dir, const char *label, uint64_t size,
 
   if (size > 0) {
     uint64_t data_size = size - (2080 * SECTOR_SIZE);
-    data_size = data_size - 2 * DIV_ROUND_UP ((data_size / CLUSTER_SIZE + 2) * 4,
-                                              CLUSTER_SIZE) * CLUSTER_SIZE;
+    uint64_t fat_clusters = DIV_ROUND_UP ((data_size / CLUSTER_SIZE + 2) * 4,
+                                          CLUSTER_SIZE);
+    data_size -= 2 * fat_clusters * CLUSTER_SIZE;
     if (data_used_size > data_size) {
       nbdkit_error ("filesystem is larger than \"size\" bytes");
       return -1;

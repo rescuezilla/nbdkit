@@ -63,15 +63,20 @@ struct lfn {
   size_t lfn_size;              /* Size *in bytes* of lfn. */
 };
 
-static int add_volume_label (const char *label, size_t di, struct virtual_floppy *floppy);
+static int add_volume_label (const char *label, size_t di,
+                             struct virtual_floppy *floppy);
 static int add_dot_entries (size_t di, struct virtual_floppy *floppy);
-static int add_directory_entry (const struct lfn *lfn, uint8_t attributes, uint32_t file_size, struct stat *statbuf, size_t di, struct virtual_floppy *floppy);
+static int add_directory_entry (const struct lfn *lfn, uint8_t attributes,
+                                uint32_t file_size, struct stat *statbuf,
+                                size_t di, struct virtual_floppy *floppy);
 static uint8_t lfn_checksum (const struct lfn *lfn);
 static void set_times (const struct stat *statbuf, struct dir_entry *entry);
 static int convert_long_file_names (struct lfn *lfns, size_t n);
-static int convert_to_utf16le (const char *name, char **out, size_t *output_len);
+static int convert_to_utf16le (const char *name, char **out,
+                               size_t *output_len);
 static void free_lfns (struct lfn *lfns, size_t n);
-static ssize_t append_dir_table (size_t di, const struct dir_entry *entry, struct virtual_floppy *floppy);
+static ssize_t append_dir_table (size_t di, const struct dir_entry *entry,
+                                 struct virtual_floppy *floppy);
 
 /* Create the on disk directory table for dirs[di]. */
 int
