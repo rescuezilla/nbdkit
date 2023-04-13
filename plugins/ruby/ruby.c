@@ -199,7 +199,8 @@ plugin_rb_config (const char *key, const char *value)
     int state;
 
     if (strcmp (key, "script") != 0) {
-      nbdkit_error ("the first parameter must be script=/path/to/ruby/script.rb");
+      nbdkit_error ("the first parameter must be "
+                    "script=/path/to/ruby/script.rb");
       return -1;
     }
     script = value;
