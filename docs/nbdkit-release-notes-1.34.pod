@@ -7,7 +7,7 @@ nbdkit-release-notes-1.34 - release notes for nbdkit 1.34
 These are the release notes for nbdkit stable release 1.34.
 This describes the major changes since 1.32.
 
-nbdkit 1.34.0 was released on B<XXX April 2023>.
+nbdkit 1.34.0 was released on B<14 April 2023>.
 
 =head2 Security
 
