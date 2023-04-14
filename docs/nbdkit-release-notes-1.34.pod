@@ -137,6 +137,8 @@ Use I<Subject Alternative Name> instead of I<commonName> in test
 certificates and suggest its use in documentation (thanks Daniel
 Berrangé).
 
+Source files reformatted to use E<le> 80 columns (Laszlo Ersek).
+
 =head1 SEE ALSO
 
 L<nbdkit(1)>.
