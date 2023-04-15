@@ -35,6 +35,7 @@ SUBDIRS = win32
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/common/include \
 	-I$(top_builddir)/include \
 	$(NULL)
 
