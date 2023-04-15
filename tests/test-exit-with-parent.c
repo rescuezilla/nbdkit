@@ -48,6 +48,8 @@
 
 #include "test.h"
 
+#ifndef WIN32
+
 static char pidpath[] = "/tmp/nbdkitpidXXXXXX";
 
 static void run_test (void);
@@ -216,3 +218,21 @@ run_test (void)
   printf ("monitor: success: nbdkit exited with parent\n");
   fflush (stdout);
 }
+
+#else /* WIN32 */
+
+/* The test above relies on Unixisms like fork so it won't work on
+ * Windows as written.  Since we don't implement --exit-with-parent
+ * anyway, bail for now and worry about it later.
+ */
+
+int
+main (int argc, char *argv[])
+{
+  printf ("%s: neither --exit-with-parent nor this test "
+          "are implemented on Windows, skipping\n",
+          argv[0]);
+  exit (77);
+}
+
+#endif /* WIN32 */
