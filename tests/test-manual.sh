@@ -36,11 +36,16 @@ source ./functions.sh
 set -e
 set -x
 
+requires tr --version
+
 # If these fail it's probably because you ran the script by hand.
 test -n "$srcdir"
 podfile=$srcdir/../docs/nbdkit.pod
 test -f "$podfile"
 
-for i in $(nbdkit --short-options) $(nbdkit --long-options); do
+# Windows uses CRLF line endings, so we have to remove the CR.
+nocr="tr -d '\r'"
+
+for i in $(nbdkit --short-options | $nocr) $(nbdkit --long-options | $nocr); do
     grep '^=item B<'$i'[=>]' $podfile
 done
