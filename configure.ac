@@ -560,7 +560,7 @@ AC_MSG_CHECKING([if the target is Windows])
 AS_CASE([$host_os],
     [mingw*|msys*], [
         is_windows=yes
-        LIBS="$LIBS -lmsvcrt -lkernel32 -luser32 -lws2_32"
+        LIBS="$LIBS -lkernel32 -luser32 -lws2_32"
         NO_UNDEFINED_ON_WINDOWS="-no-undefined"
         IMPORT_LIBRARY_ON_WINDOWS='-Wl,-L$(top_builddir)/server -Wl,-lnbdkit'
         SOEXT="dll"
