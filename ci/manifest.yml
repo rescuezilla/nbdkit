@@ -80,7 +80,12 @@ targets:
           CC: clang
           PERL: skip
 
-  freebsd-12: x86_64
+  freebsd-12:
+    jobs:
+      - arch: x86_64
+        variables:
+          GOLANG: skip
+          PERL: skip
 
   freebsd-13:
     jobs:
