@@ -263,7 +263,6 @@ print_histogram (const nbdstat *st)
              total_size);
     free(total_size);
     printed_reqs += requests;
-    total_size += st->size.at(bits);
 
     print_align_hist (st->count.at(bits));
   }
