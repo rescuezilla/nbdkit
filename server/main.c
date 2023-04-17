@@ -574,9 +574,11 @@ main (int argc, char *argv[])
   /* Implement --exit-with-parent early in case plugin initialization
    * takes a long time and the parent exits during that time.
    */
-  if (set_exit_with_parent () == -1) {
-    perror ("nbdkit: --exit-with-parent");
-    exit (EXIT_FAILURE);
+  if (exit_with_parent) {
+    if (set_exit_with_parent () == -1) {
+      perror ("nbdkit: --exit-with-parent");
+      exit (EXIT_FAILURE);
+    }
   }
 
   /* If the user has mixed up -p/--run/-s/-U/--vsock options, then
