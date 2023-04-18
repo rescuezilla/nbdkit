@@ -38,6 +38,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires test -f disk
 requires jq --version
 requires qemu-img --version
 requires qemu-img map --help
