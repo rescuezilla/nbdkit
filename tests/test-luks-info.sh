@@ -35,6 +35,7 @@ set -e
 set -x
 
 requires_nbdinfo
+requires_run
 requires qemu-img --version
 requires_filter luks
 

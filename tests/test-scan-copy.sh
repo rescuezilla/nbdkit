@@ -35,6 +35,7 @@ set -e
 set -x
 
 requires_nbdcopy
+requires_run
 requires_plugin sparse-random
 requires_filter scan
 

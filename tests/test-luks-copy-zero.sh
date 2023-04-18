@@ -39,6 +39,7 @@ set -x
 
 requires qemu-img --version
 requires_nbdcopy
+requires_run
 requires $TRUNCATE --version
 requires file --version
 requires_filter luks

@@ -35,6 +35,7 @@ set -e
 set -x
 
 requires_nbdinfo
+requires_run
 requires_filter scan
 
 # We're just testing that there are no problematic races with the
