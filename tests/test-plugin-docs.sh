@@ -36,6 +36,17 @@
 source ./functions.sh
 set -e
 
+# This test fails for some plugins which on Windows have reduced
+# functionality (eg. nbdkit-file-plugin lacks fd, dirfd, etc.).  Since
+# the test doesn't parse the man page looking for "not Windows"
+# annotations it doesn't work right.  Anyway it is fine to skip the
+# test on Windows as we only care about man pages matching the plugin
+# --help output on Linux.
+if is_windows; then
+    echo "$0: this test needs to be revised to work on Windows"
+    exit 77
+fi
+
 # There's no point doing this test under valgrind.
 skip_if_valgrind
 
