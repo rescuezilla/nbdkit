@@ -41,11 +41,14 @@ test -n "$srcdir"
 synopsis=$srcdir/../docs/synopsis.txt
 test -f "$synopsis"
 
-for i in $(nbdkit --short-options); do
+# Windows uses CRLF line endings, so we have to remove the CR.
+nocr="tr -d '\r'"
+
+for i in $(nbdkit --short-options | $nocr); do
     grep '[^-]'$i $synopsis
 done
 
-for i in $(nbdkit --long-options); do
+for i in $(nbdkit --long-options | $nocr); do
     case "$i" in
         # Only one version of each long option is shown in the
         # synopsis, so ignore other versions.
