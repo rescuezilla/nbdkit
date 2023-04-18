@@ -33,6 +33,14 @@
 source ./functions.sh
 set -x
 
+# This test attempts to kill a Windows PID (it should use
+# "wine taskkill /f /pid $pid" instead).  As this requires
+# some work, skip it for now.
+if is_windows; then
+    echo "$0: this test needs to be revised to work on Windows"
+    exit 77
+fi
+
 requires_nbdsh_uri
 
 plugin=.libs/test-disconnect-plugin.$SOEXT

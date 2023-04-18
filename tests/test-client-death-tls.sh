@@ -33,8 +33,15 @@
 source ./functions.sh
 set -x
 
-requires nbdsh -c 'exit(not h.supports_tls())'
+# This test attempts to kill a Windows PID (it should use
+# "wine taskkill /f /pid $pid" instead).  As this requires
+# some work, skip it for now.
+if is_windows; then
+    echo "$0: this test needs to be revised to work on Windows"
+    exit 77
+fi
 
+requires nbdsh -c 'exit(not h.supports_tls())'
 
 # Does the nbdkit binary support TLS?
 if ! nbdkit --dump-config | grep -sq tls=yes; then
