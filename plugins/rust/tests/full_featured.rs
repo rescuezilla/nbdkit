@@ -46,6 +46,7 @@ static mut PLUGIN: Option<*const Plugin> = None;
 static INIT: Once = Once::new();
 
 plugin!(MockServer{
+    after_fork,
     cache,
     can_cache,
     can_extents,
@@ -536,6 +537,44 @@ mod get_ready {
 
         let get_ready = plugin.get_ready.as_ref().unwrap();
         assert_eq!( 0, get_ready());
+    }
+}
+
+mod after_fork {
+    use super::*;
+
+    #[test]
+    fn einval() {
+        initialize();
+        let _m = MOCK_SERVER_MTX.lock().unwrap();
+
+        let after_fork_ctx = MockServer::after_fork_context();
+        after_fork_ctx.expect()
+            .returning(|| Err(Error::new(libc::EINVAL, "foo is required")));
+
+        let pluginp = unsafe { PLUGIN.unwrap()};
+        let plugin = unsafe {&*pluginp};
+
+        let after_fork = plugin.after_fork.as_ref().unwrap();
+        assert_eq!( -1, after_fork());
+        ERRNO.with(|e| assert_eq!(libc::EINVAL, *e.borrow()));
+        ERRMSG.with(|e| assert_eq!("foo is required", *e.borrow()));
+    }
+
+    #[test]
+    fn ok() {
+        initialize();
+        let _m = MOCK_SERVER_MTX.lock().unwrap();
+
+        let after_fork_ctx = MockServer::after_fork_context();
+        after_fork_ctx.expect()
+            .returning(|| Ok(()));
+
+        let pluginp = unsafe { PLUGIN.unwrap()};
+        let plugin = unsafe {&*pluginp};
+
+        let after_fork = plugin.after_fork.as_ref().unwrap();
+        assert_eq!( 0, after_fork());
     }
 }
 

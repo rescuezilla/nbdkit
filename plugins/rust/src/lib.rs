@@ -143,6 +143,7 @@ mod unreachable {
     pub(super) fn thread_model() -> Result<ThreadModel> { unreachable!() }
 }
 
+static mut AFTER_FORK: fn() -> Result<()> = unreachable::config_complete;
 static mut CONFIG: fn(k: &str, v: &str) -> Result<()> = unreachable::config;
 static mut CONFIG_COMPLETE: fn() -> Result<()> = unreachable::config_complete;
 static mut CONFIG_HELP: Vec<u8> = Vec::new();
@@ -314,6 +315,16 @@ impl ExtentHandle {
 /// All the FFI functions called by C code
 mod ffi {
     use super::*;
+
+    pub(super) extern fn after_fork() -> c_int {
+        match unsafe { AFTER_FORK() } {
+            Ok(()) => 0,
+            Err(e) => {
+                set_error(e);
+                -1
+            }
+        }
+    }
 
     macro_rules! can_method {
         ( $meth:ident ) => {
@@ -584,6 +595,12 @@ mod ffi {
 // We want the argument names to show up without underscores in the API docs
 #[allow(unused_variables)]
 pub trait Server {
+    /// This optional callback is called before the server starts serving.
+    ///
+    /// It is called after the server forks and changes directory. If
+    /// a plugin needs to create background threads it should do so here.
+    fn after_fork() -> Result<()> where Self: Sized { unimplemented!() }
+
     /// Indicates that the client intends to make further accesses to the given
     /// data region.
     ///
@@ -900,6 +917,7 @@ macro_rules! opt_method {
 #[doc(hidden)]
 #[derive(Default)]
 pub struct Builder {
+    pub after_fork: bool,
     pub cache: bool,
     pub can_cache: bool,
     pub can_extents: bool,
@@ -938,6 +956,7 @@ impl Builder {
                 CONFIG_COMPLETE = S::config_complete;
                 DUMP_PLUGIN = S::dump_plugin;
                 GET_READY = S::get_ready;
+                AFTER_FORK = S::after_fork;
                 LOAD = S::load;
                 OPEN = S::open;
                 PRECONNECT = S::preconnect;
@@ -1021,7 +1040,8 @@ impl Builder {
             thread_model: opt_method!(self, thread_model),
             can_fast_zero: opt_method!(self, can_fast_zero),
             preconnect: opt_method!(self, preconnect),
-            get_ready: opt_method!(self, get_ready)
+            get_ready: opt_method!(self, get_ready),
+            after_fork: opt_method!(self, after_fork)
         };
         // Leak the memory to C.  NBDKit will never give it back.
         Box::into_raw(Box::new(plugin))
@@ -1191,6 +1211,7 @@ pub struct Plugin {
     pub can_fast_zero: Option<extern fn (h: *mut c_void) -> c_int>,
     pub preconnect: Option<extern fn(readonly: c_int) -> c_int>,
     pub get_ready: Option<extern fn() -> c_int>,
+    pub after_fork: Option<extern fn() -> c_int>,
 }
 
 /// Register your plugin with NBDKit.
