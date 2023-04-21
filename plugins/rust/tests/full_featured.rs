@@ -112,7 +112,7 @@ fn with_fixture<F: FnMut(&mut Fixture)>(mut f: F) {
     let mockp = (&mut mock) as *mut Box<MockServer>;
     let open_ctx = MockServer::open_context();
     open_ctx.expect()
-        .return_once(|_| mock);
+        .return_once(|_| Ok(mock));
 
     let pluginp = unsafe { PLUGIN.unwrap()};
     let plugin = unsafe {&*pluginp};

@@ -76,7 +76,7 @@ mock!{
         fn longname() -> Option<&'static str> where Self: Sized;
         fn magic_config_key() -> Option<&'static str> where Self: Sized;
         fn name() -> &'static str where Self: Sized;
-        fn open(readonly: bool) -> Box<dyn Server> where Self: Sized;
+        fn open(readonly: bool) -> Result<Box<dyn Server>> where Self: Sized;
         fn preconnect(readonly: bool) -> Result<()> where Self: Sized;
         fn read_at(&self, buf: &mut [u8], offset: u64) -> Result<()>;
         fn thread_model() -> Result<ThreadModel> where Self: Sized;
