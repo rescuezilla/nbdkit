@@ -52,8 +52,8 @@
 //!         "my_plugin"
 //!     }
 //!
-//!     fn open(_readonly: bool) -> Box<dyn Server> {
-//!         Box::new(MyPlugin::default())
+//!     fn open(_readonly: bool) -> Result<Box<dyn Server>> {
+//!         Ok(Box::new(MyPlugin::default()))
 //!     }
 //!
 //!     fn read_at(&self, buf: &mut [u8], offset: u64) -> Result<()> {
@@ -138,7 +138,7 @@ mod unreachable {
     pub(super) fn config(_k: &str, _v: &str) -> Result<()> { unreachable!() }
     pub(super) fn config_complete() -> Result<()> { unreachable!() }
     pub(super) fn dump_plugin() { unreachable!() }
-    pub(super) fn open(_: bool) -> Box<dyn Server> { unreachable!() }
+    pub(super) fn open(_: bool) -> Result<Box<dyn Server>> { unreachable!() }
     pub(super) fn preconnect(_: bool) -> Result<()> { unreachable!() }
     pub(super) fn thread_model() -> Result<ThreadModel> { unreachable!() }
 }
@@ -154,7 +154,7 @@ static mut LOAD: fn() = unreachable::dump_plugin;
 static mut LONGNAME: Vec<u8> = Vec::new();
 static mut MAGIC_CONFIG_KEY: Vec<u8> = Vec::new();
 static mut NAME: Vec<u8> = Vec::new();
-static mut OPEN: fn(readonly: bool) -> Box<dyn Server> = unreachable::open;
+static mut OPEN: fn(readonly: bool) -> Result<Box<dyn Server>> = unreachable::open;
 static mut PRECONNECT: fn(readonly: bool) -> Result<()> = unreachable::preconnect;
 static mut THREAD_MODEL: fn() -> Result<ThreadModel> = unreachable::thread_model;
 static mut UNLOAD: fn() = unreachable::dump_plugin;
@@ -504,9 +504,15 @@ mod ffi {
     pub(super) extern fn open(readonly: c_int) -> *mut c_void {
         // We need to double-box to turn the trait object (fat pointer) into a
         // thin pointer
-        let server = Box::new(unsafe{OPEN(readonly != 0)});
-        // Leak the memory to C.  We'll get it back in close
-        Box::into_raw(server) as *mut c_void
+        match unsafe { OPEN(readonly != 0) } {
+            Ok(server) =>
+                // Leak the memory to C.  We'll get it back in close
+                Box::into_raw(Box::new(server)) as *mut c_void,
+            Err(e) => {
+                set_error(e);
+                ptr::null_mut()
+            }
+        }
     }
 
     pub(super) extern fn pread(h: *mut c_void,
@@ -818,7 +824,7 @@ pub trait Server {
     /// this flag is false) by returning false from the [`Server::can_write`]
     /// callback.  So if your plugin can only serve read-only, you can ignore
     /// this parameter.
-    fn open(readonly: bool) -> Box<dyn Server> where Self: Sized;
+    fn open(readonly: bool) -> Result<Box<dyn Server>> where Self: Sized;
 
     /// This optional callback is called when a TCP connection has been made to
     /// the server. This happens early, before NBD or TLS negotiation. If TLS
@@ -1235,7 +1241,7 @@ pub struct Plugin {
 ///         "my_plugin"
 ///     }
 ///
-///     fn open(_readonly: bool) -> Box<dyn Server> {
+///     fn open(_readonly: bool) -> Result<Box<dyn Server>> {
 ///         # unimplemented!();
 ///         // ...
 ///     }
