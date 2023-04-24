@@ -1065,6 +1065,8 @@ impl Builder {
 extern "C" {
     fn nbdkit_add_extent(extents: *mut c_void, offset: u64, length: u64,
                          ty: u32) -> c_int;
+    #[doc(hidden)]
+    pub fn nbdkit_debug(fmt: *const c_char, ...);
     fn nbdkit_error(fmt: *const c_char, ...);
     fn nbdkit_export_name() -> *const c_char;
     fn nbdkit_set_error(errno: c_int);
@@ -1074,6 +1076,28 @@ extern "C" {
     fn nbdkit_shutdown();
     fn nbdkit_disconnect(force: bool);
     fn nbdkit_stdio_safe() -> c_int;
+}
+
+/// Print a debug message.
+///
+/// Debug messages are only output when the server runs in verbose mode
+/// (-v flag).  They are sent to stderr if nbdkit is running in the
+/// foreground, or to syslog if nbdkit is forked into the background.
+#[macro_export]
+macro_rules! debug {
+    ($($args:tt)*) => {
+        match ::std::ffi::CString::new(format!($($args)*)) {
+            Ok(msg) =>
+                unsafe {
+                    $crate::nbdkit_debug(b"%s\0".as_ptr() as *const i8,
+                                         msg.as_ptr());
+                },
+            Err(_) =>
+                // probably the string contained \0, ignore as it
+                // is only a debug message
+                ()
+        }
+    }
 }
 
 /// Return the optional NBD export name if one was negotiated with the current

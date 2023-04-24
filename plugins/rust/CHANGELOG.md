@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased] - ReleaseDate
 ### Changed
 
+- The C function `nbdkit_debug` is now available (as `nbdkit::debug!`).
+  (#[24](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/24))
+
 - The `open` method must now return a `Result<>`.  Existing plugins
   should be modified to use `Ok()` around the return value.
   (#[23](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/23))
