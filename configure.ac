@@ -1470,6 +1470,7 @@ AC_CONFIG_FILES([Makefile
                  common/replacements/Makefile
                  common/replacements/win32/Makefile
                  common/utils/Makefile
+                 contrib/Makefile
                  docs/Makefile
                  include/Makefile
                  include/nbdkit-version.h

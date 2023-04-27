@@ -84,6 +84,7 @@ SUBDIRS = \
 	common/replacements \
 	common/utils \
 	server \
+	contrib
 	$(NULL)
 
 if HAVE_PLUGINS

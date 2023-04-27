@@ -66,6 +66,7 @@ plugins/*/*.3
 /config.status
 /config.sub
 /configure
+/contrib/sparseloadtest
 /depcomp
 /docs/filter-links.pod
 /docs/lang-plugin-links.pod
