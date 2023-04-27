@@ -129,11 +129,20 @@ DEFINE_VECTOR_TYPE (l1_dir, struct l1_entry);
 struct sparse_array {
   struct allocator a;           /* Must come first. */
 
-  /* This lock is highly contended.  When hammering the memory plugin
-   * with 8 fio threads, about 30% of the total system time was taken
-   * just waiting for this lock.  Fixing this is quite hard.
+  /* The shared (read) lock must be held if you just want to access
+   * the data without modifying any of the L1/L2 metadata or
+   * allocating or freeing any page.
+   *
+   * To modify the L1/L2 metadata including allocating or freeing any
+   * page you must hold the exclusive (write) lock.
+   *
+   * Because POSIX rwlocks are not upgradable this presents a problem.
+   * We solve it below by speculatively performing the request while
+   * holding the shared lock, but if we run into an operation that
+   * needs to update the metadata, we restart the entire request
+   * holding the exclusive lock.
    */
-  pthread_mutex_t lock;
+  pthread_rwlock_t lock;
   l1_dir l1_dir;                /* L1 directory. */
 };
 
@@ -158,7 +167,7 @@ sparse_array_free (struct allocator *a)
     for (i = 0; i < sa->l1_dir.len; ++i)
       free_l2_dir (sa->l1_dir.ptr[i].l2_dir);
     free (sa->l1_dir.ptr);
-    pthread_mutex_destroy (&sa->lock);
+    pthread_rwlock_destroy (&sa->lock);
     free (sa);
   }
 }
@@ -305,7 +314,10 @@ sparse_array_read (struct allocator *a,
                    void *buf, uint64_t count, uint64_t offset)
 {
   struct sparse_array *sa = (struct sparse_array *) a;
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&sa->lock);
+  /* Because reads never modify any metadata, it is always safe to
+   * only hold the shared (read) lock.
+   */
+  ACQUIRE_RDLOCK_FOR_CURRENT_SCOPE (&sa->lock);
   uint64_t n;
   void *p;
 
@@ -327,19 +339,27 @@ sparse_array_read (struct allocator *a,
   return 0;
 }
 
+#define RESTART_EXCLUSIVE -2
+
 static int
-sparse_array_write (struct allocator *a,
-                    const void *buf, uint64_t count, uint64_t offset)
+do_write (bool exclusive, struct sparse_array *sa,
+          const void *buf, uint64_t count, uint64_t offset)
 {
-  struct sparse_array *sa = (struct sparse_array *) a;
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&sa->lock);
   uint64_t n;
   void *p;
 
   while (count > 0) {
-    p = lookup (sa, offset, true, &n, NULL);
-    if (p == NULL)
-      return -1;
+    if (!exclusive) {
+      /* If we only hold the shared lock, try it without allocating. */
+      p = lookup (sa, offset, false, &n, NULL);
+      if (p == NULL)
+        return RESTART_EXCLUSIVE;
+    }
+    else {
+      p = lookup (sa, offset, true, &n, NULL);
+      if (p == NULL)
+        return -1;
+    }
 
     if (n > count)
       n = count;
@@ -351,6 +371,28 @@ sparse_array_write (struct allocator *a,
   }
 
   return 0;
+}
+
+static int
+sparse_array_write (struct allocator *a,
+                    const void *buf, uint64_t count, uint64_t offset)
+{
+  struct sparse_array *sa = (struct sparse_array *) a;
+  int r;
+
+  /* First try the write with the shared (read) lock held. */
+  {
+    ACQUIRE_RDLOCK_FOR_CURRENT_SCOPE (&sa->lock);
+    r = do_write (false, sa, buf, count, offset);
+  }
+
+  /* If that failed because we need the exclusive lock, restart. */
+  if (r == RESTART_EXCLUSIVE) {
+    ACQUIRE_WRLOCK_FOR_CURRENT_SCOPE (&sa->lock);
+    r = do_write (true, sa, buf, count, offset);
+  }
+
+  return r;
 }
 
 static int sparse_array_zero (struct allocator *a,
@@ -367,7 +409,8 @@ sparse_array_fill (struct allocator *a, char c,
   if (c == 0)
     return sparse_array_zero (a, count, offset);
 
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&sa->lock);
+  /* Since fill is never called on a hot path, use the exclusive lock. */
+  ACQUIRE_WRLOCK_FOR_CURRENT_SCOPE (&sa->lock);
 
   while (count > 0) {
     p = lookup (sa, offset, true, &n, NULL);
@@ -386,10 +429,9 @@ sparse_array_fill (struct allocator *a, char c,
 }
 
 static int
-sparse_array_zero (struct allocator *a, uint64_t count, uint64_t offset)
+do_zero (bool exclusive, struct sparse_array *sa,
+         uint64_t count, uint64_t offset)
 {
-  struct sparse_array *sa = (struct sparse_array *) a;
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&sa->lock);
   uint64_t n;
   void *p;
   struct l2_entry *l2_entry;
@@ -407,6 +449,9 @@ sparse_array_zero (struct allocator *a, uint64_t count, uint64_t offset)
 
       /* If the whole page is now zero, free it. */
       if (n >= PAGE_SIZE || is_zero (l2_entry->page, PAGE_SIZE)) {
+        if (!exclusive)
+          return RESTART_EXCLUSIVE;
+
         if (sa->a.debug)
           nbdkit_debug ("%s: freeing zero page at offset %" PRIu64,
                         __func__, offset);
@@ -423,13 +468,35 @@ sparse_array_zero (struct allocator *a, uint64_t count, uint64_t offset)
 }
 
 static int
+sparse_array_zero (struct allocator *a, uint64_t count, uint64_t offset)
+{
+  struct sparse_array *sa = (struct sparse_array *) a;
+  int r;
+
+  /* First try the zero with the shared (read) lock held. */
+  {
+    ACQUIRE_RDLOCK_FOR_CURRENT_SCOPE (&sa->lock);
+    r = do_zero (false, sa, count, offset);
+  }
+
+  /* If that failed because we need the exclusive lock, restart. */
+  if (r == RESTART_EXCLUSIVE) {
+    ACQUIRE_WRLOCK_FOR_CURRENT_SCOPE (&sa->lock);
+    r = do_zero (true, sa, count, offset);
+  }
+
+  return r;
+}
+
+static int
 sparse_array_blit (struct allocator *a1,
                    struct allocator *a2,
                    uint64_t count,
                    uint64_t offset1, uint64_t offset2)
 {
   struct sparse_array *sa2 = (struct sparse_array *) a2;
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&sa2->lock);
+  /* Since blit is never called on a hot path, use the exclusive lock. */
+  ACQUIRE_WRLOCK_FOR_CURRENT_SCOPE (&sa2->lock);
   uint64_t n;
   void *p;
   struct l2_entry *l2_entry;
@@ -474,7 +541,10 @@ sparse_array_extents (struct allocator *a,
                       struct nbdkit_extents *extents)
 {
   struct sparse_array *sa = (struct sparse_array *) a;
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&sa->lock);
+  /* Reading extents never modifies any metadata, so it is always safe
+   * to only hold the shared (read) lock.
+   */
+  ACQUIRE_RDLOCK_FOR_CURRENT_SCOPE (&sa->lock);
   uint64_t n;
   uint32_t type;
   void *p;
@@ -523,7 +593,7 @@ sparse_array_create (const void *paramsv)
     nbdkit_error ("calloc: %m");
     return NULL;
   }
-  pthread_mutex_init (&sa->lock, NULL);
+  pthread_rwlock_init (&sa->lock, NULL);
 
   return (struct allocator *) sa;
 }
