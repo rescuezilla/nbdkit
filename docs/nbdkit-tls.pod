@@ -203,7 +203,7 @@ omit it.
 
 =head2 TLS with Pre-Shared Keys (PSK)
 
-As a simpler alternative to TLS certificates, you may used pre-shared
+As a simpler alternative to TLS certificates, you may use pre-shared
 keys to authenticate clients.
 
 Create a PSK file containing one or more C<username:key> pairs.  It is
@@ -262,9 +262,9 @@ required).  To ensure that all clients are authorized you must use
 I<--tls=require>.
 
 Each of these defaults is insecure to some extent (including
-I<--tls=on> which could be subject to a downgrade attack), so if you
-expect TLS then it is best to specify the I<--tls> option that you
-require, and if you want to check client certificates, specify the
+I<--tls=on> which could be subject to a downgrade attack).  If you
+expect TLS then it is best to specify I<--tls=require>, and if you
+want to check client certificates, additionally use the
 I<--tls-verify-peer> option.
 
 =head2 Controlling TLS fallback to plaintext
