@@ -210,6 +210,22 @@ dump_config (void)
 #endif
 }
 
+/* -D nbdkit.environ=1 to dump the environment at start up. */
+NBDKIT_DLL_PUBLIC int nbdkit_debug_environ;
+
+#ifndef HAVE_ENVIRON_DECL
+extern char **environ;
+#endif
+
+static void
+dump_environment (void)
+{
+  size_t i;
+
+  for (i = 0; environ[i]; ++i)
+    nbdkit_debug ("%s", environ[i]);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -661,6 +677,12 @@ main (int argc, char *argv[])
 
   /* Check all debug flags were used, and free them. */
   free_debug_flags ();
+
+  /* Dump the environment if asked.  This is the earliest we can do it
+   * because it uses a debug flag.
+   */
+  if (nbdkit_debug_environ && verbose)
+    dump_environment ();
 
   if (help) {
     struct backend *b;

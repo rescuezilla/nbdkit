@@ -619,6 +619,14 @@ are numerous and not usually very interesting.
 S<I<-D nbdkit.backend.controlpath=0>> suppresses the non-datapath
 commands (config, open, close, can_write, etc.)
 
+=item B<-D nbdkit.environ=1>
+
+Print nbdkit's environment variables in the debug output at start up.
+This is insecure because environment variables may contain both
+sensitive and user-controlled information, so it should not be used
+routinely.  But it is useful for tracking down problems related to
+environment variables.
+
 =item B<-D nbdkit.tls.log=>N
 
 Enable TLS logging.  C<N> can be in the range 0 (no logging) to 99.

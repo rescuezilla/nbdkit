@@ -48,3 +48,8 @@ if nbdkit --verbose null --run true 2>/dev/null | grep 'debug: '; then
     echo "ERROR: debug statements were printed on stdout instead of stderr"
     exit 1
 fi
+
+# Test -D nbdkit.environ=1 to dump the environment.
+nbdkit_sentinel=42 \
+    nbdkit --verbose -D nbdkit.environ=1 null --run true 2>&1 |
+    grep 'debug: nbdkit_sentinel=42'
