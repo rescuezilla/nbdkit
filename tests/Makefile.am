@@ -234,7 +234,6 @@ TESTS += \
 	test-dump-plugin-name.sh \
 	test-dump-plugin-and-single.sh \
 	test-dump-plugin-thread-model.sh \
-	test-ddrescue-filter.sh \
 	test-probe-filter.sh \
 	test-probe-plugin.sh \
 	test-start.sh \
@@ -273,7 +272,6 @@ endif
 EXTRA_DIST += \
 	test-captive.sh \
 	test-captive-tls.sh \
-	test-ddrescue-filter.sh \
 	test-debug-flags.sh \
 	test-dump-plugin-and-single.sh \
 	test-dump-plugin-example1.sh \
@@ -1558,6 +1556,10 @@ EXTRA_DIST += \
 	test-cow-on-read-caches.sh \
 	test-cow-unaligned.sh \
 	$(NULL)
+
+# ddrescue filter tests.
+TESTS += test-ddrescue-filter.sh
+EXTRA_DIST += test-ddrescue-filter.sh
 
 # delay filter tests.
 TESTS += \
