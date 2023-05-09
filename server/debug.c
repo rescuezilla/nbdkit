@@ -70,7 +70,11 @@ static void
 debug_common (bool in_server, const char *fs, va_list args)
 {
   int err = errno;
-  int tty;
+#ifndef WIN32
+  const int tty = isatty (fileno (stderr));
+#else
+  const int tty = 0;
+#endif
   CLEANUP_FREE char *str = NULL;
   size_t len = 0;
   FILE *fp;
@@ -88,7 +92,6 @@ debug_common (bool in_server, const char *fs, va_list args)
     return;
   }
 
-  tty = isatty (fileno (stderr));
   if (!in_server && tty) ansi_force_colour (ANSI_FG_BOLD_BLACK, fp);
 
   prologue (fp);
