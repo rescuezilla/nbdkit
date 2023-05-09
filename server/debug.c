@@ -83,32 +83,36 @@ debug_common (bool in_server, const char *fs, va_list args)
   FILE *fp;
 
   fp = open_memstream (&str, &len);
-  if (fp == NULL) {
-  fail:
-    /* Try to emit what we can. */
-    errno = err;
-    vfprintf (stderr, fs, args);
-    fprintf (stderr, "\n");
-    return;
-  }
+  if (fp == NULL)
+    goto fail;
 
   if (!in_server && tty) ansi_force_colour (ANSI_FG_BOLD_BLACK, fp);
 
   prologue (fp);
 
-  errno = err;
+  errno = err; /* so %m works */
   vfprintf (fp, fs, args);
 
   if (!in_server && tty) ansi_force_restore (fp);
   fprintf (fp, "\n");
-  close_memstream (fp);
-
-  if (str)
-    fputs (str, stderr);
-  else
+  if (close_memstream (fp) == -1)
     goto fail;
 
-  errno = err;
+  if (!str)
+    goto fail;
+
+  /* Send it to stderr as atomically as possible. */
+  fputs (str, stderr);
+
+  errno = err; /* restore original value before return */
+  return;
+
+ fail:
+  /* Try to emit what we can. */
+  errno = err; /* so %m works */
+  vfprintf (stderr, fs, args);
+  fprintf (stderr, "\n");
+  errno = err; /* restore original value before return */
 }
 
 /* Note: preserves the previous value of errno. */
