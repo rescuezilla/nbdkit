@@ -37,6 +37,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "ascii-ctype.h"
+#include "hexdigit.h"
+
 /* Print str to fp, shell quoting if necessary.  This comes from
  * libguestfs, but was written by me so I'm relicensing it to a BSD
  * license for nbdkit.
@@ -96,5 +99,40 @@ uri_quote (const char *str, FILE *fp)
       fputc (str[i], fp);
     else
       fprintf (fp, "%%%02X", str[i] & 0xff);
+  }
+}
+
+/* Print str to fp, quoting in a way similar to C strings, for example
+ * '\n' -> "\n".
+ *
+ * Note that we do not emit quotes around the string, and double
+ * quotes within the string are not escaped.
+ */
+void
+c_string_quote (const char *str, FILE *fp)
+{
+  size_t i;
+  char c;
+
+  for (i = 0; c = str[i], c != '\0'; ++i) {
+    switch (c) {
+    case '\\': fputc ('\\', fp); fputc ('\\', fp); break;
+    case '\a': fputc ('\\', fp); fputc ('a', fp); break;
+    case '\b': fputc ('\\', fp); fputc ('b', fp); break;
+    case '\f': fputc ('\\', fp); fputc ('f', fp); break;
+    case '\n': fputc ('\\', fp); fputc ('n', fp); break;
+    case '\r': fputc ('\\', fp); fputc ('r', fp); break;
+    case '\t': fputc ('\\', fp); fputc ('t', fp); break;
+    case '\v': fputc ('\\', fp); fputc ('v', fp); break;
+    default:
+      if (ascii_isprint (c))
+        fputc (c, fp);
+      else {
+        fputc ('\\', fp);
+        fputc ('x', fp);
+        fputc (hexchar (c >> 4), fp);
+        fputc (hexchar (c), fp);
+      }
+    }
   }
 }
