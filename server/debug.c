@@ -69,6 +69,9 @@ prologue (FILE *fp)
 static void
 debug_common (bool in_server, const char *fs, va_list args)
 {
+  if (!verbose)
+    return;
+
   int err = errno;
 #ifndef WIN32
   const int tty = isatty (fileno (stderr));
@@ -78,9 +81,6 @@ debug_common (bool in_server, const char *fs, va_list args)
   CLEANUP_FREE char *str = NULL;
   size_t len = 0;
   FILE *fp;
-
-  if (!verbose)
-    return;
 
   fp = open_memstream (&str, &len);
   if (fp == NULL) {
