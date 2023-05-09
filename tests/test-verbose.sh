@@ -53,3 +53,9 @@ fi
 nbdkit_sentinel=42 \
     nbdkit --verbose -D nbdkit.environ=1 null --run true 2>&1 |
     grep 'debug: nbdkit_sentinel=42'
+
+# Test escaping of debug strings, conveniently testable using bash $''
+# escaping and -D nbdkit.environ=1
+nbdkit_special=$'\a\b\t\n' \
+    nbdkit --verbose -D nbdkit.environ=1 null --run true 2>&1 |
+    grep 'debug: nbdkit_special=\\a\\b\\t\\n'

@@ -109,8 +109,8 @@ do_test '(((1 1 1) 1)) (1 1 1 1)' 'fill(1*8)'
 do_test '(((2 2 2) 2)) (1 1 1 1)' '( fill(2*4) fill(1*4) )'
 do_test '(((2 2 2) 2)) (1 1 1 1 3)' '( fill(2*4) fill(1*4) 3 )'
 # XXX could optimize these better:
-do_test '(((2 2 2) 2)) (1 1 1 (1 3))' '( fill(2*4) fill(1*3) "\x01\x03" )'
-do_test '(((2 2 2) 2)) (3 1 1 1 1)' '( fill(2*4) "\x03\x01\x01\x01\x01" )'
+do_test '(((2 2 2) 2)) (1 1 1 (1 3))' '( fill(2*4) fill(1*3) "\\x01\\x03" )'
+do_test '(((2 2 2) 2)) (3 1 1 1 1)' '( fill(2*4) "\\x03\\x01\\x01\\x01\\x01" )'
 
 # Zero repeats become null.
 do_test '(1 2 3)*0' 'null'
