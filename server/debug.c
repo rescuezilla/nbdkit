@@ -42,6 +42,7 @@
 
 #include "ansi-colours.h"
 #include "open_memstream.h"
+#include "utils.h"
 
 #include "internal.h"
 
@@ -78,31 +79,39 @@ debug_common (bool in_server, const char *fs, va_list args)
 #else
   const int tty = 0;
 #endif
-  CLEANUP_FREE char *str = NULL;
-  size_t len = 0;
-  FILE *fp;
+  CLEANUP_FREE char *str_inner = NULL;
+  CLEANUP_FREE char *str_outer = NULL;
+  FILE *fp_inner, *fp_outer;
+  size_t len_inner = 0, len_outer = 0;
 
-  fp = open_memstream (&str, &len);
-  if (fp == NULL)
+  /* The "inner" string is the debug string before escaping. */
+  fp_inner = open_memstream (&str_inner, &len_inner);
+  if (fp_inner == NULL)
     goto fail;
-
-  if (!in_server && tty) ansi_force_colour (ANSI_FG_BOLD_BLACK, fp);
-
-  prologue (fp);
-
   errno = err; /* so %m works */
-  vfprintf (fp, fs, args);
-
-  if (!in_server && tty) ansi_force_restore (fp);
-  fprintf (fp, "\n");
-  if (close_memstream (fp) == -1)
+  vfprintf (fp_inner, fs, args);
+  if (close_memstream (fp_inner) == -1)
     goto fail;
 
-  if (!str)
+  /* The "outer" string contains the prologue, escaped debug string and \n. */
+  fp_outer = open_memstream (&str_outer, &len_outer);
+  if (fp_outer == NULL) goto fail;
+
+  if (!in_server && tty) ansi_force_colour (ANSI_FG_BOLD_BLACK, fp_outer);
+
+  prologue (fp_outer);
+  c_string_quote (str_inner, fp_outer);
+
+  if (!in_server && tty) ansi_force_restore (fp_outer);
+  fprintf (fp_outer, "\n");
+  if (close_memstream (fp_outer) == -1)
+    goto fail;
+
+  if (!str_outer)
     goto fail;
 
   /* Send it to stderr as atomically as possible. */
-  fputs (str, stderr);
+  fputs (str_outer, stderr);
 
   errno = err; /* restore original value before return */
   return;
