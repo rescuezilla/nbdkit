@@ -200,6 +200,7 @@ TESTS += \
 	test-version.sh \
 	test-short-options.sh \
 	test-long-options.sh \
+	test-verbose.sh \
 	test-manual.sh \
 	test-synopsis.sh \
 	test-dump-config.sh \
@@ -212,6 +213,7 @@ EXTRA_DIST += \
 	test-version.sh \
 	test-short-options.sh \
 	test-long-options.sh \
+	test-verbose.sh \
 	test-manual.sh \
 	test-synopsis.sh \
 	test-dump-config.sh \
