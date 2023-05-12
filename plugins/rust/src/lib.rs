@@ -1124,7 +1124,7 @@ pub fn export_name() -> std::result::Result<String, Box<dyn error::Error>> {
 /// configuration phase, the client should assume that stdin and stdout have
 /// been closed.
 pub fn is_stdio_safe() -> bool {
-    unsafe { nbdkit_stdio_safe() == 1 }
+    unsafe { nbdkit_stdio_safe() != 0 } // note: cannot return an error
 }
 
 /// Return the peer (client) address, if available.
