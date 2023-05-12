@@ -52,10 +52,13 @@ impl Server for RamDisk {
     }
 
     fn open(_readonly: bool) -> Result<Box<dyn Server>> {
-        // The following line will print the message below when
+        // The following lines will print the message below when
         // nbdkit is run with the -v flag:
-        //   nbdkit: ramdisk[1]: debug: connection opened: readonly=false
-        debug!("connection opened: readonly={}", _readonly);
+        //
+        //   nbdkit: ramdisk[1]: debug: connection opened: ...
+        let tls = is_tls().unwrap();
+        debug!("connection opened: readonly={}, tls={}", _readonly, tls);
+
         Ok(Box::<RamDisk>::default())
     }
 
