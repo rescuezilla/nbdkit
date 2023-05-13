@@ -269,6 +269,11 @@ nbdkit-exportname-filter:
   manner accepted by the sh/eval plugins, rather than one name (and no
   description) per config parameter
 
+nbdkit-evil-filter:
+
+* improve the algorithm so it can simulate bursts of corrupted bits
+  (https://listman.redhat.com/archives/libguestfs/2023-May/031567.html)
+
 Filters for security
 --------------------
 

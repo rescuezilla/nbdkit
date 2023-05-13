@@ -124,6 +124,7 @@ filters="\
         exportname \
         ext2 \
         extentlist \
+        evil \
         fua \
         gzip \
         ip \
@@ -1534,6 +1535,7 @@ AC_CONFIG_FILES([Makefile
                  filters/exportname/Makefile
                  filters/ext2/Makefile
                  filters/extentlist/Makefile
+                 filters/evil/Makefile
                  filters/fua/Makefile
                  filters/gzip/Makefile
                  filters/ip/Makefile

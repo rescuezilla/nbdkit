@@ -1598,6 +1598,24 @@ EXTRA_DIST += \
 	test-error-triggered.sh \
 	$(NULL)
 
+# evil filter test.
+TESTS += \
+	test-evil-cosmic.sh \
+	test-evil-large-p.sh \
+	test-evil-small-p.sh \
+	test-evil-stuck-high-bits.sh \
+	test-evil-stuck-low-bits.sh \
+	test-evil-stuck-wires.sh \
+	$(NULL)
+EXTRA_DIST += \
+	test-evil-cosmic.sh \
+	test-evil-large-p.sh \
+	test-evil-small-p.sh \
+	test-evil-stuck-high-bits.sh \
+	test-evil-stuck-low-bits.sh \
+	test-evil-stuck-wires.sh \
+	$(NULL)
+
 # exitlast filter test.
 TESTS += test-exitlast.sh
 EXTRA_DIST += test-exitlast.sh
