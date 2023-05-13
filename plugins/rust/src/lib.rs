@@ -1076,6 +1076,7 @@ extern "C" {
     fn nbdkit_shutdown();
     fn nbdkit_disconnect(force: bool);
     fn nbdkit_stdio_safe() -> c_int;
+    fn nbdkit_is_tls() -> c_int;
 }
 
 /// Print a debug message.
@@ -1124,7 +1125,24 @@ pub fn export_name() -> std::result::Result<String, Box<dyn error::Error>> {
 /// configuration phase, the client should assume that stdin and stdout have
 /// been closed.
 pub fn is_stdio_safe() -> bool {
-    unsafe { nbdkit_stdio_safe() == 1 }
+    unsafe { nbdkit_stdio_safe() != 0 } // note: cannot return an error
+}
+
+/// Did the client complete TLS authentication?
+///
+/// Call this from the `open` method.  It returns true if the client
+/// completed TLS authentication, or false if the connection is using
+/// plaintext.
+pub fn is_tls() -> Result<bool> {
+    let r = unsafe { nbdkit_is_tls() };
+    match r {
+        0 => Ok(false),
+        x if x > 0 => Ok(true),
+        _ =>
+            // nbdkit_error was called, so the real error was already
+            // written on stderr or sent to the logs.
+            Err(Error::new(libc::EINVAL, "nbdkit_is_tls failed"))
+    }
 }
 
 /// Return the peer (client) address, if available.
