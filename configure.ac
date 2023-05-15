@@ -95,6 +95,7 @@ non_lang_plugins="\
         nbd \
         null \
         ondemand \
+        ones \
         partitioning \
         pattern \
         random \
@@ -1500,6 +1501,7 @@ AC_CONFIG_FILES([Makefile
                  plugins/null/Makefile
                  plugins/ocaml/Makefile
                  plugins/ondemand/Makefile
+                 plugins/ones/Makefile
                  plugins/partitioning/Makefile
                  plugins/pattern/Makefile
                  plugins/perl/Makefile

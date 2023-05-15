@@ -955,6 +955,10 @@ EXTRA_DIST += \
 	test-ondemand-locking.sh \
 	$(NULL)
 
+# ones plugin test.
+TESTS += test-ones.sh
+EXTRA_DIST += test-ones.sh
+
 # partitioning plugin test.
 TESTS += \
 	test-partitioning1.sh \

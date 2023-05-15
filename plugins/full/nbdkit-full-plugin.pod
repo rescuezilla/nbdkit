@@ -65,6 +65,7 @@ L<nbdkit(1)>,
 L<nbdkit-plugin(3)>,
 L<nbdkit-error-filter(1)>,
 L<nbdkit-null-plugin(1)>,
+L<nbdkit-ones-plugin(1)>,
 L<nbdkit-pattern-plugin(1)>,
 L<nbdkit-random-plugin(1)>.
 L<nbdkit-sparse-random-plugin(1)>,
