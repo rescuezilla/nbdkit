@@ -55,8 +55,20 @@ class TestAPI(unittest.TestCase):
         with self.assertRaises(ValueError):
             nbdkit.parse_size('foo')
 
+    def test_parse_probability(self):
+        self.assertEqual(nbdkit.parse_probability('test', '1:10'), 0.1)
+        self.assertEqual(nbdkit.parse_probability('test', '100%'), 1)
+        self.assertEqual(nbdkit.parse_probability('test', '0'), 0)
+
+        with self.assertRaises(TypeError):
+            nbdkit.parse_probability('test', 17)
+
+        with self.assertRaises(ValueError):
+            nbdkit.parse_probability('test', 'bar')
+
 
 TestAPI().test_parse_size()
+TestAPI().test_parse_probability()
 
 
 def config(k, v):

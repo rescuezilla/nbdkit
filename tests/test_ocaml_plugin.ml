@@ -39,6 +39,7 @@ let sparse = Bytes.make nr_sectors '\000' (* sparseness bitmap *)
 (* Test parse_* functions. *)
 let () =
   assert (NBDKit.parse_size "1M" = Int64.of_int (1024*1024));
+  assert (NBDKit.parse_probability "test parse probability" "1:10" = 0.1);
   assert (NBDKit.parse_bool "true" = true);
   assert (NBDKit.parse_bool "0" = false)
 

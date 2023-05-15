@@ -48,6 +48,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <math.h>
 
 #ifdef HAVE_TERMIOS_H
 #include <termios.h>
@@ -419,6 +420,48 @@ nbdkit_parse_size (const char *str)
   }
 
   return size * scale;
+}
+
+NBDKIT_DLL_PUBLIC int
+nbdkit_parse_probability (const char *what, const char *str,
+                          double *retp)
+{
+  double d, d2;
+  char c;
+  int n;
+
+  if (sscanf (str, "%lg%[:/]%lg%n", &d, &c, &d2, &n) == 3 &&
+      strcmp (&str[n], "") == 0) { /* N:M or N/M */
+    if (d == 0.0 && d2 == 0.0)     /* 0/0 is OK */
+      ;
+    else if (d2 == 0)              /* N/0 is bad */
+      goto bad_parse;
+    else
+      d /= d2;
+  }
+  else if (sscanf (str, "%lg%n", &d, &n) == 1) {
+    if (strcmp (&str[n], "%") == 0) /* percentage */
+      d /= 100.0;
+    else if (strcmp (&str[n], "") == 0) /* probability */
+      ;
+    else
+      goto bad_parse;
+  }
+  else
+    goto bad_parse;
+
+  if (!isfinite (d))            /* reject NaN or inf */
+    goto bad_parse;
+  if (signbit (d))              /* reject negative numbers */
+    goto bad_parse;
+
+  if (retp)
+    *retp = d;
+  return 0;
+
+ bad_parse:
+  nbdkit_error ("%s: could not parse '%s' as a probability", what, str);
+  return -1;
 }
 
 /* Parse a string as a boolean, or return -1 after reporting the error.

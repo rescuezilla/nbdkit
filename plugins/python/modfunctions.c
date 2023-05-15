@@ -122,11 +122,32 @@ parse_size (PyObject *self, PyObject *args)
   return PyLong_FromSize_t ((size_t)size);
 }
 
+/* nbdkit.parse_probability */
+static PyObject *
+parse_probability (PyObject *self, PyObject *args)
+{
+  const char *what, *str;
+  double d;
+
+  if (!PyArg_ParseTuple (args, "ss:parse_probability", &what, &str))
+    return NULL;
+
+  if (nbdkit_parse_probability (what, str, &d) == -1) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Unable to parse string as probability");
+    return NULL;
+  }
+
+  return PyFloat_FromDouble (d);
+}
+
 static PyMethodDef NbdkitMethods[] = {
   { "debug", debug, METH_VARARGS,
     "Print a debug message" },
   { "export_name", export_name, METH_NOARGS,
     "Return the optional export name negotiated with the client" },
+  { "parse_probability", parse_probability, METH_VARARGS,
+    "Parse probability strings into floating point number" },
   { "parse_size", parse_size, METH_VARARGS,
     "Parse human-readable size strings into bytes" },
   { "set_error", set_error, METH_VARARGS,

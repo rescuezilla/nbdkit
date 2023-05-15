@@ -160,6 +160,8 @@ let register_plugin ~name
 (* Bindings to nbdkit server functions. *)
 external set_error : Unix.error -> unit = "ocaml_nbdkit_set_error" [@@noalloc]
 external parse_size : string -> int64 = "ocaml_nbdkit_parse_size"
+external parse_probability : string -> string -> float =
+  "ocaml_nbdkit_parse_probability"
 external parse_bool : string -> bool = "ocaml_nbdkit_parse_bool"
 external read_password : string -> string = "ocaml_nbdkit_read_password"
 external realpath : string -> string = "ocaml_nbdkit_realpath"

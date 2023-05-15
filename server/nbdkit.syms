@@ -67,6 +67,7 @@
     nbdkit_parse_int64_t;
     nbdkit_parse_int8_t;
     nbdkit_parse_int;
+    nbdkit_parse_probability;
     nbdkit_parse_size;
     nbdkit_parse_uint16_t;
     nbdkit_parse_uint32_t;

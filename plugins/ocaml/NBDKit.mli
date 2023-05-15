@@ -134,9 +134,9 @@ val register_plugin :
     into [EINVAL]. *)
 val set_error : Unix.error -> unit
 
-(** Bindings for [nbdkit_parse_size], [nbdkit_parse_bool] and
-    [nbdkit_read_password].  See nbdkit-plugin(3) for information
-    about these functions.
+(** Bindings for [nbdkit_parse_size], [nbdkit_parse_probability],
+    [nbdkit_parse_bool] and [nbdkit_read_password].  See
+    nbdkit-plugin(3) for information about these functions.
 
     On error these functions all raise [Invalid_argument].  The
     actual error is sent to the nbdkit error log and is not
@@ -145,10 +145,11 @@ val set_error : Unix.error -> unit
 (* Note OCaml has functions already for parsing other integers, so
  * there is no need to bind them here.  We only bind the functions
  * which have special abilities in nbdkit: [parse_size] can parse
- * human sizes, [parse_bool] parses a range of nbdkit-specific
- * boolean strings, and [read_password] suppresses echo.
+ * human sizes, [parse_probability] and [parse_bool] parses a range
+ * of nbdkit-specific strings, and [read_password] suppresses echo.
  *)
 val parse_size : string -> int64
+val parse_probability : string -> string -> float
 val parse_bool : string -> bool
 val read_password : string -> string
 

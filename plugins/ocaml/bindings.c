@@ -75,6 +75,22 @@ ocaml_nbdkit_parse_size (value strv)
 }
 
 NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_parse_probability (value whatv, value strv)
+{
+  CAMLparam2 (whatv, strv);
+  CAMLlocal1 (dv);
+  int r;
+  double d;
+
+  r = nbdkit_parse_probability (String_val (whatv), String_val (strv), &d);
+  if (r == -1)
+    caml_invalid_argument ("nbdkit_parse_probability");
+  dv = caml_copy_double (d);
+
+  CAMLreturn (dv);
+}
+
+NBDKIT_DLL_PUBLIC value
 ocaml_nbdkit_parse_bool (value strv)
 {
   CAMLparam1 (strv);

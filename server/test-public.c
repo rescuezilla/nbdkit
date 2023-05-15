@@ -201,6 +201,92 @@ test_nbdkit_parse_size (void)
 }
 
 static bool
+test_nbdkit_parse_probability (void)
+{
+  size_t i;
+  bool pass = true;
+  struct pair {
+    const char *str;
+    int result;
+    double expected;
+  } tests[] = {
+    /* Bogus strings */
+    { "", -1 },
+    { "garbage", -1 },
+    { "0garbage", -1 },
+    { "1X", -1 },
+    { "1%%", -1 },
+    { "1:", -1 },
+    { "1:1:1", -1 },
+    { "1:0", -1 }, /* format is valid but divide by zero is not allowed */
+    { "1/", -1 },
+    { "1/2/3", -1 },
+
+    /* Reject inf, NaN, negative. */
+    { "inf", -1 },
+    { "nan", -1 },
+    { "inf/nan", -1 },
+    { "nan/inf", -1 },
+    { "inf/inf", -1 },
+    { "nan/nan", -1 },
+    { "-1", -1 },
+    { "-0", -1 }, /* we reject this at the moment */
+    { "1e200/1e-200", -1 }, /* explodes larger than representable */
+    { "-1/1", -1 },
+
+    /* Numbers. */
+    { "0", 0, 0 },
+    { "1", 0, 1 },
+    { "2", 0, 2 }, /* values outside [0..1] range are allowed */
+    { "0.1", 0, 0.1 },
+    { "0.5", 0, 0.5 },
+    { "0.9", 0, 0.9 },
+    { "1.0000", 0, 1 },
+    { "1e-1", 0, 0.1 },
+    { "1e-8", 0, 1e-8 },
+
+    /* Percentages. */
+    { "0%", 0, 0 },
+    { "50%", 0, 0.5 },
+    { "100%", 0, 1 },
+    { "90.25%", 0, 0.9025 },
+
+    /* N in M */
+    { "1:1000", 0, 0.001 },
+    { "1/1000", 0, 0.001 },
+    { "2:99", 0, 2.0/99 },
+    { "2/99", 0, 2.0/99 },
+    { "0:1000000", 0, 0 },
+  };
+
+  for (i = 0; i < ARRAY_SIZE (tests); i++) {
+    int r;
+    double d;
+
+    error_flagged = false;
+    r = nbdkit_parse_probability ("test", tests[i].str, &d);
+    if (r != tests[i].result) {
+      fprintf (stderr,
+               "Wrong return value for %s, got %d, expected %d\n",
+               tests[i].str, r, tests[i].result);
+      pass = false;
+    }
+    if (r == 0 && d != tests[i].expected) {
+      fprintf (stderr,
+               "Wrong result for %s, got %g, expected %g\n",
+               tests[i].str, d, tests[i].expected);
+      pass = false;
+    }
+    if ((r == -1) != error_flagged) {
+      fprintf (stderr, "Wrong error message handling for %s\n", tests[i].str);
+      pass = false;
+    }
+  }
+
+  return pass;
+}
+
+static bool
 test_nbdkit_parse_ints (void)
 {
   bool pass = true;
@@ -503,6 +589,7 @@ main (int argc, char *argv[])
 {
   bool pass = true;
   pass &= test_nbdkit_parse_size ();
+  pass &= test_nbdkit_parse_probability ();
   pass &= test_nbdkit_parse_ints ();
   pass &= test_nbdkit_read_password ();
   /* nbdkit_absolute_path and nbdkit_nanosleep not unit-tested here, but

@@ -105,6 +105,8 @@ NBDKIT_EXTERN_DECL (void, nbdkit_vdebug,
 
 NBDKIT_EXTERN_DECL (char *, nbdkit_absolute_path, (const char *path));
 NBDKIT_EXTERN_DECL (int64_t, nbdkit_parse_size, (const char *str));
+NBDKIT_EXTERN_DECL (int, nbdkit_parse_probability,
+                    (const char *what, const char *str, double *r));
 NBDKIT_EXTERN_DECL (int, nbdkit_parse_bool, (const char *str));
 NBDKIT_EXTERN_DECL (int, nbdkit_parse_int,
                     (const char *what, const char *str, int *r));
