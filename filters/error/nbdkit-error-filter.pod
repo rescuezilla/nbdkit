@@ -6,7 +6,7 @@ nbdkit-error-filter - inject errors for testing clients
 
  nbdkit --filter=error PLUGIN
      [error=EPERM|EIO|ENOMEM|EINVAL|ENOSPC|ESHUTDOWN]
-     [error-rate=10%|0.1]
+     [error-rate=10%|0.1|1:10]
      [error-file=/tmp/inject]
      [error-pread=...] [error-pread-rate=...] [error-pread-file=...]
      [error-pwrite=...] [error-pwrite-rate=...] [error-pwrite-file=...]
@@ -66,11 +66,13 @@ This parameter is optional and the default is C<EIO>
 
 =item B<error-rate=>0..1
 
+=item B<error-rate=>NB<:>M
+
 The rate of injected errors per NBD request.  This can be expressed as
-either a percentage between C<0%> and C<100%> or as a probability
-between C<0> and C<1>.  If C<0%> or C<0> is used then no errors are
-ever injected, and if C<100%> or C<1> is used then all requests return
-errors.
+a percentage between C<0%> and C<100%>, or as a probability between
+C<0> and C<1>, or as a ratio like C<1:10>.  If C<0%> or C<0> is used
+then no errors are ever injected, and if C<100%> or C<1> is used then
+all requests return errors.
 
 This parameter is optional and the default is C<0%>.
 B<Unless you set this, the filter will do nothing.>
