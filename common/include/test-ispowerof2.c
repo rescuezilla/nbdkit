@@ -68,5 +68,23 @@ main (void)
   assert (log_2_bits (0x8000000000000000) == 63);
 #endif
 
+  /* Test next power of 2. */
+  assert (next_power_of_2 (0) == 1);
+  assert (next_power_of_2 (1) == 1);
+  assert (next_power_of_2 (3) == 4);
+  assert (next_power_of_2 (8) == 8);
+  assert (next_power_of_2 (9) == 16);
+  assert (next_power_of_2 (0xffff) == 0x10000);
+  assert (next_power_of_2 (0x10000) == 0x10000);
+  assert (next_power_of_2 (INT64_C ( 0xffffffff)) == 0x100000000);
+  assert (next_power_of_2 (INT64_C (0x100000000)) == 0x100000000);
+  assert (next_power_of_2 (INT64_C (0x200000001)) == 0x400000000);
+  assert (next_power_of_2 (INT64_C (0x6ffffffff)) == 0x800000000);
+  assert (next_power_of_2 (INT64_C (0x700000001)) == 0x800000000);
+  assert (next_power_of_2 (INT64_C (0x800000000)) == 0x800000000);
+  assert (next_power_of_2 (UINT64_C (0x8000000000000000)) ==
+          UINT64_C (0x8000000000000000));
+  assert (next_power_of_2 (-1) == (uint64_t)-1);
+
   exit (EXIT_SUCCESS);
 }

@@ -59,4 +59,24 @@ log_2_bits (unsigned long v)
   return SIZEOF_LONG*8 - __builtin_clzl (v) - 1;
 }
 
+/* Round up to next power of 2.
+ * https://jameshfisher.com/2018/03/30/round-up-power-2/
+ *
+ * Note:
+ * 0x8000000000000000ULL => returns itself
+ * >= 0x8000000000000001ULL (negative) => returns ((uint64_t)-1) (error)
+ */
+static inline uint64_t
+next_power_of_2 (int64_t x)
+{
+  if ((uint64_t) x == UINT64_C (0x8000000000000000))
+    return UINT64_C (0x8000000000000000);
+  else if (x < 0)
+    return (uint64_t) -1;
+  else if (x <= 1)
+    return 1;
+  else
+    return UINT64_C (1) << (64 - __builtin_clzll (x-1));
+}
+
 #endif /* NBDKIT_ISPOWEROF2_H */
