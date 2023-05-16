@@ -49,14 +49,16 @@ is_power_of_2 (unsigned long v)
 /* Calculate log2(v) which is the size of the equivalent bit shift
  * for a power of 2.  For example log_2_bits (512) == 9.
  *
- * Note this is undefined for v == 0.
+ * Note:
+ * - the input must be a power of 2
+ * - this is undefined for v == 0
  *
  * __builtin_clzl is available in GCC and clang.
  */
 static inline int
-log_2_bits (unsigned long v)
+log_2_bits (uint64_t v)
 {
-  return SIZEOF_LONG*8 - __builtin_clzl (v) - 1;
+  return 64 - __builtin_clzll (v) - 1;
 }
 
 /* Round up to next power of 2.

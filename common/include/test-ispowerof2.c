@@ -63,10 +63,8 @@ main (void)
   assert (log_2_bits (512) == 9);
   assert (log_2_bits (4096) == 12);
   assert (log_2_bits (0x80000000) == 31);
-#if SIZEOF_LONG == 8
-  assert (log_2_bits (0x100000000) == 32);
-  assert (log_2_bits (0x8000000000000000) == 63);
-#endif
+  assert (log_2_bits (UINT64_C (0x100000000)) == 32);
+  assert (log_2_bits (UINT64_C (0x8000000000000000)) == 63);
 
   /* Test next power of 2. */
   assert (next_power_of_2 (0) == 1);
