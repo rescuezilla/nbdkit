@@ -29,8 +29,6 @@ errno = "0.2.5"
 lazy_static = "1.2.0"
 memoffset = "0.6.3"
 mockall = "0.11.0"
-predicates-core = "=1.0.5"
-predicates-tree = "=1.0.7"
 
 [[example]]
 name = "ramdisk"
