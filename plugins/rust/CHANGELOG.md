@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased] - ReleaseDate
 ### Changed
 
+- The C function `nbdkit_is_tls` is now bound as `nbdkit::is_tls`.
+  (#[25](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/25))
+
 - The C function `nbdkit_debug` is now available (as `nbdkit::debug!`).
   (#[24](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/24))
 
