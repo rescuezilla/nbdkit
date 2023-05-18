@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased] - ReleaseDate
 ### Added
 
+- The C function `nbdkit_parse_probability` is now available as
+  `nbdkit::parse_probability`.
+  ([540b936f](https://gitlab.com/nbdkit/nbdkit/-/commit/540b936fc019b80ca53bd1ab66974f9b15fa4aae))
+
 - The C functions `nbdkit_parse_bool` and `nbdkit_parse_size`
   are now available as `nbdkit::parse_bool` and `nbdkit::parse_size`.
   (#[29](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/29))
