@@ -32,6 +32,7 @@
 include $(top_srcdir)/common-rules.mk
 
 EXTRA_DIST = \
+	Cargo.lock.msrv \
 	Cargo.toml \
 	CHANGELOG.md \
 	examples/ramdisk.rs \
