@@ -1186,6 +1186,10 @@ pub fn disconnect(force: bool) {
 }
 
 /// Parse a string as a boolean using `nbdkit_parse_bool`.
+///
+/// This parses boolean strings like `true`, `no`, etc in the same way as
+/// other (non Rust) nbdkit plugins, so you can use this function for
+/// consistency with other plugins.
 pub fn parse_bool(s: &str) -> Result<bool> {
     let cs = CString::new(s).unwrap();
     let r = unsafe { nbdkit_parse_bool(cs.as_ptr()) };
@@ -1200,6 +1204,10 @@ pub fn parse_bool(s: &str) -> Result<bool> {
 }
 
 /// Parse a string as a size using `nbdkit_parse_size`.
+///
+/// This parses size strings like `1M`, `7E`, etc in the same way as
+/// other (non Rust) nbdkit plugins, so you can use this function for
+/// consistency with other plugins.
 pub fn parse_size(s: &str) -> Result<i64> {
     let cs = CString::new(s).unwrap();
     let r = unsafe { nbdkit_parse_size(cs.as_ptr()) };
@@ -1214,6 +1222,8 @@ pub fn parse_size(s: &str) -> Result<i64> {
 
 /// Parse a string as a probability/percentage using
 /// `nbdkit_parse_probability`.
+///
+/// This parses probabilities like `0.1`, `1e-1`, `10%`, `1:10`, `1/10`.
 pub fn parse_probability(what: &str, s: &str) -> Result<f64> {
     let ws = CString::new(what).unwrap();
     let cs = CString::new(s).unwrap();
