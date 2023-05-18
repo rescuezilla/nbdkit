@@ -1077,6 +1077,8 @@ extern "C" {
     fn nbdkit_disconnect(force: bool);
     fn nbdkit_stdio_safe() -> c_int;
     fn nbdkit_is_tls() -> c_int;
+    fn nbdkit_parse_bool(s: *const c_char) -> c_int;
+    fn nbdkit_parse_size(s: *const c_char) -> i64;
 }
 
 /// Print a debug message.
@@ -1178,6 +1180,33 @@ pub fn shutdown() {
 /// Request nbdkit to disconnect the current client.
 pub fn disconnect(force: bool) {
     unsafe { nbdkit_disconnect(force) };
+}
+
+/// Parse a string as a boolean using `nbdkit_parse_bool`.
+pub fn parse_bool(s: &str) -> Result<bool> {
+    let cs = CString::new(s).unwrap();
+    let r = unsafe { nbdkit_parse_bool(cs.as_ptr()) };
+    match r {
+        -1 =>
+            // nbdkit_error was called already.
+            Err(Error::new(libc::EINVAL,
+                           "failed to parse boolean using nbdkit_parse_bool")),
+        0 => Ok(false),
+        _ => Ok(true)
+    }
+}
+
+/// Parse a string as a size using `nbdkit_parse_size`.
+pub fn parse_size(s: &str) -> Result<i64> {
+    let cs = CString::new(s).unwrap();
+    let r = unsafe { nbdkit_parse_size(cs.as_ptr()) };
+    if r == -1 {
+        // nbdkit_error was called already.
+        return Err(
+            Error::new(libc::EINVAL,
+                       "failed to parse size using nbdkit_parse_size"));
+    }
+    Ok(r)
 }
 
 #[doc(hidden)]

@@ -31,7 +31,8 @@ use nbdkit::*;
 
 // The RAM disk.
 lazy_static! {
-    static ref DISK: Mutex<Vec<u8>> = Mutex::new (vec![0; 100 * 1024 * 1024]);
+    static ref SIZE : Mutex<usize> = Mutex::new(100 * 1024 * 1024);
+    static ref DISK : Mutex<Vec<u8>> = Mutex::new(vec![0;0]);
 }
 
 #[derive(Default)]
@@ -43,12 +44,23 @@ struct RamDisk {
 }
 
 impl Server for RamDisk {
-    fn get_size(&self) -> Result<i64> {
-        Ok(DISK.lock().unwrap().len() as i64)
-    }
-
     fn name() -> &'static str {
         "ramdisk"
+    }
+
+    fn config(key: &str, val: &str) -> Result<()> {
+        match key {
+            "size" => {
+                *SIZE.lock().unwrap() = parse_size(val).unwrap() as usize;
+                Ok(())
+            },
+            _ => Err(Error::new(libc::EINVAL, "Unknown parameter"))
+        }
+    }
+
+    fn get_ready() -> Result<()> {
+        *DISK.lock().unwrap() = vec![0; *SIZE.lock().unwrap()];
+        Ok(())
     }
 
     fn open(_readonly: bool) -> Result<Box<dyn Server>> {
@@ -60,6 +72,10 @@ impl Server for RamDisk {
         debug!("connection opened: readonly={}, tls={}", _readonly, tls);
 
         Ok(Box::<RamDisk>::default())
+    }
+
+    fn get_size(&self) -> Result<i64> {
+        Ok(DISK.lock().unwrap().len() as i64)
     }
 
     fn read_at(&self, buf: &mut [u8], offset: u64) -> Result<()> {
@@ -83,4 +99,4 @@ impl Server for RamDisk {
     }
 }
 
-plugin!(RamDisk {thread_model, write_at});
+plugin!(RamDisk {thread_model, write_at, config, get_ready});
