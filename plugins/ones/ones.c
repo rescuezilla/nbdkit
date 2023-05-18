@@ -46,7 +46,7 @@
 static int64_t size = 0;
 
 /* Repeating byte. */
-static uint8_t byte = 0xff;
+static uint8_t databyte = 0xff;
 
 static int
 ones_config (const char *key, const char *value)
@@ -60,7 +60,7 @@ ones_config (const char *key, const char *value)
     size = r;
   }
   else if (strcmp (key, "byte") == 0) {
-    if (nbdkit_parse_uint8_t ("byte", value, &byte) == -1)
+    if (nbdkit_parse_uint8_t ("byte", value, &databyte) == -1)
       return -1;
   }
   else {
@@ -120,7 +120,7 @@ static int
 ones_pread (void *handle, void *buf, uint32_t count, uint64_t offset,
             uint32_t flags)
 {
-  memset (buf, byte, count);
+  memset (buf, databyte, count);
   return 0;
 }
 
