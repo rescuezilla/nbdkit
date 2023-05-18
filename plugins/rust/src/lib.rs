@@ -76,7 +76,7 @@ use std::{
     fmt,
     io,
     mem,
-    os::raw::{c_char, c_int, c_void},
+    os::raw::{c_char, c_int, c_double, c_void},
     ptr,
     slice,
     sync::Once,
@@ -1079,6 +1079,9 @@ extern "C" {
     fn nbdkit_is_tls() -> c_int;
     fn nbdkit_parse_bool(s: *const c_char) -> c_int;
     fn nbdkit_parse_size(s: *const c_char) -> i64;
+    fn nbdkit_parse_probability(what: *const c_char,
+                                s: *const c_char,
+                                retp: *mut c_double) -> c_int;
 }
 
 /// Print a debug message.
@@ -1207,6 +1210,23 @@ pub fn parse_size(s: &str) -> Result<i64> {
                        "failed to parse size using nbdkit_parse_size"));
     }
     Ok(r)
+}
+
+/// Parse a string as a probability/percentage using
+/// `nbdkit_parse_probability`.
+pub fn parse_probability(what: &str, s: &str) -> Result<f64> {
+    let ws = CString::new(what).unwrap();
+    let cs = CString::new(s).unwrap();
+    let mut d = 0.0;
+    let r = unsafe { nbdkit_parse_probability(ws.as_ptr(), cs.as_ptr(),
+                                              &mut d) };
+    if r == -1 {
+        // nbdkit_error was called already.
+        return Err(
+            Error::new(libc::EINVAL,
+                       "failed to parse probability using nbdkit_parse_probability"));
+    }
+    Ok(d)
 }
 
 #[doc(hidden)]
