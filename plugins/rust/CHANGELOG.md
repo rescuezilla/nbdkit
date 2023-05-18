@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased] - ReleaseDate
 ### Added
 
+- The C functions `nbdkit_parse_bool` and `nbdkit_parse_size`
+  are now available as `nbdkit::parse_bool` and `nbdkit::parse_size`.
+  (#[29](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/29))
+
 - The new `disconnect` method can disconnect the current client.
   ([6ac807a](https://gitlab.com/nbdkit/nbdkit/-/commit/6ac807afd89b76138776a00dc72296b9e308789b#e4c08f6fb1d46a0e2d31c745310e364555390ff0))
 
