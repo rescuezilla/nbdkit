@@ -102,6 +102,7 @@ nbdkit_LDADD = \
 	$(top_builddir)/common/protocol/libprotocol.la \
 	$(top_builddir)/common/utils/libutils.la \
 	$(top_builddir)/common/replacements/libcompat.la \
+	-lm \
 	$(NULL)
 nbdkit_LDFLAGS = \
 	$(PTHREAD_LIBS) \
