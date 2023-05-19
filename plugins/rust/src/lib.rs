@@ -1095,7 +1095,8 @@ macro_rules! debug {
         match ::std::ffi::CString::new(format!($($args)*)) {
             Ok(msg) =>
                 unsafe {
-                    $crate::nbdkit_debug(b"%s\0".as_ptr() as *const i8,
+                    $crate::nbdkit_debug(b"%s\0".as_ptr()
+                                             as *const ::std::ffi::c_char,
                                          msg.as_ptr());
                 },
             Err(_) =>
