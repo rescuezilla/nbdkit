@@ -39,7 +39,7 @@ set -x
 requires_plugin null
 requires_filter evil
 requires_filter noextents
-requires nbdcopy --version
+requires_nbdcopy_null_output
 
 # This is the largest probability we support.
 nbdkit -U - -fv null 1M \
