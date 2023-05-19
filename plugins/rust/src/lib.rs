@@ -1096,7 +1096,7 @@ macro_rules! debug {
             Ok(msg) =>
                 unsafe {
                     $crate::nbdkit_debug(b"%s\0".as_ptr()
-                                             as *const ::core::ffi::c_char,
+                                             as *const ::libc::c_char,
                                          msg.as_ptr());
                 },
             Err(_) =>
