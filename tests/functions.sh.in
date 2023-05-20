@@ -204,12 +204,7 @@ requires_nbdcopy ()
 requires_nbdcopy_null_output ()
 {
     requires_nbdcopy
-    minor="$(nbdcopy --version | head -1 |
-             $SED 's/nbdcopy 1\.\([[:digit:]]*\).*/\1/')"
-    if [ $minor -lt 8 ]; then
-        echo "SKIP: $0: nbdcopy does not support null: pseudo-target"
-        exit 77
-    fi
+    requires_libnbd_version 1.8
 }
 
 # Test if a plugin has been built locally.
