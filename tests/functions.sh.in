@@ -38,6 +38,9 @@
 # set -e
 # set -x
 
+#----------------------------------------------------------------------
+# Variable declarations.
+
 # Various variables defined by autoconf that test scripts might want
 # to use.
 abs_top_srcdir="@abs_top_srcdir@"
@@ -67,6 +70,10 @@ TRUNCATE="@TRUNCATE@"
 # Because we might be using a 32 bit shell, express this as a constant
 # rather than using $(()) calculations.
 largest_qemu_disk=9223372035781033984
+
+#----------------------------------------------------------------------
+# Cleanup primitives; functions to start and stop an nbdkit background
+# process.
 
 # cleanup_fn cmd [args]
 #
@@ -101,6 +108,80 @@ _run_cleanup_hooks ()
     exit $_status
 }
 trap _run_cleanup_hooks INT QUIT TERM EXIT ERR
+
+# start_nbdkit -P pidfile args...
+#
+# Run nbdkit with args and wait for it to start up.  If it fails to
+# start up, exit with an error message.  Also a cleanup handler is
+# installed automatically which kills nbdkit on exit.
+start_nbdkit ()
+{
+    local _pidfile _i
+
+    # -P <pidfile> must be the first two parameters.
+    if [ "$1" != "-P" ]; then
+       echo "$0: start_nbdkit: -P <pidfile> option must be first"
+       exit 1
+    fi
+    _pidfile="$2"
+
+    # Run nbdkit.
+    #
+    # Until Windows supports daemonization we run nbdkit in the
+    # foreground (-f) and background it ourselves.
+    if ! is_windows; then nbdkit -v "$@"; else nbdkit -f -v "$@" & fi
+
+    # Wait for the pidfile to appear.
+    for _i in {1..60}; do
+        if test -s "$_pidfile"; then
+            break
+        fi
+        sleep 1
+    done
+    if ! test -s "$_pidfile"; then
+        echo "$0: start_nbdkit: PID file $_pidfile was not created"
+        exit 1
+    fi
+
+    # Kill nbdkit on exit.
+    cleanup_fn kill_nbdkit "$(cat "$_pidfile")"
+}
+
+# kill_nbdkit pid
+#
+# End the nbkdit process with the given pid.  Exit this script with an
+# error if nbdkit does not gracefully shutdown in a timely manner.
+kill_nbdkit ()
+{
+    local pid=$1 i
+
+    if ! is_windows; then
+        # Start with SIGTERM, and wait for graceful exit
+        kill $pid
+        for i in {1..60}; do
+            if ! kill -0 $pid 2>/dev/null; then
+                break
+            fi
+            sleep 1
+        done
+        # If nbdkit has not exited, try SIGKILL and fail the test
+        if test $i = 60; then
+            echo "error: nbdkit pid $pid failed to respond to SIGTERM"
+            kill -9 $pid
+            # Append our failure after other cleanups
+            cleanup_fn exit 1
+        fi
+    else
+        wine taskkill /f /pid $pid
+    fi
+}
+
+#----------------------------------------------------------------------
+# Test prerequisites.
+#
+# Various 'requires' and related functions that can be used at the top
+# of tests to check whether the test is able to run on this platform,
+# or should be skipped.
 
 # requires program [args]
 #
@@ -281,6 +362,16 @@ requires_non_root ()
     fi
 }
 
+# Tests that run under check-root should use this.
+requires_root ()
+{
+    if test $(id -u) -ne 0; then
+        echo "$0: test skipped because not running as root"
+        echo "$0: use ‘sudo make check-root’ to run these tests"
+        exit 77
+    fi
+}
+
 # Tests that use the vsock interface will fail if vsock is not
 # supported.  On Linux you have to load the kernel module
 # vsock_loopback.  See also
@@ -334,72 +425,8 @@ skip_if_valgrind ()
     fi
 }
 
-# start_nbdkit -P pidfile args...
-#
-# Run nbdkit with args and wait for it to start up.  If it fails to
-# start up, exit with an error message.  Also a cleanup handler is
-# installed automatically which kills nbdkit on exit.
-start_nbdkit ()
-{
-    local _pidfile _i
-
-    # -P <pidfile> must be the first two parameters.
-    if [ "$1" != "-P" ]; then
-       echo "$0: start_nbdkit: -P <pidfile> option must be first"
-       exit 1
-    fi
-    _pidfile="$2"
-
-    # Run nbdkit.
-    #
-    # Until Windows supports daemonization we run nbdkit in the
-    # foreground (-f) and background it ourselves.
-    if ! is_windows; then nbdkit -v "$@"; else nbdkit -f -v "$@" & fi
-
-    # Wait for the pidfile to appear.
-    for _i in {1..60}; do
-        if test -s "$_pidfile"; then
-            break
-        fi
-        sleep 1
-    done
-    if ! test -s "$_pidfile"; then
-        echo "$0: start_nbdkit: PID file $_pidfile was not created"
-        exit 1
-    fi
-
-    # Kill nbdkit on exit.
-    cleanup_fn kill_nbdkit "$(cat "$_pidfile")"
-}
-
-# kill_nbdkit pid
-#
-# End the nbkdit process with the given pid.  Exit this script with an
-# error if nbdkit does not gracefully shutdown in a timely manner.
-kill_nbdkit ()
-{
-    local pid=$1 i
-
-    if ! is_windows; then
-        # Start with SIGTERM, and wait for graceful exit
-        kill $pid
-        for i in {1..60}; do
-            if ! kill -0 $pid 2>/dev/null; then
-                break
-            fi
-            sleep 1
-        done
-        # If nbdkit has not exited, try SIGKILL and fail the test
-        if test $i = 60; then
-            echo "error: nbdkit pid $pid failed to respond to SIGTERM"
-            kill -9 $pid
-            # Append our failure after other cleanups
-            cleanup_fn exit 1
-        fi
-    else
-        wine taskkill /f /pid $pid
-    fi
-}
+#----------------------------------------------------------------------
+# Miscellaneous functions.
 
 # foreach_plugin f [args]
 #
@@ -422,16 +449,6 @@ foreach_plugin ()
             "$f" "$p" "$@"
         fi
     done
-}
-
-# Tests that run under check-root should use this.
-requires_root ()
-{
-    if test $(id -u) -ne 0; then
-        echo "$0: test skipped because not running as root"
-        echo "$0: use ‘sudo make check-root’ to run these tests"
-        exit 77
-    fi
 }
 
 # pick_unused_port
