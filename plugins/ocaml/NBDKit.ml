@@ -89,6 +89,7 @@ let register_plugin ~name
                     ~open_connection
                     ?close
                     ~get_size
+                    ?export_description
                     ?block_size
                     ?can_cache
                     ?can_extents
@@ -110,7 +111,6 @@ let register_plugin ~name
                     ?dump_plugin
                     ?list_exports
                     ?default_export
-                    ?export_description
                     () =
   (* Set fields in the C plugin struct. *)
   set_string_field "name" name;

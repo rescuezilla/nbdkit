@@ -97,6 +97,7 @@ val register_plugin :
 
   (* NBD negotiation. *)
   get_size: ('a -> int64) ->
+  ?export_description: ('a -> string) ->
   ?block_size: ('a -> int * int * int64) ->
   ?can_cache: ('a -> cache_flag) ->
   ?can_extents: ('a -> bool) ->
@@ -122,7 +123,6 @@ val register_plugin :
   ?dump_plugin: (unit -> unit) ->
   ?list_exports: (bool -> bool -> export list) ->
   ?default_export: (bool -> bool -> string) ->
-  ?export_description: ('a -> string) ->
 
   unit ->
   unit
