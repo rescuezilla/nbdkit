@@ -194,6 +194,9 @@ val version : unit -> string
     See [NBDKIT_API_VERSION] in nbdkit-plugin(3). *)
 val api_version : unit -> int
 
+(** Binding for [nbdkit_peer_name]. *)
+val peer_name : unit -> Unix.sockaddr
+
 (** Binding for [nbdkit_peer_pid]. *)
 val peer_pid : unit -> int64
 

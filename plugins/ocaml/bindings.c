@@ -247,6 +247,43 @@ ocaml_nbdkit_api_version (value unitv)
   return Val_int (NBDKIT_API_VERSION);
 }
 
+#ifdef HAVE_CAML_SOCKETADDR_H
+
+#include <caml/socketaddr.h>
+
+#ifndef HAVE_CAML_UNIX_ALLOC_SOCKADDR
+#define caml_unix_alloc_sockaddr alloc_sockaddr /* OCaml <= 4.14 */
+#endif
+
+NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_peer_name (value unitv)
+{
+  CAMLparam1 (unitv);
+  CAMLlocal1 (rv);
+  struct sockaddr_storage sa;
+  socklen_t len = sizeof sa;
+  int r;
+
+  r = nbdkit_peer_name ((struct sockaddr *) &sa, &len);
+  if (r == -1) caml_failwith ("nbdkit_peer_name");
+
+  rv = caml_unix_alloc_sockaddr ((void *) &sa, len, -1);
+
+  CAMLreturn (rv);
+}
+
+#else /* !HAVE_CAML_SOCKETADDR_H */
+
+NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_peer_name (value unitv)
+{
+  CAMLparam1 (unitv);
+  CAMLlocal1 (rv);
+  caml_failwith ("nbdkit_peer_name is not supported by this version of OCaml");
+}
+
+#endif /* !HAVE_CAML_SOCKETADDR_H */
+
 NBDKIT_DLL_PUBLIC value
 ocaml_nbdkit_peer_pid (value unitv)
 {

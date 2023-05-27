@@ -961,9 +961,9 @@ AM_CONDITIONAL([HAVE_OCAML],[test "x$OCAMLOPT" != "xno" &&
                              test "x$ocaml_link_shared" = "xyes"])
 AM_CONDITIONAL([HAVE_OCAMLDOC],[test "x$OCAMLDOC" != "xno"])
 
-dnl Check if OCaml has caml_alloc_initialized_string (added 2017).
 AS_IF([test "x$OCAMLC" != "xno" && test "x$OCAMLFIND" != "xno" && \
        test "x$enable_ocaml" = "xyes"],[
+    dnl Check if OCaml has caml_alloc_initialized_string (added 2017).
     AC_MSG_CHECKING([for caml_alloc_initialized_string])
     cat >conftest.c <<'EOF'
 #include <caml/alloc.h>
@@ -977,11 +977,8 @@ EOF
         AC_MSG_RESULT([no])
     ])
     rm -f conftest.c conftest.o
-])
 
-dnl Check if OCaml has caml_shutdown (added 2014).
-AS_IF([test "x$OCAMLC" != "xno" && test "x$OCAMLFIND" != "xno" && \
-       test "x$enable_ocaml" = "xyes"],[
+    dnl Check if OCaml has caml_shutdown (added 2014).
     AC_MSG_CHECKING([for caml_shutdown])
     cat >conftest.c <<'EOF'
 #include <caml/callback.h>
@@ -991,6 +988,38 @@ EOF
         AC_MSG_RESULT([yes])
         AC_DEFINE([HAVE_CAML_SHUTDOWN],[1],
                   [caml_shutdown found at compile time.])
+    ],[
+        AC_MSG_RESULT([no])
+    ])
+    rm -f conftest.c conftest.o
+
+    dnl Check if OCaml has <caml/socketaddr.h>
+    AC_MSG_CHECKING([for caml/socketaddr.h])
+    cat >conftest.c <<'EOF'
+#include <caml/mlvalues.h>
+#include <caml/socketaddr.h>
+int main () { return 0; }
+EOF
+    AS_IF([$OCAMLC conftest.c >&AS_MESSAGE_LOG_FD 2>&1],[
+        AC_MSG_RESULT([yes])
+        AC_DEFINE([HAVE_CAML_SOCKETADDR_H],[1],
+                  [caml/socketaddr.h found at compile time.])
+    ],[
+        AC_MSG_RESULT([no])
+    ])
+    rm -f conftest.c conftest.o
+
+    dnl Check if OCaml has caml_unix_alloc_sockaddr (added OCaml 5 in 2022).
+    AC_MSG_CHECKING([for caml_unix_alloc_sockaddr])
+    cat >conftest.c <<'EOF'
+#include <caml/mlvalues.h>
+#include <caml/socketaddr.h>
+int main () { char *p = (void *) caml_unix_alloc_sockaddr; return 0; }
+EOF
+    AS_IF([$OCAMLC conftest.c >&AS_MESSAGE_LOG_FD 2>&1],[
+        AC_MSG_RESULT([yes])
+        AC_DEFINE([HAVE_CAML_UNIX_ALLOC_SOCKADDR],[1],
+                  [caml_unix_alloc_sockaddr found at compile time.])
     ],[
         AC_MSG_RESULT([no])
     ])

@@ -103,12 +103,33 @@ type handle = {
 }
 
 let id = ref 0
-let open_connection readonly =
+let rec open_connection readonly =
   let export_name = NBDKit.export_name () and tls = NBDKit.is_tls () in
   NBDKit.debug "test ocaml plugin handle opened readonly=%b export=%S tls=%b"
     readonly export_name tls;
+  check_peer ();
   incr id;
   { h_id = !id; h_sentinel = "TESTING" }
+
+(* This tests the nbdkit_peer_name function. *)
+and check_peer () =
+  try
+    (match NBDKit.peer_name () with
+     (* The test framework always uses a Unix domain socket.
+      *
+      * For some reason on Linux this always returns the path as "".
+      * I checked the underlying getpeername system call and that
+      * is exactly what is returned.
+      *)
+     | Unix.ADDR_UNIX sock ->
+        NBDKit.debug "nbdkit_peer_name returned ADDR_UNIX %S" sock
+     | _ ->
+        failwith "nbdkit_peer_name returned an unexpected socket type"
+    )
+  with
+    Failure msg when
+         msg = "nbdkit_peer_name is not supported by this version of OCaml" ->
+    NBDKit.debug "test skipped: %s" msg
 
 let close h =
   NBDKit.debug "test ocaml plugin closing handle id=%d" h.h_id;
