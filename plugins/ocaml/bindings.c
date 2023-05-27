@@ -186,6 +186,21 @@ ocaml_nbdkit_export_name (value unitv)
   CAMLreturn (rv);
 }
 
+NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_is_tls (value unitv)
+{
+  CAMLparam1 (unitv);
+  CAMLlocal1 (rv);
+  int r;
+
+  r = nbdkit_is_tls ();
+  if (r == -1)
+    caml_invalid_argument ("nbdkit_is_tls");
+  rv = Val_bool (r);
+
+  CAMLreturn (rv);
+}
+
 /* NB: noalloc function. */
 NBDKIT_DLL_PUBLIC value
 ocaml_nbdkit_shutdown (value unitv)

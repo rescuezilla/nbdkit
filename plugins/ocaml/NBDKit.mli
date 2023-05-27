@@ -171,6 +171,10 @@ val nanosleep : int -> int -> unit
     Returns the name of the export as requested by the client. *)
 val export_name : unit -> string
 
+(** Binding for [nbdkit_is_tls].
+    Returns true if the client completed TLS authentication. *)
+val is_tls : unit -> bool
+
 (** Binding for [nbdkit_shutdown].
     Requests the server shut down. *)
 val shutdown : unit -> unit

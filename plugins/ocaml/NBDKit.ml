@@ -168,6 +168,7 @@ external stdio_safe : unit -> bool = "ocaml_nbdkit_stdio_safe"
 external realpath : string -> string = "ocaml_nbdkit_realpath"
 external nanosleep : int -> int -> unit = "ocaml_nbdkit_nanosleep"
 external export_name : unit -> string = "ocaml_nbdkit_export_name"
+external is_tls : unit -> bool = "ocaml_nbdkit_is_tls"
 external shutdown : unit -> unit = "ocaml_nbdkit_shutdown" [@@noalloc]
 external disconnect : bool -> unit = "ocaml_nbdkit_disconnect" [@@noalloc]
 external _debug : string -> unit = "ocaml_nbdkit_debug" [@@noalloc]

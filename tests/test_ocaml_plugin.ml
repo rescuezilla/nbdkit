@@ -104,9 +104,9 @@ type handle = {
 
 let id = ref 0
 let open_connection readonly =
-  let export_name = NBDKit.export_name () in
-  NBDKit.debug "test ocaml plugin handle opened readonly=%b export=%S"
-    readonly export_name;
+  let export_name = NBDKit.export_name () and tls = NBDKit.is_tls () in
+  NBDKit.debug "test ocaml plugin handle opened readonly=%b export=%S tls=%b"
+    readonly export_name tls;
   incr id;
   { h_id = !id; h_sentinel = "TESTING" }
 
