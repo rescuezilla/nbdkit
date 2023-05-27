@@ -153,6 +153,11 @@ val parse_probability : string -> string -> float
 val parse_bool : string -> bool
 val read_password : string -> string
 
+(** Binding for [nbdkit_stdio_safe].
+    Returns true if it is safe to interact with stdin and stdout
+    during the configuration phase. *)
+val stdio_safe : unit -> bool
+
 (** Binding for [nbdkit_realpath].
     Returns the canonical path from a path parameter. *)
 (* OCaml's [Filename] module can handle [absolute_path]. *)

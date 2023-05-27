@@ -63,6 +63,10 @@ let () =
 let () =
   assert (NBDKit.api_version () = 2)
 
+(* Test [NBDKit.stdio_safe]. *)
+let () =
+  assert (NBDKit.stdio_safe ())
+
 let load () =
   NBDKit.debug "test ocaml plugin loaded"
 

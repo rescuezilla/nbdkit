@@ -164,6 +164,7 @@ external parse_probability : string -> string -> float =
   "ocaml_nbdkit_parse_probability"
 external parse_bool : string -> bool = "ocaml_nbdkit_parse_bool"
 external read_password : string -> string = "ocaml_nbdkit_read_password"
+external stdio_safe : unit -> bool = "ocaml_nbdkit_stdio_safe"
 external realpath : string -> string = "ocaml_nbdkit_realpath"
 external nanosleep : int -> int -> unit = "ocaml_nbdkit_nanosleep"
 external export_name : unit -> string = "ocaml_nbdkit_export_name"

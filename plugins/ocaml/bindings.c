@@ -123,6 +123,21 @@ ocaml_nbdkit_read_password (value strv)
 }
 
 NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_stdio_safe (value unitv)
+{
+  CAMLparam1 (unitv);
+  CAMLlocal1 (rv);
+  int r;
+
+  r = nbdkit_stdio_safe ();
+  if (r == -1)
+    caml_invalid_argument ("nbdkit_stdio_safe");
+  rv = Val_bool (r);
+
+  CAMLreturn (rv);
+}
+
+NBDKIT_DLL_PUBLIC value
 ocaml_nbdkit_realpath (value strv)
 {
   CAMLparam1 (strv);
