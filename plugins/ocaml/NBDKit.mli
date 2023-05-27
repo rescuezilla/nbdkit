@@ -157,17 +157,20 @@ val read_password : string -> string
 (* OCaml's [Filename] module can handle [absolute_path]. *)
 val realpath : string -> string
 
-(** Binding for [nbdkit_nanosleep].  Sleeps for seconds and nanoseconds. *)
+(** Binding for [nbdkit_nanosleep].
+    Sleeps for seconds and nanoseconds. *)
 val nanosleep : int -> int -> unit
 
-(** Binding for [nbdkit_export_name].  Returns the name of the
-    export as requested by the client. *)
+(** Binding for [nbdkit_export_name].
+    Returns the name of the export as requested by the client. *)
 val export_name : unit -> string
 
-(** Binding for [nbdkit_shutdown].  Requests the server shut down. *)
+(** Binding for [nbdkit_shutdown].
+    Requests the server shut down. *)
 val shutdown : unit -> unit
 
-(** Binding for [nbdkit_disconnect].  Requests disconnecting current client. *)
+(** Binding for [nbdkit_disconnect].
+    Requests disconnecting current client. *)
 val disconnect : bool -> unit
 
 (** Print a debug message when nbdkit is in verbose mode. *)
