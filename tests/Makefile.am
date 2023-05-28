@@ -1703,6 +1703,7 @@ TESTS += \
 	test-ip-filter-pid.sh \
 	test-ip-filter-uid.sh \
 	test-ip-filter-gid.sh \
+	test-ip-filter-security.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-ip-filter.sh \
@@ -1711,6 +1712,7 @@ EXTRA_DIST += \
 	test-ip-filter-pid.sh \
 	test-ip-filter-uid.sh \
 	test-ip-filter-gid.sh \
+	test-ip-filter-security.sh \
 	$(NULL)
 
 # limit filter test.

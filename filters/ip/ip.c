@@ -70,12 +70,13 @@ struct rule {
   struct rule *next;
   enum { BAD = 0,
          ANY, ANYV4, ANYV6, IPV4, IPV6,
-         ANYUNIX, PID, UID, GID,
+         ANYUNIX, PID, UID, GID, SECURITY,
          ANYVSOCK, VSOCKCID, VSOCKPORT } type;
   union {
     struct in_addr ipv4;        /* for IPV4, IPV6 */
     struct in6_addr ipv6;
     int64_t id;                 /* for PID, UID, GID, VSOCKCID, VSOCKPORT */
+    const char *label;          /* for SECURITY */
   } u;
   unsigned prefixlen;           /* for IPV4, IPV6 */
 };
@@ -125,6 +126,9 @@ print_rule (const char *name, const struct rule *rule, const char *suffix)
     break;
   case GID:
     nbdkit_debug ("%s=gid:%" PRIi64 "%s", name, rule->u.id, suffix);
+    break;
+  case SECURITY:
+    nbdkit_debug ("%s=security:%s%s", name, rule->u.label, suffix);
     break;
 
   case ANYVSOCK:
@@ -300,6 +304,12 @@ parse_rule (const char *paramname,
       nbdkit_error ("gid: parameter out of range");
       return -1;
     }
+    return 0;
+  }
+
+  if (n >= 9 && ascii_strncasecmp (value, "security:", 9) == 0) {
+    new_rule->type = SECURITY;
+    new_rule->u.label = &value[9];
     return 0;
   }
 
@@ -482,6 +492,8 @@ matches_rule (const struct rule *rule,
 #if defined (AF_VSOCK) && defined (VMADDR_CID_ANY)
   const struct sockaddr_vm *svm;
 #endif
+  char *label;
+  bool b;
 
   switch (rule->type) {
   case ANY:
@@ -521,6 +533,23 @@ matches_rule (const struct rule *rule,
   case GID:
     if (family != AF_UNIX) return false;
     return nbdkit_peer_gid () == rule->u.id;
+
+  case SECURITY:
+    b = false;
+    switch (family) {
+    case AF_UNIX:
+    case AF_INET:
+    case AF_INET6:
+      label = nbdkit_peer_security_context ();
+      if (label) {
+        if (ip_debug_rules)
+          nbdkit_debug ("ip: peer security context = \"%s\"", label);
+        b = strcmp (label, rule->u.label) == 0;
+      }
+      free (label);
+      break;
+    }
+    return b;
 
 #if defined (AF_VSOCK) && defined (VMADDR_CID_ANY)
   case ANYVSOCK:

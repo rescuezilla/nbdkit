@@ -146,6 +146,13 @@ Note that process IDs are recycled so this alone is not secure enough
 to ensure that only a single desired process can connect.  However you
 could use it as an additional check.
 
+=item B<security:>LABEL
+
+(nbdkit E<ge> 1.36, not Windows)
+
+This matches the security context (usually the SELinux label, IPSEC
+label or NetLabel) of the client.
+
 =item B<uid:>UID
 
 (nbdkit E<ge> 1.24)
