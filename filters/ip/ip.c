@@ -86,7 +86,7 @@ static struct rule *deny_rules, *deny_rules_last;
 static void
 print_rule (const char *name, const struct rule *rule, const char *suffix)
 {
-#if defined (INET_NTOP)
+#ifdef HAVE_INET_NTOP
   union {
     char addr4[INET_ADDRSTRLEN];
     char addr6[INET6_ADDRSTRLEN];
@@ -103,7 +103,7 @@ print_rule (const char *name, const struct rule *rule, const char *suffix)
   case ANYV6:
     nbdkit_debug ("%s=anyipv6%s", name, suffix);
     break;
-#if defined (INET_NTOP)
+#ifdef HAVE_INET_NTOP
   case IPV4:
     inet_ntop (AF_INET, &rule->u.ipv4, u.addr4, sizeof u.addr4);
     nbdkit_debug ("%s=ipv4:%s/%u%s", name, u.addr4, rule->prefixlen, suffix);
@@ -192,7 +192,7 @@ parse_ip_address (const char *value, size_t n, struct rule *ret)
   strncpy (addr, value, n);
   addr[n] = '\0';
 
-#ifdef INET_PTON
+#ifdef HAVE_INET_PTON
   if (inet_pton (AF_INET, addr, &ret->u.ipv4) == 1)
     return IPV4;
 
