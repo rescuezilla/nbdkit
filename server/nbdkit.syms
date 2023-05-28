@@ -77,6 +77,7 @@
     nbdkit_peer_gid;
     nbdkit_peer_name;
     nbdkit_peer_pid;
+    nbdkit_peer_security_context;
     nbdkit_peer_uid;
     nbdkit_printf_intern;
     nbdkit_read_password;

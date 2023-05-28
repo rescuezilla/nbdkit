@@ -1744,6 +1744,21 @@ connected over a Unix domain socket.
 On success this returns the user ID.  On error, C<nbdkit_error> is
 called and this call returns C<-1>.
 
+=head2 C<nbdkit_peer_security_context>
+
+(nbdkit E<ge> 1.36, not Windows)
+
+ char *nbdkit_peer_security_context (void);
+
+Return the peer security context (usually the SELinux label, IPSEC
+label or NetLabel, see the description of C<SO_PEERSEC> in L<unix(7)>
+and L<ip(7)>.
+
+On success this returns the security context as a string.  The caller
+must free the string.  On error (which can include missing label or
+unsupported protocol), C<nbdkit_error> is called and this call returns
+C<NULL>.
+
 =head1 VERSION
 
 =head2 Compile-time version of nbdkit

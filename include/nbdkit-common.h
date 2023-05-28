@@ -138,6 +138,7 @@ NBDKIT_EXTERN_DECL (int, nbdkit_peer_name,
 NBDKIT_EXTERN_DECL (int64_t, nbdkit_peer_pid, (void));
 NBDKIT_EXTERN_DECL (int64_t, nbdkit_peer_uid, (void));
 NBDKIT_EXTERN_DECL (int64_t, nbdkit_peer_gid, (void));
+NBDKIT_EXTERN_DECL (char *, nbdkit_peer_security_context, (void));
 NBDKIT_EXTERN_DECL (void, nbdkit_shutdown, (void));
 NBDKIT_EXTERN_DECL (void, nbdkit_disconnect, (int force));
 

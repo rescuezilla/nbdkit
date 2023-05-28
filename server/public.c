@@ -1046,6 +1046,84 @@ nbdkit_peer_gid ()
   return gid;
 }
 
+#ifdef SO_PEERSEC
+
+NBDKIT_DLL_PUBLIC char *
+nbdkit_peer_security_context ()
+{
+  struct connection *conn = threadlocal_get_conn ();
+  int s;
+  char *label = NULL;
+  socklen_t optlen = 0;
+  int r;
+
+  if (!conn) {
+    nbdkit_error ("no connection in this thread");
+    return NULL;
+  }
+
+  s = conn->sockin;
+  if (s == -1) {
+    nbdkit_error ("socket not open");
+    return NULL;
+  }
+
+  /* Get the length of the label before allocating.  Note the ip(7)
+   * manual implies that the level should be IPPROTO_IP for AF_INET
+   * sockets.  However Linux always uses SOL_SOCKET.
+   */
+  errno = 0;
+  r = getsockopt (conn->sockin, SOL_SOCKET, SO_PEERSEC, label, &optlen);
+  if (r == 0) {
+    /* Zero-length label probably. */
+    label = calloc (1, 1);
+    if (label == NULL) {
+      nbdkit_error ("calloc: %m");
+      return NULL;
+    }
+    return label; /* caller frees */
+  }
+  else if (r == -1 && errno == ENOPROTOOPT) {
+    /* This is not really an error so don't call nbdkit_error. */
+    nbdkit_debug ("getsockopt: SO_PEERSEC: %m");
+    return NULL;
+  }
+  else if (r == -1 && errno != ERANGE) {
+    nbdkit_error ("getsockopt: SO_PEERSEC: %m");
+    return NULL;
+  }
+
+  /* It's not defined if Linux will NUL-terminate the returned string,
+   * or even if it will completely fill the buffer, so we play it safe
+   * here.
+   */
+  label = calloc (optlen+1, 1);
+  if (label == NULL) {
+    nbdkit_error ("calloc: %m");
+    return NULL;
+  }
+
+  /* Read the label. */
+  if (getsockopt (conn->sockin, SOL_SOCKET, SO_PEERSEC, label, &optlen) == -1) {
+    nbdkit_error ("getsockopt: SO_PEERSEC: %m");
+    free (label);
+    return NULL;
+  }
+
+  return label; /* caller frees */
+}
+
+#else /* !SO_PEERSEC */
+
+NBDKIT_DLL_PUBLIC char *
+nbdkit_peer_security_context ()
+{
+  nbdkit_error ("SO_PEERSEC is not available on this platform");
+  return NULL;
+}
+
+#endif /* !SO_PEERSEC */
+
 /* Functions for manipulating intern'd strings. */
 
 static string_vector global_interns;
