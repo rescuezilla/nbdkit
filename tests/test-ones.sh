@@ -37,6 +37,7 @@ set -x
 requires_plugin ones
 requires_nbdsh_uri
 requires_nbdinfo
+requires_run
 
 # Check the disk contains 0xff by default.
 nbdkit -U - ones 1024 --run '
