@@ -205,6 +205,18 @@ deny list is empty.
 
 =back
 
+=head1 DEBUG FLAGS
+
+=over 4
+
+=item B<-D ip.rules=1>
+
+Debug rules and rule matching.  If clients are accepted or rejected
+when they should not be, using S<I<-v -D ip.rules=1>> can help to
+debug the problem.
+
+=back
+
 =head1 FILES
 
 =over 4

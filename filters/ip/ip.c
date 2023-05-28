@@ -582,15 +582,65 @@ check_if_allowed (const struct sockaddr *addr)
       )
     return true;
 
-  if (matches_rules_list ("ip: match source with allow",
+  if (matches_rules_list ("ip: match client with allow",
                           allow_rules, family, addr))
     return true;
 
-  if (matches_rules_list ("ip: match source with deny",
+  if (matches_rules_list ("ip: match client with deny",
                           deny_rules, family, addr))
     return false;
 
   return true;
+}
+
+/* Print the peer name in preconnect, when -D ip.rules=1 */
+static void
+print_peer_name (const struct sockaddr *sa)
+{
+  switch (sa->sa_family) {
+  case AF_UNIX:
+    /* We don't allow matching on socket paths at the moment, so just
+     * print AF_UNIX here (and in any case on Linux the peer has an
+     * empty socket path).
+     */
+    nbdkit_debug ("ip: preconnect: client is a Unix domain socket");
+    break;
+
+  case AF_INET: {
+#ifdef HAVE_INET_NTOP
+    const struct sockaddr_in *sin = (struct sockaddr_in *) sa;
+    char buf[INET_ADDRSTRLEN];
+    nbdkit_debug ("ip: preconnect: client is %s port %d",
+                  inet_ntop (sa->sa_family, &sin->sin_addr, buf, sizeof buf),
+                  ntohs (sin->sin_port));
+#endif
+    break;
+  }
+
+  case AF_INET6: {
+#ifdef HAVE_INET_NTOP
+    const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sa;
+    char buf[INET6_ADDRSTRLEN];
+    nbdkit_debug ("ip: preconnect: client is %s port %d",
+                  inet_ntop (sa->sa_family, &sin6->sin6_addr, buf, sizeof buf),
+                  ntohs (sin6->sin6_port));
+#endif
+    break;
+  }
+
+#if defined (AF_VSOCK) && defined (VMADDR_CID_ANY)
+  case AF_VSOCK: {
+    const struct sockaddr_vm *svm = (struct sockaddr_vm *) sa;
+    nbdkit_debug ("ip: preconnect: client is a VSOCK socket cid %u port %u",
+                  svm->svm_cid, svm->svm_port);
+    break;
+  }
+#endif
+
+  default:
+    nbdkit_debug ("ip: preconnect: unknown client address family %d",
+                  sa->sa_family);
+  }
 }
 
 static int
@@ -602,6 +652,8 @@ ip_preconnect (nbdkit_next_preconnect *next, nbdkit_backend *nxdata,
 
   if (nbdkit_peer_name ((struct sockaddr *) &addr, &addrlen) == -1)
     return -1;                  /* We should fail closed ... */
+  if (ip_debug_rules)
+    print_peer_name ((struct sockaddr *) &addr);
 
   /* Follow the rules. */
   if (check_if_allowed ((struct sockaddr *) &addr) == false) {
