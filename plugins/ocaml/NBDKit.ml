@@ -179,3 +179,5 @@ external peer_name : unit -> Unix.sockaddr = "ocaml_nbdkit_peer_name"
 external peer_pid : unit -> int64 = "ocaml_nbdkit_peer_pid"
 external peer_uid : unit -> int64 = "ocaml_nbdkit_peer_uid"
 external peer_gid : unit -> int64 = "ocaml_nbdkit_peer_gid"
+external peer_security_context : unit -> string =
+  "ocaml_nbdkit_peer_security_context"

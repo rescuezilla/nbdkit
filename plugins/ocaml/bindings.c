@@ -316,3 +316,15 @@ ocaml_nbdkit_peer_gid (value unitv)
   rv = caml_copy_int64 (id);
   CAMLreturn (rv);
 }
+
+NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_peer_security_context (value unitv)
+{
+  CAMLparam1 (unitv);
+  CAMLlocal1 (rv);
+  char *label = nbdkit_peer_security_context ();
+  if (label == NULL) caml_failwith ("nbdkit_peer_security_context");
+  rv = caml_copy_string (label);
+  free (label);
+  CAMLreturn (rv);
+}
