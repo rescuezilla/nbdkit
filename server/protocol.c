@@ -363,7 +363,7 @@ nbd_errno (int error, uint16_t flags)
 }
 
 static bool
-send_simple_reply (uint64_t handle, uint16_t cmd, uint16_t flags,
+send_simple_reply (uint64_t cookie, uint16_t cmd, uint16_t flags,
                    const char *buf, uint32_t count,
                    uint32_t error)
 {
@@ -374,7 +374,7 @@ send_simple_reply (uint64_t handle, uint16_t cmd, uint16_t flags,
   int f = (cmd == NBD_CMD_READ && !error) ? SEND_MORE : 0;
 
   reply.magic = htobe32 (NBD_SIMPLE_REPLY_MAGIC);
-  reply.handle = handle;
+  reply.cookie = cookie;
   reply.error = htobe32 (nbd_errno (error, flags));
 
   r = conn->send (&reply, sizeof reply, f);
@@ -395,7 +395,7 @@ send_simple_reply (uint64_t handle, uint16_t cmd, uint16_t flags,
 }
 
 static bool
-send_structured_reply_read (uint64_t handle, uint16_t cmd,
+send_structured_reply_read (uint64_t cookie, uint16_t cmd,
                             const char *buf, uint32_t count, uint64_t offset)
 {
   GET_CONN;
@@ -412,7 +412,7 @@ send_structured_reply_read (uint64_t handle, uint16_t cmd,
   assert (cmd == NBD_CMD_READ);
 
   reply.magic = htobe32 (NBD_STRUCTURED_REPLY_MAGIC);
-  reply.handle = handle;
+  reply.cookie = cookie;
   reply.flags = htobe16 (NBD_REPLY_FLAG_DONE);
   reply.type = htobe16 (NBD_REPLY_TYPE_OFFSET_DATA);
   reply.length = htobe32 (count + sizeof offset_data);
@@ -522,7 +522,7 @@ extents_to_block_descriptors (struct nbdkit_extents *extents,
 }
 
 static bool
-send_structured_reply_block_status (uint64_t handle,
+send_structured_reply_block_status (uint64_t cookie,
                                     uint16_t cmd, uint16_t flags,
                                     uint32_t count, uint64_t offset,
                                     struct nbdkit_extents *extents)
@@ -545,7 +545,7 @@ send_structured_reply_block_status (uint64_t handle,
     return connection_set_status (STATUS_DEAD);
 
   reply.magic = htobe32 (NBD_STRUCTURED_REPLY_MAGIC);
-  reply.handle = handle;
+  reply.cookie = cookie;
   reply.flags = htobe16 (NBD_REPLY_FLAG_DONE);
   reply.type = htobe16 (NBD_REPLY_TYPE_BLOCK_STATUS);
   reply.length = htobe32 (sizeof context_id +
@@ -578,7 +578,7 @@ send_structured_reply_block_status (uint64_t handle,
 }
 
 static bool
-send_structured_reply_error (uint64_t handle, uint16_t cmd, uint16_t flags,
+send_structured_reply_error (uint64_t cookie, uint16_t cmd, uint16_t flags,
                              uint32_t error)
 {
   GET_CONN;
@@ -588,7 +588,7 @@ send_structured_reply_error (uint64_t handle, uint16_t cmd, uint16_t flags,
   int r;
 
   reply.magic = htobe32 (NBD_STRUCTURED_REPLY_MAGIC);
-  reply.handle = handle;
+  reply.cookie = cookie;
   reply.flags = htobe16 (NBD_REPLY_FLAG_DONE);
   reply.type = htobe16 (NBD_REPLY_TYPE_ERROR);
   reply.length = htobe32 (0 /* no human readable error */ + sizeof error_data);
@@ -740,16 +740,16 @@ protocol_recv_request_send_reply (void)
    */
   if (!conn->structured_replies ||
       (cmd != NBD_CMD_READ && cmd != NBD_CMD_BLOCK_STATUS))
-    return send_simple_reply (request.handle, cmd, flags, buf, count, error);
+    return send_simple_reply (request.cookie, cmd, flags, buf, count, error);
 
   if (error)
-    return send_structured_reply_error (request.handle, cmd, flags, error);
+    return send_structured_reply_error (request.cookie, cmd, flags, error);
 
   if (cmd == NBD_CMD_READ)
-    return send_structured_reply_read (request.handle, cmd, buf, count,
+    return send_structured_reply_read (request.cookie, cmd, buf, count,
                                        offset);
 
   /* NBD_CMD_BLOCK_STATUS */
-  return send_structured_reply_block_status (request.handle, cmd, flags,
+  return send_structured_reply_block_status (request.cookie, cmd, flags,
                                              count, offset, extents);
 }
