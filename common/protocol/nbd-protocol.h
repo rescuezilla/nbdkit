@@ -193,7 +193,7 @@ struct nbd_request {
   uint32_t magic;               /* NBD_REQUEST_MAGIC. */
   uint16_t flags;               /* Request flags. */
   uint16_t type;                /* Request type. */
-  uint64_t handle;              /* Opaque handle. */
+  uint64_t cookie;              /* Opaque handle. */
   uint64_t offset;              /* Request offset. */
   uint32_t count;               /* Request length. */
 } NBD_ATTRIBUTE_PACKED;
@@ -202,7 +202,7 @@ struct nbd_request {
 struct nbd_simple_reply {
   uint32_t magic;               /* NBD_SIMPLE_REPLY_MAGIC. */
   uint32_t error;               /* NBD_SUCCESS or one of NBD_E*. */
-  uint64_t handle;              /* Opaque handle. */
+  uint64_t cookie;              /* Opaque handle. */
 } NBD_ATTRIBUTE_PACKED;
 
 /* Structured reply (server -> client). */
@@ -210,7 +210,7 @@ struct nbd_structured_reply {
   uint32_t magic;               /* NBD_STRUCTURED_REPLY_MAGIC. */
   uint16_t flags;               /* NBD_REPLY_FLAG_* */
   uint16_t type;                /* NBD_REPLY_TYPE_* */
-  uint64_t handle;              /* Opaque handle. */
+  uint64_t cookie;              /* Opaque handle. */
   uint32_t length;              /* Length of payload which follows. */
 } NBD_ATTRIBUTE_PACKED;
 
