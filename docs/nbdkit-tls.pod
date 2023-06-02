@@ -384,6 +384,26 @@ F</etc/crypto-policies/config> if the first file does not exist.
 
 More information can be found in L<gnutls_priority_init(3)>.
 
+=head2 Debugging TLS connections
+
+Encrypted connections makes snooping on network traffic with Wireshark
+impossible, by design.
+
+The TLS library used by nbdkit, called gnutls, supports the
+C<SSLKEYLOGFILE> standard:
+L<https://web.archive.org/web/20200118013150/https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/Key_Log_Format>
+
+Before running nbdkit set the environment variable to point to a log
+file (note it will append to the file if it already exists):
+
+ SSLKEYLOGFILE=/tmp/keylog nbdkit [...]
+
+In Wireshark go to Edit → Preferences → Protocols → TLS and set
+S<(Pre)-Master-Secret log filename> to the log file name.  Wireshark
+should be able to see the unencrypted traffic.  For further
+information read:
+L<https://wiki.wireshark.org/TLS#using-the-pre-master-secret>
+
 =head1 SEE ALSO
 
 L<nbdkit(1)>,
