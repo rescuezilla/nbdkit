@@ -130,6 +130,13 @@ bad '0*'
 bad '0*x'
 bad '0**'
 
+# Bad repeats (overflow during optimization).
+bad '0*0x100000000*0x100000000'
+# XXX I couldn't work out how to test fill(b,X)*Y overflow check.
+# Optimization works from outer to inner and fills are only generated
+# through optimizations, so there seems no predictable way to create
+# the inner fill.
+
 # Bad slices.
 bad '0[2:]'
 bad '0[:2]'
