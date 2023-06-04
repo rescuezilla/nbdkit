@@ -48,6 +48,7 @@
 #include "allocator.h"
 #include "ascii-ctype.h"
 #include "byte-swapping.h"
+#include "checked-overflow.h"
 #include "cleanup.h"
 #include "hexdigit.h"
 #include "ispowerof2.h"
@@ -1107,6 +1108,7 @@ optimize_ast (node_id root, node_id *root_rtn)
   node_id id;
   node_ids list = empty_vector;
   expr_t e2;
+  uint64_t mul;
 
   switch (get_node (root).t) {
   case EXPR_LIST:
@@ -1204,23 +1206,32 @@ optimize_ast (node_id root, node_id *root_rtn)
     }
     /* expr*X*Y can be replaced by expr*(X*Y). */
     if (get_node (id).t == EXPR_REPEAT) {
-      *root_rtn = new_node (expr (EXPR_REPEAT,
-                                  get_node (id).r.id,
-                                  get_node (root).r.n * get_node (id).r.n));
+      if (MUL_OVERFLOW (get_node (root).r.n, get_node (id).r.n, &mul)) {
+        nbdkit_error ("multiplication overflow: %" PRIu64 "*%" PRIu64,
+                      get_node (root).r.n, get_node (id).r.n);
+        debug_expr (root, 0);
+        return -1;
+      }
+      *root_rtn = new_node (expr (EXPR_REPEAT, get_node (id).r.id, mul));
       return 0;
     }
     /* fill(b,X)*Y can be replaced by fill(b,X*Y). */
     if (get_node (id).t == EXPR_FILL) {
-      *root_rtn = new_node (expr (EXPR_FILL,
-                                  get_node (id).fl.b,
-                                  get_node (root).r.n * get_node (id).fl.n));
+      if (MUL_OVERFLOW (get_node (root).r.n, get_node (id).fl.n, &mul)) {
+        nbdkit_error ("multiplication overflow: %" PRIu64 "*%" PRIu64,
+                      get_node (root).r.n, get_node (id).fl.n);
+        debug_expr (root, 0);
+        return -1;
+      }
+      *root_rtn = new_node (expr (EXPR_FILL, get_node (id).fl.b, mul));
       return 0;
     }
     /* string*N can be replaced by N copies of the string, if the
      * resulting string is small enough.
      */
     if (get_node (id).t == EXPR_STRING &&
-        get_node (root).r.n * get_node (id).string.len <= 4096) {
+        !MUL_OVERFLOW (get_node (root).r.n, get_node (id).string.len, &mul) &&
+        mul <= 4096) {
       string s = empty_vector;
       size_t n = get_node (root).r.n;
       const string sub = get_node (id).string;
