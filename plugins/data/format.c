@@ -1216,12 +1216,11 @@ optimize_ast (node_id root, node_id *root_rtn)
                                   get_node (root).r.n * get_node (id).fl.n));
       return 0;
     }
-    /* For short strings and small values or N, string*N can be
-     * replaced by N copies of the string.
+    /* string*N can be replaced by N copies of the string, if the
+     * resulting string is small enough.
      */
     if (get_node (id).t == EXPR_STRING &&
-        get_node (root).r.n <= 4 &&
-        get_node (id).string.len <= 512) {
+        get_node (root).r.n * get_node (id).string.len <= 4096) {
       string s = empty_vector;
       size_t n = get_node (root).r.n;
       const string sub = get_node (id).string;
