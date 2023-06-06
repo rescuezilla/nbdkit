@@ -67,16 +67,19 @@ static int fd = -1;
 static struct stat statbuf;
 static char request[16384];
 static check_request_t check_request;
+static bool head_fails_with_403 = false;
 
 static void *start_web_server (void *arg);
 static void handle_requests (int s);
 static void handle_file_request (int s, enum method method);
 static void handle_mirror_redirect_request (int s);
 static void handle_mirror_data_request (int s, enum method method, char byte);
+static void send_403_forbidden (int s);
 static void send_404_not_found (int s);
 static void send_405_method_not_allowed (int s);
 static void send_500_internal_server_error (int s);
 static void xwrite (int s, const char *buf, size_t len);
+static void xwrite_allow_epipe (int s, const char *buf, size_t len);
 static void xpread (char *buf, size_t count, off_t offset);
 
 static void
@@ -99,7 +102,8 @@ ignore_sigpipe (void)
 }
 
 const char *
-web_server (const char *filename, check_request_t _check_request)
+web_server (const char *filename, check_request_t _check_request,
+            bool _head_fails_with_403)
 {
   struct sockaddr_un addr;
   pthread_t thread;
@@ -108,6 +112,7 @@ web_server (const char *filename, check_request_t _check_request)
   ignore_sigpipe ();
 
   check_request = _check_request;
+  head_fails_with_403 = _head_fails_with_403;
 
   /* Open the file. */
   fd = open (filename, O_RDONLY|O_CLOEXEC);
@@ -252,6 +257,11 @@ handle_requests (int s)
       }
       memcpy (path, &request[5], n);
       path[n] = '\0';
+      if (head_fails_with_403) {
+        send_403_forbidden (s);
+        eof = true;
+        break;
+      }
     }
     else if (strncmp (request, "GET ", 4) == 0) {
       method = GET;
@@ -363,7 +373,14 @@ handle_file_request (int s, enum method method)
   }
 
   xpread (data, length, offset);
-  xwrite (s, data, length);
+  if (!head_fails_with_403 || offset != 0)
+    xwrite (s, data, length);
+  else
+    /* In the special case where we are testing the fallback from HEAD
+     * request case, the curl plugin will issue a GET for the whole
+     * data, but not read it all.  Ignore EPIPE errors here.
+     */
+    xwrite_allow_epipe (s, data, length);
 
   free (data);
 }
@@ -452,6 +469,16 @@ handle_mirror_data_request (int s, enum method method, char byte)
 }
 
 static void
+send_403_forbidden (int s)
+{
+  const char response[] =
+    "HTTP/1.1 403 Forbidden\r\n"
+    "Connection: close\r\n"
+    "\r\n";
+  xwrite (s, response, strlen (response));
+}
+
+static void
 send_404_not_found (int s)
 {
   const char response[] =
@@ -492,6 +519,24 @@ xwrite (int s, const char *buf, size_t len)
   while (len > 0) {
     r = write (s, buf, len);
     if (r == -1) {
+      perror ("web server: write");
+      exit (EXIT_FAILURE);
+    }
+    buf += r;
+    len -= r;
+  }
+}
+
+static void
+xwrite_allow_epipe (int s, const char *buf, size_t len)
+{
+  ssize_t r;
+
+  while (len > 0) {
+    r = write (s, buf, len);
+    if (r == -1) {
+      if (errno == EPIPE)
+        return;
       perror ("web server: write");
       exit (EXIT_FAILURE);
     }

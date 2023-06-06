@@ -72,7 +72,7 @@ main (int argc, char *argv[])
     exit (77);
   }
 
-  sockpath = web_server ("disk" /* not used but must be set */, NULL);
+  sockpath = web_server ("disk" /* not used but must be set */, NULL, false);
   if (sockpath == NULL) {
     fprintf (stderr, "%s: could not start web server thread\n", argv[0]);
     exit (EXIT_FAILURE);

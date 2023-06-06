@@ -82,7 +82,7 @@ main (int argc, char *argv[])
   exit (77);
 #endif
 
-  sockpath = web_server ("disk", check_request);
+  sockpath = web_server ("disk", check_request, false);
   if (sockpath == NULL) {
     fprintf (stderr, "%s: could not start web server thread\n", program_name);
     exit (EXIT_FAILURE);

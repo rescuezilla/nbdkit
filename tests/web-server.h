@@ -43,6 +43,8 @@
 #ifndef NBDKIT_WEB_SERVER_H
 #define NBDKIT_WEB_SERVER_H
 
+#include <stdbool.h>
+
 /* Starts a web server in a background thread.  The web server will
  * serve 'filename' (only) - the URL in requests is ignored.
  *
@@ -57,10 +59,15 @@
  * The optional check_request function is called when the request is
  * received (note: not in the main thread) and can be used to perform
  * checks for example that particular headers were sent.
+ *
+ * If head_fails_with_403 == true then we simulate a server that
+ * responds to GET but fails HEAD with 403 errors, see:
+ * https://github.com/kubevirt/containerized-data-importer/issues/2737#issuecomment-1577786849
  */
 typedef void (*check_request_t) (const char *request);
 extern const char *web_server (const char *filename,
-                               check_request_t check_request)
+                               check_request_t check_request,
+                               bool head_fails_with_403)
   __attribute__ ((__nonnull__ (1)));
 
 #endif /* NBDKIT_WEB_SERVER_H */
