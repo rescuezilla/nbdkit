@@ -73,9 +73,10 @@ static struct curl_handle *allocate_handle (void);
 static void free_handle (struct curl_handle *);
 static int debug_cb (CURL *handle, curl_infotype type,
                      const char *data, size_t size, void *);
-static size_t header_cb (void *ptr, size_t size, size_t nmemb, void *opaque);
 static size_t write_cb (char *ptr, size_t size, size_t nmemb, void *opaque);
 static size_t read_cb (void *ptr, size_t size, size_t nmemb, void *opaque);
+static int get_content_length_accept_range (struct curl_handle *ch);
+static size_t header_cb (void *ptr, size_t size, size_t nmemb, void *opaque);
 
 /* This lock protects access to the curl_handles vector below. */
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -184,11 +185,6 @@ allocate_handle (void)
 {
   struct curl_handle *ch;
   CURLcode r;
-#ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
-  curl_off_t o;
-#else
-  double d;
-#endif
 
   ch = calloc (1, sizeof *ch);
   if (ch == NULL) {
@@ -316,67 +312,8 @@ allocate_handle (void)
   if (user_agent)
     curl_easy_setopt (ch->c, CURLOPT_USERAGENT, user_agent);
 
-  /* Get the file size and also whether the remote HTTP server
-   * supports byte ranges.
-   *
-   * We must run the scripts if necessary and set headers in the
-   * handle.
-   */
-  if (do_scripts (ch) == -1) goto err;
-  ch->accept_range = false;
-  curl_easy_setopt (ch->c, CURLOPT_NOBODY, 1L); /* No Body, not nobody! */
-  curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, header_cb);
-  curl_easy_setopt (ch->c, CURLOPT_HEADERDATA, ch);
-  r = curl_easy_perform (ch->c);
-  if (r != CURLE_OK) {
-    display_curl_error (ch, r,
-                        "problem doing HEAD request to fetch size of URL [%s]",
-                        url);
+  if (get_content_length_accept_range (ch) == -1)
     goto err;
-  }
-
-#ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
-  r = curl_easy_getinfo (ch->c, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &o);
-  if (r != CURLE_OK) {
-    display_curl_error (ch, r,
-                        "could not get length of remote file [%s]", url);
-    goto err;
-  }
-
-  if (o == -1) {
-    nbdkit_error ("could not get length of remote file [%s], "
-                  "is the URL correct?", url);
-    goto err;
-  }
-
-  ch->exportsize = o;
-#else
-  r = curl_easy_getinfo (ch->c, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
-  if (r != CURLE_OK) {
-    display_curl_error (ch, r,
-                        "could not get length of remote file [%s]", url);
-    goto err;
-  }
-
-  if (d == -1) {
-    nbdkit_error ("could not get length of remote file [%s], "
-                  "is the URL correct?", url);
-    goto err;
-  }
-
-  ch->exportsize = d;
-#endif
-  nbdkit_debug ("content length: %" PRIi64, ch->exportsize);
-
-  if (ascii_strncasecmp (url, "http://", strlen ("http://")) == 0 ||
-      ascii_strncasecmp (url, "https://", strlen ("https://")) == 0) {
-    if (!ch->accept_range) {
-      nbdkit_error ("server does not support 'range' (byte range) requests");
-      goto err;
-    }
-
-    nbdkit_debug ("accept range supported (for HTTP/HTTPS)");
-  }
 
   /* Get set up for reading and writing. */
   curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, NULL);
@@ -394,6 +331,15 @@ allocate_handle (void)
     curl_easy_cleanup (ch->c);
   free (ch);
   return NULL;
+}
+
+static void
+free_handle (struct curl_handle *ch)
+{
+  curl_easy_cleanup (ch->c);
+  if (ch->headers_copy)
+    curl_slist_free_all (ch->headers_copy);
+  free (ch);
 }
 
 /* When using CURLOPT_VERBOSE, this callback is used to redirect
@@ -439,39 +385,6 @@ debug_cb (CURL *handle, curl_infotype type,
 
  out:
   return 0;
-}
-
-static size_t
-header_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
-{
-  struct curl_handle *ch = opaque;
-  size_t realsize = size * nmemb;
-  const char *header = ptr;
-  const char *end = header + realsize;
-  const char *accept_ranges = "accept-ranges:";
-  const char *bytes = "bytes";
-
-  if (realsize >= strlen (accept_ranges) &&
-      ascii_strncasecmp (header, accept_ranges, strlen (accept_ranges)) == 0) {
-    const char *p = strchr (header, ':') + 1;
-
-    /* Skip whitespace between the header name and value. */
-    while (p < end && *p && ascii_isspace (*p))
-      p++;
-
-    if (end - p >= strlen (bytes)
-        && strncmp (p, bytes, strlen (bytes)) == 0) {
-      /* Check that there is nothing but whitespace after the value. */
-      p += strlen (bytes);
-      while (p < end && *p && ascii_isspace (*p))
-        p++;
-
-      if (p == end || !*p)
-        ch->accept_range = true;
-    }
-  }
-
-  return realsize;
 }
 
 /* NB: The terminology used by libcurl is confusing!
@@ -523,11 +436,119 @@ read_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
   return realsize;
 }
 
-static void
-free_handle (struct curl_handle *ch)
+/* Get the file size and also whether the remote HTTP server
+ * supports byte ranges.
+ */
+static int
+get_content_length_accept_range (struct curl_handle *ch)
 {
-  curl_easy_cleanup (ch->c);
-  if (ch->headers_copy)
-    curl_slist_free_all (ch->headers_copy);
-  free (ch);
+  CURLcode r;
+#ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
+  curl_off_t o;
+#else
+  double d;
+#endif
+
+  /* We must run the scripts if necessary and set headers in the
+   * handle.
+   */
+  if (do_scripts (ch) == -1)
+    return -1;
+
+  /* Set this flag in the handle to false.  The callback should set it
+   * to true if byte ranges are supported, which we check below.
+   */
+  ch->accept_range = false;
+
+  /* No Body, not nobody!  This forces a HEAD request. */
+  curl_easy_setopt (ch->c, CURLOPT_NOBODY, 1L);
+  curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, header_cb);
+  curl_easy_setopt (ch->c, CURLOPT_HEADERDATA, ch);
+  r = curl_easy_perform (ch->c);
+  if (r != CURLE_OK) {
+    display_curl_error (ch, r,
+                        "problem doing HEAD request to fetch size of URL [%s]",
+                        url);
+    return -1;
+  }
+
+  /* Get the content length. */
+#ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
+  r = curl_easy_getinfo (ch->c, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &o);
+  if (r != CURLE_OK) {
+    display_curl_error (ch, r,
+                        "could not get length of remote file [%s]", url);
+    return -1;
+  }
+
+  if (o == -1) {
+    nbdkit_error ("could not get length of remote file [%s], "
+                  "is the URL correct?", url);
+    return -1;
+  }
+
+  ch->exportsize = o;
+#else
+  r = curl_easy_getinfo (ch->c, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
+  if (r != CURLE_OK) {
+    display_curl_error (ch, r,
+                        "could not get length of remote file [%s]", url);
+    return -1;
+  }
+
+  if (d == -1) {
+    nbdkit_error ("could not get length of remote file [%s], "
+                  "is the URL correct?", url);
+    return -1;
+  }
+
+  ch->exportsize = d;
+#endif
+  nbdkit_debug ("content length: %" PRIi64, ch->exportsize);
+
+  /* If this is HTTP, check that byte ranges are supported. */
+  if (ascii_strncasecmp (url, "http://", strlen ("http://")) == 0 ||
+      ascii_strncasecmp (url, "https://", strlen ("https://")) == 0) {
+    if (!ch->accept_range) {
+      nbdkit_error ("server does not support 'range' (byte range) requests");
+      return -1;
+    }
+
+    nbdkit_debug ("accept range supported (for HTTP/HTTPS)");
+  }
+
+  return 0;
+}
+
+static size_t
+header_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
+{
+  struct curl_handle *ch = opaque;
+  size_t realsize = size * nmemb;
+  const char *header = ptr;
+  const char *end = header + realsize;
+  const char *accept_ranges = "accept-ranges:";
+  const char *bytes = "bytes";
+
+  if (realsize >= strlen (accept_ranges) &&
+      ascii_strncasecmp (header, accept_ranges, strlen (accept_ranges)) == 0) {
+    const char *p = strchr (header, ':') + 1;
+
+    /* Skip whitespace between the header name and value. */
+    while (p < end && *p && ascii_isspace (*p))
+      p++;
+
+    if (end - p >= strlen (bytes)
+        && strncmp (p, bytes, strlen (bytes)) == 0) {
+      /* Check that there is nothing but whitespace after the value. */
+      p += strlen (bytes);
+      while (p < end && *p && ascii_isspace (*p))
+        p++;
+
+      if (p == end || !*p)
+        ch->accept_range = true;
+    }
+  }
+
+  return realsize;
 }
