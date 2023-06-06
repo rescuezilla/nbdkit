@@ -116,13 +116,13 @@ web_server (const char *filename, check_request_t _check_request)
     return NULL;
   }
   if (fstat (fd, &statbuf) == -1) {
-    perror ("stat");
+    perror ("web server: stat");
     goto err1;
   }
 
   /* Create the temporary directory for the socket. */
   if (mkdtemp (tmpdir) == NULL) {
-    perror ("mkdtemp");
+    perror ("web server: mkdtemp");
     goto err1;
   }
 
@@ -130,7 +130,7 @@ web_server (const char *filename, check_request_t _check_request)
   memcpy (sockpath, tmpdir, strlen (tmpdir));
   listen_sock = socket (AF_UNIX, SOCK_STREAM|SOCK_CLOEXEC, 0);
   if (listen_sock == -1) {
-    perror ("socket");
+    perror ("web server: socket");
     goto err2;
   }
 
@@ -142,7 +142,7 @@ web_server (const char *filename, check_request_t _check_request)
   }
 
   if (listen (listen_sock, SOMAXCONN) == -1) {
-    perror ("listen");
+    perror ("web server: listen");
     goto err4;
   }
 
@@ -150,13 +150,13 @@ web_server (const char *filename, check_request_t _check_request)
   err = pthread_create (&thread, NULL, start_web_server, NULL);
   if (err) {
     errno = err;
-    perror ("pthread_create");
+    perror ("web server: pthread_create");
     goto err4;
   }
   err = pthread_detach (thread);
   if (err) {
     errno = err;
-    perror ("pthread_detach");
+    perror ("web server: pthread_detach");
     goto err4;
   }
 
@@ -218,7 +218,7 @@ handle_requests (int s)
       sz = sizeof request - n - 1;
       r = read (s, &request[n], sz);
       if (r == -1) {
-        perror ("read");
+        perror ("web server: read");
         exit (EXIT_FAILURE);
       }
       if (r == 0) {
@@ -356,7 +356,7 @@ handle_file_request (int s, enum method method)
   /* Send the file content. */
   data = malloc (length);
   if (data == NULL) {
-    perror ("malloc");
+    perror ("web server: malloc");
     exit (EXIT_FAILURE);
   }
 
@@ -439,7 +439,7 @@ handle_mirror_data_request (int s, enum method method, char byte)
   /* Send the file content. */
   data = malloc (length);
   if (data == NULL) {
-    perror ("malloc");
+    perror ("web server: malloc");
     exit (EXIT_FAILURE);
   }
 
@@ -490,7 +490,7 @@ xwrite (int s, const char *buf, size_t len)
   while (len > 0) {
     r = write (s, buf, len);
     if (r == -1) {
-      perror ("write");
+      perror ("web server: write");
       exit (EXIT_FAILURE);
     }
     buf += r;
@@ -506,11 +506,11 @@ xpread (char *buf, size_t count, off_t offset)
   while (count > 0) {
     r = pread (fd, buf, count, offset);
     if (r == -1) {
-      perror ("read");
+      perror ("web server: read");
       exit (EXIT_FAILURE);
     }
     if (r == 0) {
-      fprintf (stderr, "pread: unexpected end of file\n");
+      fprintf (stderr, "web server: pread: unexpected end of file\n");
       exit (EXIT_FAILURE);
     }
     buf += r;
