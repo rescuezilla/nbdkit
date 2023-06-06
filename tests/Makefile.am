@@ -655,6 +655,7 @@ EXTRA_DIST += \
 	$(NULL)
 LIBGUESTFS_TESTS += test-curl
 LIBNBD_TESTS += \
+	test-curl-head-forbidden \
 	test-curl-header-script \
 	test-curl-cookie-script \
 	$(NULL)
@@ -681,6 +682,28 @@ test_curl_LDFLAGS = \
 test_curl_LDADD = \
 	libtest.la \
 	$(LIBGUESTFS_LIBS) \
+	$(NULL)
+
+test_curl_head_forbidden_SOURCES = \
+	test-curl-head-forbidden.c \
+	web-server.c \
+	web-server.h \
+	$(NULL)
+test_curl_head_forbidden_CPPFLAGS = \
+	-I$(top_srcdir)/common/include \
+	-I$(top_srcdir)/common/utils \
+	$(NULL)
+test_curl_head_forbidden_CFLAGS = \
+	$(WARNINGS_CFLAGS) \
+	$(LIBNBD_CFLAGS) \
+	$(PTHREAD_CFLAGS) \
+	$(NULL)
+test_curl_head_forbidden_LDFLAGS = \
+	$(top_builddir)/common/utils/libutils.la \
+	$(PTHREAD_LIBS) \
+	$(NULL)
+test_curl_head_forbidden_LDADD = \
+	$(LIBNBD_LIBS) \
 	$(NULL)
 
 test_curl_header_script_SOURCES = \

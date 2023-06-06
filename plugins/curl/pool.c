@@ -76,7 +76,9 @@ static int debug_cb (CURL *handle, curl_infotype type,
 static size_t write_cb (char *ptr, size_t size, size_t nmemb, void *opaque);
 static size_t read_cb (void *ptr, size_t size, size_t nmemb, void *opaque);
 static int get_content_length_accept_range (struct curl_handle *ch);
+static bool try_fallback_GET_method (struct curl_handle *ch);
 static size_t header_cb (void *ptr, size_t size, size_t nmemb, void *opaque);
+static size_t error_cb (char *ptr, size_t size, size_t nmemb, void *opaque);
 
 /* This lock protects access to the curl_handles vector below. */
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -443,6 +445,7 @@ static int
 get_content_length_accept_range (struct curl_handle *ch)
 {
   CURLcode r;
+  long code;
 #ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
   curl_off_t o;
 #else
@@ -469,7 +472,17 @@ get_content_length_accept_range (struct curl_handle *ch)
     display_curl_error (ch, r,
                         "problem doing HEAD request to fetch size of URL [%s]",
                         url);
-    return -1;
+
+    /* Get the HTTP status code, if available. */
+    r = curl_easy_getinfo (ch->c, CURLINFO_RESPONSE_CODE, &code);
+    if (r == CURLE_OK)
+      nbdkit_debug ("HTTP status code: %ld", code);
+    else
+      code = -1;
+
+    /* See comment on try_fallback_GET_method below. */
+    if (code != 403 || !try_fallback_GET_method (ch))
+      return -1;
   }
 
   /* Get the content length.
@@ -532,6 +545,35 @@ get_content_length_accept_range (struct curl_handle *ch)
   return 0;
 }
 
+/* S3 servers can return 403 Forbidden for HEAD but still respond
+ * to GET, so we give it a second chance in that case.
+ * https://github.com/kubevirt/containerized-data-importer/issues/2737
+ *
+ * This function issues a GET request with a writefunction that always
+ * returns an error, thus effectively getting the headers but
+ * abandoning the transfer as soon as possible after.
+ */
+static bool
+try_fallback_GET_method (struct curl_handle *ch)
+{
+  CURLcode r;
+
+  nbdkit_debug ("attempting to fetch headers using GET method");
+
+  curl_easy_setopt (ch->c, CURLOPT_HTTPGET, 1L);
+  curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, header_cb);
+  curl_easy_setopt (ch->c, CURLOPT_HEADERDATA, ch);
+  curl_easy_setopt (ch->c, CURLOPT_WRITEFUNCTION, error_cb);
+  curl_easy_setopt (ch->c, CURLOPT_WRITEDATA, ch);
+  r = curl_easy_perform (ch->c);
+
+  /* We expect CURLE_WRITE_ERROR here, but CURLE_OK is possible too
+   * (eg if the remote has zero length).  Other errors might happen
+   * but we ignore them since it is a fallback path.
+   */
+  return r == CURLE_OK || r == CURLE_WRITE_ERROR;
+}
+
 static size_t
 header_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
 {
@@ -563,4 +605,14 @@ header_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
   }
 
   return realsize;
+}
+
+static size_t
+error_cb (char *ptr, size_t size, size_t nmemb, void *opaque)
+{
+#ifdef CURL_WRITEFUNC_ERROR
+  return CURL_WRITEFUNC_ERROR;
+#else
+  return 0; /* in older curl, any size < requested will also be an error */
+#endif
 }
