@@ -218,8 +218,10 @@ handle_requests (int s)
       sz = sizeof request - n - 1;
       r = read (s, &request[n], sz);
       if (r == -1) {
-        perror ("web server: read");
-        exit (EXIT_FAILURE);
+        perror ("web server: handle_requests: read");
+        /* This isn't fatal, close the socket and accept a new connection. */
+        eof = true;
+        break;
       }
       if (r == 0) {
         eof = true;
@@ -506,7 +508,7 @@ xpread (char *buf, size_t count, off_t offset)
   while (count > 0) {
     r = pread (fd, buf, count, offset);
     if (r == -1) {
-      perror ("web server: read");
+      perror ("web server: xpread: read");
       exit (EXIT_FAILURE);
     }
     if (r == 0) {
