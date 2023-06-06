@@ -43,6 +43,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -90,12 +91,21 @@ cleanup (void)
   rmdir (tmpdir);
 }
 
+static void
+ignore_sigpipe (void)
+{
+  const struct sigaction sa = { .sa_flags = SA_RESTART, .sa_handler = SIG_IGN };
+  sigaction (SIGPIPE, &sa, NULL);
+}
+
 const char *
 web_server (const char *filename, check_request_t _check_request)
 {
   struct sockaddr_un addr;
   pthread_t thread;
   int err;
+
+  ignore_sigpipe ();
 
   check_request = _check_request;
 
