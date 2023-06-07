@@ -472,7 +472,19 @@ get_content_length_accept_range (struct curl_handle *ch)
     return -1;
   }
 
-  /* Get the content length. */
+  /* Get the content length.
+   *
+   * Note there is some subtlety here: For web servers using chunked
+   * encoding, either the Content-Length header will not be present,
+   * or if present it should be ignored.  (For such servers the only
+   * way to find out the true length would be to read all of the
+   * content, which we don't want to do).
+   *
+   * Curl itself resolves this for us.  It will ignore the
+   * Content-Length header if chunked encoding is used, returning the
+   * length as -1 which we check below (see also
+   * curl:lib/http.c:Curl_http_size).
+   */
 #ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
   r = curl_easy_getinfo (ch->c, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &o);
   if (r != CURLE_OK) {
