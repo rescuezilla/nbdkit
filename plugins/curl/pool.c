@@ -62,13 +62,6 @@
 /* Use '-D curl.pool=1' to debug handle pool. */
 NBDKIT_DLL_PUBLIC int curl_debug_pool = 0;
 
-/* Translate CURLcode to nbdkit_error. */
-#define display_curl_error(ch, r, fs, ...)                      \
-  do {                                                          \
-    nbdkit_error ((fs ": %s: %s"), ## __VA_ARGS__,              \
-                  curl_easy_strerror ((r)), (ch)->errbuf);      \
-  } while (0)
-
 static struct curl_handle *allocate_handle (void);
 static void free_handle (struct curl_handle *);
 static int debug_cb (CURL *handle, curl_infotype type,
