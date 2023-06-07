@@ -512,13 +512,6 @@ curl_config_complete (void)
   "user=<USER>                The user to log in as.\n" \
   "user-agent=<USER-AGENT>    Send user-agent header for HTTP/HTTPS."
 
-/* Translate CURLcode to nbdkit_error. */
-#define display_curl_error(ch, r, fs, ...)                      \
-  do {                                                          \
-    nbdkit_error ((fs ": %s: %s"), ## __VA_ARGS__,              \
-                  curl_easy_strerror ((r)), (ch)->errbuf);      \
-  } while (0)
-
 /* Create the per-connection handle. */
 static void *
 curl_open (int readonly)

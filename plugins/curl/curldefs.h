@@ -128,4 +128,11 @@ extern void free_all_handles (void);
 extern int do_scripts (struct curl_handle *ch);
 extern void scripts_unload (void);
 
+/* Translate CURLcode to nbdkit_error. */
+#define display_curl_error(ch, r, fs, ...)                      \
+  do {                                                          \
+    nbdkit_error ((fs ": %s: %s"), ## __VA_ARGS__,              \
+                  curl_easy_strerror ((r)), (ch)->errbuf);      \
+  } while (0)
+
 #endif /* NBDKIT_CURLDEFS_H */
