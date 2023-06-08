@@ -225,10 +225,12 @@ handle_requests (int s)
       if (r == -1) {
         perror ("web server: handle_requests: read");
         /* This isn't fatal, close the socket and accept a new connection. */
-        eof = true;
-        break;
+        goto out_and_close;
       }
       if (r == 0) {
+        /* Client closed the connection after sending it, continue
+         * processing but remember to close after doing so.
+         */
         eof = true;
         break;
       }
@@ -252,15 +254,13 @@ handle_requests (int s)
       n = strcspn (&request[5], " \n\t");
       if (n >= sizeof path) {
         send_500_internal_server_error (s);
-        eof = true;
-        break;
+        goto out_and_close;
       }
       memcpy (path, &request[5], n);
       path[n] = '\0';
       if (head_fails_with_403) {
         send_403_forbidden (s);
-        eof = true;
-        break;
+        goto out_and_close;
       }
     }
     else if (strncmp (request, "GET ", 4) == 0) {
@@ -268,16 +268,14 @@ handle_requests (int s)
       n = strcspn (&request[4], " \n\t");
       if (n >= sizeof path) {
         send_500_internal_server_error (s);
-        eof = true;
-        break;
+        goto out_and_close;
       }
       memcpy (path, &request[4], n);
       path[n] = '\0';
     }
     else {
       send_405_method_not_allowed (s);
-      eof = true;
-      break;
+      goto out_and_close;
     }
 
     fprintf (stderr, "web server: requested path: %s\n", path);
@@ -297,11 +295,11 @@ handle_requests (int s)
       handle_mirror_data_request (s, method, 2);
     else if (strcmp (path, "/mirror3") == 0) {
       send_404_not_found (s);
-      eof = true;
+      goto out_and_close;
     }
     else if (strncmp (path, "/mirror", 7) == 0) {
       send_500_internal_server_error (s);
-      eof = true;
+      goto out_and_close;
     }
 
     /* Otherwise it's a regular file request.  'path' is ignored, we
@@ -313,6 +311,7 @@ handle_requests (int s)
     fprintf (stderr, "web server: completed request\n");
   }
 
+ out_and_close:
   fprintf (stderr, "web server: closing socket\n");
   close (s);
 }
