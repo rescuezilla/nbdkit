@@ -5,6 +5,7 @@ nbdkit-tar-filter - read and write files inside tar files without unpacking
 =head1 SYNOPSIS
 
  nbdkit file FILENAME.tar --filter=tar tar-entry=PATH_INSIDE_TAR
+                                       [tar=TAR_COMMAND]
 
 =head1 EXAMPLES
 

@@ -96,8 +96,9 @@ tar_config_complete (nbdkit_next_config_complete *next,
   return next (nxdata);
 }
 
-#define tar_config_help \
-  "tar-entry=<FILENAME> (required) The path inside the tar file to serve."
+#define tar_config_help                                                 \
+  "tar-entry=<FILENAME> (required) The path inside the tar file to serve.\n" \
+  "tar=<PATH>                      Path of the tar binary."
 
 static int
 tar_thread_model (void)
