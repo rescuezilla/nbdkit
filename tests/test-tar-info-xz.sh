@@ -37,7 +37,6 @@ set -e
 set -x
 
 requires test -f disk
-requires guestfish --version
 requires tar --version
 requires qemu-img --version
 requires qemu-img info --output=json /dev/null
