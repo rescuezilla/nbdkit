@@ -53,6 +53,7 @@
 #include "utils.h"
 
 static const char *entry;       /* File within tar (tar-entry=...) */
+static int64_t tar_limit = 0;
 static const char *tar_program = "tar";
 
 /* Offset and size within tarball.
@@ -74,6 +75,12 @@ tar_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
       return -1;
     }
     entry = value;
+    return 0;
+  }
+  else if (strcmp (key, "tar-limit") == 0) {
+    tar_limit = nbdkit_parse_size (value);
+    if (tar_limit == -1)
+      return -1;
     return 0;
   }
   else if (strcmp (key, "tar") == 0) {
@@ -98,6 +105,7 @@ tar_config_complete (nbdkit_next_config_complete *next,
 
 #define tar_config_help                                                 \
   "tar-entry=<FILENAME> (required) The path inside the tar file to serve.\n" \
+  "tar-limit=SIZE                  Limit on reading to find entry.\n" \
   "tar=<PATH>                      Path of the tar binary."
 
 static int
@@ -197,6 +205,8 @@ calculate_offset_of_entry (nbdkit_next *next)
   copysize = next->get_size (next);
   if (copysize == -1)
     return -1;
+  if (tar_limit > 0 && copysize > tar_limit)
+    copysize = tar_limit;
 
   /* Run the tar command. */
   nbdkit_debug ("%s", cmd);

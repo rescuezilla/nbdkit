@@ -4,8 +4,9 @@ nbdkit-tar-filter - read and write files inside tar files without unpacking
 
 =head1 SYNOPSIS
 
- nbdkit file FILENAME.tar --filter=tar tar-entry=PATH_INSIDE_TAR
-                                       [tar=TAR_COMMAND]
+ nbdkit file FILENAME.tar
+        --filter=tar tar-entry=PATH_INSIDE_TAR
+                     [tar=TAR_COMMAND] [tar-limit=SIZE]
 
 =head1 EXAMPLES
 
@@ -82,6 +83,25 @@ The disk image cannot be resized.
 The path of the file inside the tarball to serve.  This parameter is
 required.  It must exactly match the name stored in the tarball, so
 use S<C<tar tf filename.tar>>
+
+=item [B<tar-limit=>]SIZE
+
+When opening the tar file we have to locate the file (C<tar-entry>)
+inside the tarball.  Because tar files do not have a central index we
+must iterate over the tar file to find the entry, and that may be
+costly (especially with untrusted tar files).  In the worst case where
+C<tar-entry> starts near the end of the file we may have to iterate
+over the whole tar file.  If this is a problem you may set
+C<tar-limit> to some smaller value, eg:
+
+ nbdkit -r curl https://example.com/file.tar \
+        --filter=tar tar-entry=disk.img \
+                     tar-limit=10M
+
+which ensures no more than 10 megabytes are read before we give up and
+reject the tar file (sending an error back to the NBD client).
+
+The default is 0 meaning no limit.
 
 =item B<tar=gtar>
 

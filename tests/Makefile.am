@@ -1957,11 +1957,13 @@ TESTS += \
 	test-tar.sh \
 	test-tar-info.sh \
 	test-tar-info-xz.sh \
+	test-tar-limit.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-tar.sh \
 	test-tar-info.sh \
 	test-tar-info-xz.sh \
+	test-tar-limit.sh \
 	$(NULL)
 
 # truncate filter tests.
