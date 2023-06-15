@@ -53,6 +53,23 @@ include: '/ci/gitlab.yml'
     - .base_build_job
     - .gitlab_cross_build_job_local_env
 
+.rust_build_job:
+  stage: builds
+  cache:
+    paths:
+      - $CARGO_HOME/registry
+  variables:
+    RUSTFLAGS: -Dwarnings
+    RUSTDOCFLAGS: -Dwarnings
+  script:
+    - cd plugins/rust
+    - rustc --version | grep -q 1.46.0 && mv Cargo.lock.msrv Cargo.lock
+    - cargo build
+    - cargo test
+    - cargo build --examples
+    - cargo doc --no-deps
+    - rm -rf $CARGO_HOME/registry/index
+
 # Jobs that we delegate to Cirrus CI because they require an operating
 # system other than Linux. These jobs will only run if the required
 # setup has been performed on the GitLab account (see ci/README.rst).
