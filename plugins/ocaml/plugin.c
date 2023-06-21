@@ -76,6 +76,7 @@ constructor (void)
  * nbdkit_plugin struct and return it from our own plugin_init
  * function.
  */
+static void close_wrapper (void *h);
 static void unload_wrapper (void);
 static void free_strings (void);
 static void remove_roots (void);
@@ -92,6 +93,10 @@ static struct nbdkit_plugin plugin = {
    */
   .name = NULL,
 
+  /* We always call these, even if the OCaml code does not provide a
+   * callback.
+   */
+  .close = close_wrapper,
   .unload = unload_wrapper,
 };
 
@@ -345,6 +350,9 @@ open_wrapper (int readonly)
   CAMLreturnT (void *, ret);
 }
 
+/* We always have a close function, since we need to unregister the
+ * global root and free the handle.
+ */
 static void
 close_wrapper (void *h)
 {
@@ -352,10 +360,12 @@ close_wrapper (void *h)
   CAMLparam0 ();
   CAMLlocal1 (rv);
 
-  rv = caml_callback_exn (close_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    /*FALLTHROUGH*/
+  if (close_fn) {
+    rv = caml_callback_exn (close_fn, *(value *) h);
+    if (Is_exception_result (rv)) {
+      nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
+      /*FALLTHROUGH*/
+    }
   }
 
   caml_remove_generational_global_root (h);
