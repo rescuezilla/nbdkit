@@ -47,18 +47,18 @@ caml_alloc_initialized_string (mlsize_t len, const char *p)
 #endif
 
 /* For functions which call into OCaml code, call
- * caml_leave_blocking_section() to prevent other threads running,
- * then caml_enter_blocking_section() on return to C code.  This macro
- * ensures that the calls are paired properly.
+ * caml_acquire_runtime_system ... caml_release_runtime_system around
+ * the code.  This prevents other threads in the same domain running.
+ * The macro ensures that the calls are paired properly.
  */
-#define LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE() \
-  __attribute__ ((unused, cleanup (cleanup_enter_blocking_section))) \
+#define ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE() \
+  __attribute__ ((unused, cleanup (cleanup_release_runtime_system))) \
   int _unused;                                              \
-  caml_leave_blocking_section ()
+  caml_acquire_runtime_system ()
 static inline void
-cleanup_enter_blocking_section (int *unused)
+cleanup_release_runtime_system (int *unused)
 {
-  caml_enter_blocking_section ();
+  caml_release_runtime_system ();
 }
 
 #endif /* NBDKIT_OCAML_PLUGIN_H */
