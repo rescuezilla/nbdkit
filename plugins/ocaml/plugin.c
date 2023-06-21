@@ -260,9 +260,31 @@ cleanup_wrapper (void)
   CAMLreturn0;
 }
 
+/* A note about nbdkit threads and OCaml:
+ *
+ * OCaml requires that all C threads are registered and unregistered.
+ *
+ * For the main thread callbacks like load, config, get_ready [above
+ * this comment] we don't need to do anything.
+ *
+ * For the connected callbacks [below this comment] nbdkit creates its
+ * own threads but does not provide a way to intercept thread creation
+ * or destruction.  However we can register the current thread in
+ * every callback, and unregister the thread only call_wrapper.
+ *
+ * This is safe and cheap: Registering a thread is basically free if
+ * the thread is already registered (the OCaml code checks a
+ * thread-local variable to see if it needs to register).  nbdkit will
+ * always call the .close method, which does not necessarily indicate
+ * that the thread is being destroyed, but if the thread is reused we
+ * will register the same thread again when .open or similar is called
+ * next time.
+ */
+
 static int
 preconnect_wrapper (int readonly)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -279,6 +301,7 @@ preconnect_wrapper (int readonly)
 static int
 list_exports_wrapper (int readonly, int is_tls, struct nbdkit_exports *exports)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal2 (rv, v);
@@ -311,6 +334,7 @@ list_exports_wrapper (int readonly, int is_tls, struct nbdkit_exports *exports)
 static const char *
 default_export_wrapper (int readonly, int is_tls)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -330,6 +354,7 @@ default_export_wrapper (int readonly, int is_tls)
 static void *
 open_wrapper (int readonly)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -351,12 +376,13 @@ open_wrapper (int readonly)
 }
 
 /* We always have a close function, since we need to unregister the
- * global root and free the handle.
+ * global root, free the handle and unregister the thread.
  */
 static void
 close_wrapper (void *h)
 {
-  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
+  caml_c_thread_register ();
+  caml_acquire_runtime_system ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
 
@@ -370,6 +396,8 @@ close_wrapper (void *h)
 
   caml_remove_generational_global_root (h);
   free (h);
+  caml_release_runtime_system ();
+  caml_c_thread_unregister ();
 
   CAMLreturn0;
 }
@@ -377,6 +405,7 @@ close_wrapper (void *h)
 static const char *
 export_description_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -395,6 +424,7 @@ export_description_wrapper (void *h)
 static int64_t
 get_size_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -414,6 +444,7 @@ static int
 block_size_wrapper (void *h,
                     uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -456,6 +487,7 @@ block_size_wrapper (void *h,
 static int
 can_write_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -472,6 +504,7 @@ can_write_wrapper (void *h)
 static int
 can_flush_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -488,6 +521,7 @@ can_flush_wrapper (void *h)
 static int
 is_rotational_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -504,6 +538,7 @@ is_rotational_wrapper (void *h)
 static int
 can_trim_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -520,6 +555,7 @@ can_trim_wrapper (void *h)
 static int
 can_zero_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -536,6 +572,7 @@ can_zero_wrapper (void *h)
 static int
 can_fua_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -552,6 +589,7 @@ can_fua_wrapper (void *h)
 static int
 can_fast_zero_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -568,6 +606,7 @@ can_fast_zero_wrapper (void *h)
 static int
 can_cache_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -584,6 +623,7 @@ can_cache_wrapper (void *h)
 static int
 can_extents_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -600,6 +640,7 @@ can_extents_wrapper (void *h)
 static int
 can_multi_conn_wrapper (void *h)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -646,6 +687,7 @@ static int
 pread_wrapper (void *h, void *buf, uint32_t count, uint64_t offset,
                uint32_t flags)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
@@ -676,6 +718,7 @@ static int
 pwrite_wrapper (void *h, const void *buf, uint32_t count, uint64_t offset,
                 uint32_t flags)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, strv, offsetv, flagsv);
@@ -697,6 +740,7 @@ pwrite_wrapper (void *h, const void *buf, uint32_t count, uint64_t offset,
 static int
 flush_wrapper (void *h, uint32_t flags)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal2 (rv, flagsv);
@@ -715,6 +759,7 @@ flush_wrapper (void *h, uint32_t flags)
 static int
 trim_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
@@ -736,6 +781,7 @@ trim_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 static int
 zero_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
@@ -758,6 +804,7 @@ static int
 extents_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags,
                  struct nbdkit_extents *extents)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal5 (rv, countv, offsetv, flagsv, v);
@@ -798,6 +845,7 @@ extents_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags,
 static int
 cache_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
