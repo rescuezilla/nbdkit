@@ -64,6 +64,12 @@ constructor (void)
 
   /* Initialize OCaml runtime. */
   caml_startup (argv);
+
+  /* We need to release the runtime system here so other threads may
+   * use it.  Before we call any OCaml callbacks we must acquire the
+   * runtime system again.
+   */
+  caml_release_runtime_system ();
 }
 
 /* Instead of using the NBDKIT_REGISTER_PLUGIN macro, we construct the
@@ -113,7 +119,7 @@ plugin_init (void)
 static void
 load_wrapper (void)
 {
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   caml_callback (load_fn, Val_unit);
 }
 
@@ -123,8 +129,9 @@ load_wrapper (void)
 static void
 unload_wrapper (void)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
+
   if (unload_fn) {
-    LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
     caml_callback (unload_fn, Val_unit);
   }
 
@@ -139,9 +146,9 @@ unload_wrapper (void)
 static void
 dump_plugin_wrapper (void)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (dump_plugin_fn, Val_unit);
   if (Is_exception_result (rv))
@@ -152,9 +159,9 @@ dump_plugin_wrapper (void)
 static int
 config_wrapper (const char *key, const char *val)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal3 (keyv, valv, rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   keyv = caml_copy_string (key);
   valv = caml_copy_string (val);
@@ -171,9 +178,9 @@ config_wrapper (const char *key, const char *val)
 static int
 config_complete_wrapper (void)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (config_complete_fn, Val_unit);
   if (Is_exception_result (rv)) {
@@ -187,9 +194,9 @@ config_complete_wrapper (void)
 static int
 thread_model_wrapper (void)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (thread_model_fn, Val_unit);
   if (Is_exception_result (rv)) {
@@ -203,9 +210,9 @@ thread_model_wrapper (void)
 static int
 get_ready_wrapper (void)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (get_ready_fn, Val_unit);
   if (Is_exception_result (rv)) {
@@ -219,9 +226,9 @@ get_ready_wrapper (void)
 static int
 after_fork_wrapper (void)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (after_fork_fn, Val_unit);
   if (Is_exception_result (rv)) {
@@ -235,9 +242,9 @@ after_fork_wrapper (void)
 static void
 cleanup_wrapper (void)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (cleanup_fn, Val_unit);
   if (Is_exception_result (rv)) {
@@ -251,9 +258,9 @@ cleanup_wrapper (void)
 static int
 preconnect_wrapper (int readonly)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (preconnect_fn, Val_bool (readonly));
   if (Is_exception_result (rv)) {
@@ -267,9 +274,9 @@ preconnect_wrapper (int readonly)
 static int
 list_exports_wrapper (int readonly, int is_tls, struct nbdkit_exports *exports)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal2 (rv, v);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback2_exn (list_exports_fn, Val_bool (readonly),
                            Val_bool (is_tls));
@@ -299,10 +306,10 @@ list_exports_wrapper (int readonly, int is_tls, struct nbdkit_exports *exports)
 static const char *
 default_export_wrapper (int readonly, int is_tls)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
   const char *name;
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback2_exn (default_export_fn, Val_bool (readonly),
                            Val_bool (is_tls));
@@ -318,10 +325,10 @@ default_export_wrapper (int readonly, int is_tls)
 static void *
 open_wrapper (int readonly)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
   value *ret;
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (open_fn, Val_bool (readonly));
   if (Is_exception_result (rv)) {
@@ -341,9 +348,9 @@ open_wrapper (int readonly)
 static void
 close_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (close_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -360,10 +367,10 @@ close_wrapper (void *h)
 static const char *
 export_description_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
   const char *desc;
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (export_description_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -378,10 +385,10 @@ export_description_wrapper (void *h)
 static int64_t
 get_size_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
   int64_t r;
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (get_size_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -397,11 +404,11 @@ static int
 block_size_wrapper (void *h,
                     uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
   int i;
   int64_t i64;
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (block_size_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -439,9 +446,9 @@ block_size_wrapper (void *h,
 static int
 can_write_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_write_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -455,9 +462,9 @@ can_write_wrapper (void *h)
 static int
 can_flush_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_flush_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -471,9 +478,9 @@ can_flush_wrapper (void *h)
 static int
 is_rotational_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (is_rotational_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -487,9 +494,9 @@ is_rotational_wrapper (void *h)
 static int
 can_trim_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_trim_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -503,9 +510,9 @@ can_trim_wrapper (void *h)
 static int
 can_zero_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_zero_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -519,9 +526,9 @@ can_zero_wrapper (void *h)
 static int
 can_fua_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_fua_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -535,9 +542,9 @@ can_fua_wrapper (void *h)
 static int
 can_fast_zero_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_fast_zero_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -551,9 +558,9 @@ can_fast_zero_wrapper (void *h)
 static int
 can_cache_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_cache_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -567,9 +574,9 @@ can_cache_wrapper (void *h)
 static int
 can_extents_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_extents_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -583,9 +590,9 @@ can_extents_wrapper (void *h)
 static int
 can_multi_conn_wrapper (void *h)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   rv = caml_callback_exn (can_multi_conn_fn, *(value *) h);
   if (Is_exception_result (rv)) {
@@ -629,10 +636,10 @@ static int
 pread_wrapper (void *h, void *buf, uint32_t count, uint64_t offset,
                uint32_t flags)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
   mlsize_t len;
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   countv = Val_int (count);
   offsetv = caml_copy_int64 (offset);
@@ -659,9 +666,9 @@ static int
 pwrite_wrapper (void *h, const void *buf, uint32_t count, uint64_t offset,
                 uint32_t flags)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, strv, offsetv, flagsv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   strv = caml_alloc_initialized_string (count, buf);
   offsetv = caml_copy_int64 (offset);
@@ -680,9 +687,9 @@ pwrite_wrapper (void *h, const void *buf, uint32_t count, uint64_t offset,
 static int
 flush_wrapper (void *h, uint32_t flags)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal2 (rv, flagsv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   flagsv = Val_flags (flags);
 
@@ -698,9 +705,9 @@ flush_wrapper (void *h, uint32_t flags)
 static int
 trim_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
@@ -719,9 +726,9 @@ trim_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 static int
 zero_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
@@ -741,9 +748,9 @@ static int
 extents_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags,
                  struct nbdkit_extents *extents)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal5 (rv, countv, offsetv, flagsv, v);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
@@ -781,9 +788,9 @@ extents_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags,
 static int
 cache_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 {
+  ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
-  LEAVE_BLOCKING_SECTION_FOR_CURRENT_SCOPE ();
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
