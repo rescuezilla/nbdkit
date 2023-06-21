@@ -84,7 +84,7 @@ noinst_SCRIPTS = nbdkit-ocamlexample-plugin.so
 nbdkit-ocamlexample-plugin.so: example.cmx libnbdkitocaml.la NBDKit.cmi NBDKit.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) \
 	  -output-obj -runtime-variant _pic -o $@ \
-	  -I +unix unix.cmxa NBDKit.cmx $< \
+	  -I +unix unix.cmxa -I +threads threads.cmxa NBDKit.cmx $< \
 	  -cclib -L.libs -cclib -lnbdkitocaml
 example.cmx: example.ml NBDKit.cmi NBDKit.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) -c $< -o $@

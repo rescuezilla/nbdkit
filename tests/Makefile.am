@@ -1185,7 +1185,7 @@ OCAML_PLUGIN_DEPS = \
 test-ocaml-plugin.so: test_ocaml_plugin.cmx $(OCAML_PLUGIN_DEPS)
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) -I ../plugins/ocaml \
 	  -output-obj -runtime-variant _pic -o $@ \
-	  -I +unix unix.cmxa NBDKit.cmx $< \
+	  -I +unix unix.cmxa -I +threads threads.cmxa NBDKit.cmx $< \
 	  -cclib -L../plugins/ocaml/.libs -cclib -lnbdkitocaml
 test_ocaml_plugin.cmx: test_ocaml_plugin.ml $(OCAML_PLUGIN_DEPS)
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) -I ../plugins/ocaml -c $< -o $@
@@ -1194,7 +1194,7 @@ test-ocaml-errorcodes-plugin.so: \
 	    test_ocaml_errorcodes_plugin.cmx $(OCAML_PLUGIN_DEPS)
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) -I ../plugins/ocaml \
 	  -output-obj -runtime-variant _pic -o $@ \
-	  -I +unix unix.cmxa NBDKit.cmx $< \
+	  -I +unix unix.cmxa -I +threads threads.cmxa NBDKit.cmx $< \
 	  -cclib -L../plugins/ocaml/.libs -cclib -lnbdkitocaml
 test_ocaml_errorcodes_plugin.cmx: \
 	    test_ocaml_errorcodes_plugin.ml $(OCAML_PLUGIN_DEPS)
