@@ -933,8 +933,8 @@ AC_SUBST([PYTHON_LDFLAGS])
 
 dnl For the OCaml plugin, you can set OCAMLOPTFLAGS before running
 dnl ./configure to specify any extra flags you want to pass to
-dnl ocamlopt.  For example to enable OCaml warnings:
-dnl OCAMLOPTFLAGS="-warn-error +A-3"
+dnl ocamlopt.  For example to enable debug symbols & warnings:
+dnl OCAMLOPTFLAGS="-g -warn-error +A-3"
 AC_SUBST([OCAMLOPTFLAGS])
 
 dnl Check for OCaml, for embedding in the ocaml plugin.
