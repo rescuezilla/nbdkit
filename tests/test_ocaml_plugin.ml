@@ -30,6 +30,11 @@
  * SUCH DAMAGE.
  *)
 
+(* Print something during module initialization, useful for debugging
+ * obscure OCaml startup issues.
+ *)
+let () = Printf.eprintf "test_ocaml_plugin.ml: module initializing\n%!"
+
 let sector_size = 512
 let nr_sectors = 2048
 
