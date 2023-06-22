@@ -39,6 +39,9 @@ requires_plugin cc
 plugin=$abs_top_srcdir/tests/test-read-password-plugin.c
 requires test -x $plugin
 
+# This variable is used by $plugin.
+export abs_top_srcdir
+
 # Since we are matching on error messages.
 export LANG=C
 
