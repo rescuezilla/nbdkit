@@ -63,7 +63,6 @@ EXTRA_PROGRAMS =
 # Use the 'direct' backend, and ensure maximum libguestfs debugging.
 # Enable libnbd debugging.
 TESTS_ENVIRONMENT = \
-	SRCDIR=$(srcdir) \
 	LIBGUESTFS_ATTACH_METHOD=appliance \
 	LIBGUESTFS_DEBUG=1 \
 	LIBGUESTFS_TRACE=1 \
