@@ -39,6 +39,9 @@ requires_plugin cc
 plugin=$abs_top_srcdir/tests/test-read-password-plugin.c
 requires test -x $plugin
 
+# This variable is used by $plugin.
+export abs_top_srcdir
+
 # expect on macOS does not work for unclear reasons, skip it.
 requires_not test "$(uname)" = "Darwin"
 

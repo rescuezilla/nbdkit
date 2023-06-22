@@ -1,5 +1,5 @@
 #if 0
-exec nbdkit cc "$0" "$@" EXTRA_CFLAGS="-I.. -I${SRCDIR:-.}/../include"
+exec nbdkit cc "$0" "$@" EXTRA_CFLAGS="-I.. -I$abs_top_srcdir/include"
 #endif
 /* nbdkit
  * Copyright Red Hat
