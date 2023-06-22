@@ -34,10 +34,8 @@ source ./functions.sh
 set -e
 set -x
 
-if test ! -d "$SRCDIR"; then
-    echo "$0: could not locate python-export-list.py"
-    exit 1
-fi
+script=$abs_top_srcdir/tests/python-export-list.py
+test -f "$script"
 
 skip_if_valgrind "because Python code leaks memory"
 requires_nbdinfo
@@ -52,7 +50,7 @@ files="$pid $sock $out"
 rm -f $files
 cleanup_fn rm -f $files
 
-start_nbdkit -P $pid -U $sock python $SRCDIR/python-export-list.py
+start_nbdkit -P $pid -U $sock python $script
 
 nbdinfo --list --json nbd+unix://\?socket=$sock > $out
 cat $out

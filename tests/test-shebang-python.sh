@@ -34,9 +34,9 @@ source ./functions.sh
 
 pidfile=shebang-python.pid
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-script=$SRCDIR/shebang.py
+script=$abs_top_srcdir/tests/shebang.py
 
-if test ! -d "$SRCDIR"; then
+if test ! -f "$script"; then
     echo "$0: could not locate shebang.py"
     exit 1
 fi

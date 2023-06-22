@@ -34,23 +34,21 @@ source ./functions.sh
 set -e
 set -x
 
-if test ! -d "$SRCDIR"; then
-    echo "$0: could not locate python-exception.py"
-    exit 1
-fi
-
 skip_if_valgrind "because Python code leaks memory"
+
+script=$abs_top_srcdir/tests/python-exception.py
+test -f "$script"
 
 output=test-python-exception.out
 rm -f $output
 cleanup_fn rm -f $output
 
-nbdkit -f -v python $SRCDIR/python-exception.py test=simple > $output 2>&1 ||:
+nbdkit -f -v python $script test=simple > $output 2>&1 ||:
 cat $output
 
 grep 'this is the test string' $output
 
-nbdkit -f -v python $SRCDIR/python-exception.py test=traceback > $output 2>&1 ||:
+nbdkit -f -v python $script test=traceback > $output 2>&1 ||:
 cat $output
 
 grep 'raise_error1' $output

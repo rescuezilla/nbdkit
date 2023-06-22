@@ -32,8 +32,7 @@
 
 source ./functions.sh
 
-script=$SRCDIR/cc_shebang.ml
-
+script=$abs_top_srcdir/tests/cc_shebang.ml
 if test ! -f "$script"; then
     echo "$0: could not locate cc_shebang.ml"
     exit 1

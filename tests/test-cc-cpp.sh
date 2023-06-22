@@ -37,12 +37,7 @@ source ./functions.sh
 set -e
 set -x
 
-if test "$SRCDIR" = ""; then
-    echo "$0: \$SRCDIR is not set"
-    exit 1
-fi
-
-script=$SRCDIR/test-cc-cpp.cpp
+script=$abs_top_srcdir/tests/test-cc-cpp.cpp
 if test ! -f "$script"; then
     echo "$0: could not locate test-cc-cpp.cpp"
     exit 1
@@ -59,6 +54,6 @@ rm -f $out
 
 nbdkit -U - cc $script \
        CC="$CXX" \
-       EXTRA_CFLAGS="-I$SRCDIR/../include" \
+       EXTRA_CFLAGS="-I$abs_top_srcdir/include" \
        --run 'nbdinfo --size $uri' > $out
 test "$(cat $out)" -eq $((100 * 1024 * 1024))

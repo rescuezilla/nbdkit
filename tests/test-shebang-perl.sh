@@ -34,9 +34,9 @@ source ./functions.sh
 
 pidfile=shebang-perl.pid
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-script=$SRCDIR/shebang.pl
+script=$abs_top_srcdir/tests/shebang.pl
 
-if test ! -d "$SRCDIR"; then
+if test ! -f "$script"; then
     echo "$0: could not locate shebang.pl"
     exit 1
 fi

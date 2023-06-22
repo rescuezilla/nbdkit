@@ -35,8 +35,7 @@
 
 source ./functions.sh
 
-script=$SRCDIR/cc-shebang.c
-
+script=$abs_top_srcdir/tests/cc-shebang.c
 if test ! -f "$script"; then
     echo "$0: could not locate cc-shebang.c"
     exit 1
@@ -46,7 +45,7 @@ requires_plugin cc
 requires guestfish --version
 
 $script -fv -U - \
-        EXTRA_CFLAGS="-I$SRCDIR/../include" \
+        EXTRA_CFLAGS="-I$abs_top_srcdir/include" \
         --run '
     guestfish \
         add "" protocol:nbd server:unix:$unixsocket : \

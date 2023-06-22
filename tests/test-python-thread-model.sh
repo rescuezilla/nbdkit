@@ -34,22 +34,19 @@ source ./functions.sh
 set -e
 set -x
 
-SCRIPT="$SRCDIR/python-thread-model.py"
-if ! test -d "$SRCDIR" || ! test -f "$SCRIPT"; then
-    echo "$0: could not locate python-thread-model.py"
-    exit 1
-fi
+script="$abs_top_srcdir/tests/python-thread-model.py"
+test -f "$script"
 
 skip_if_valgrind "because Python code leaks memory"
 requires nbdsh --version
 
 # Check the plugin is loadable.
-nbdkit python $SCRIPT --dump-plugin
+nbdkit python $script --dump-plugin
 
 # This test only works on modern Linux (with pipe2, accept4 etc) where
 # we are able to issue parallel requests.  Other platforms have more
 # restrictive thread models.
-requires sh -c "nbdkit python $SCRIPT --dump-plugin |
+requires sh -c "nbdkit python $script --dump-plugin |
                 grep '^thread_model=parallel'"
 
 pid=test-python-thread-model.pid
@@ -58,7 +55,7 @@ files="$out $pid $sock"
 rm -f $files
 cleanup_fn rm -f $files
 
-start_nbdkit -P $pid -U $sock python $SCRIPT
+start_nbdkit -P $pid -U $sock python $script
 
 export sock
 nbdsh -c '

@@ -34,10 +34,8 @@ source ./functions.sh
 set -e
 set -x
 
-if test ! -d "$SRCDIR"; then
-    echo "$0: could not locate python-export-name.py"
-    exit 1
-fi
+script=$abs_top_srcdir/tests/python-export-name.py
+test -f "$script"
 
 skip_if_valgrind "because Python code leaks memory"
 requires nbdsh --version
@@ -48,7 +46,7 @@ files="$pid $sock"
 rm -f $files
 cleanup_fn rm -f $files
 
-start_nbdkit -P $pid -U $sock python $SRCDIR/python-export-name.py
+start_nbdkit -P $pid -U $sock python $script
 
 # Try to read back various export names from the plugin.
 for e in "" "test" "/" "//" " " "/ " "?" "テスト" "-n" '\\' $'\n' "%%" \

@@ -37,12 +37,7 @@ source ./functions.sh
 set -e
 set -x
 
-if test "$SRCDIR" = ""; then
-    echo "$0: \$SRCDIR is not set"
-    exit 1
-fi
-
-script=$SRCDIR/test_ocaml_plugin.ml
+script=$abs_top_srcdir/tests/test_ocaml_plugin.ml
 if test ! -f "$script"; then
     echo "$0: could not locate test_ocaml_plugin.ml"
     exit 1
@@ -61,6 +56,6 @@ cleanup_fn rm -f $out
 rm -f $out
 
 nbdkit -v -U - cc $script a=1 b=2 c=3 d=4 \
-       CC="$OCAMLOPT" CFLAGS="-output-obj -runtime-variant _pic -I $SRCDIR/../plugins/ocaml -I +unix unix.cmxa -I +threads threads.cmxa NBDKit.cmx -cclib -lnbdkitocaml" \
+       CC="$OCAMLOPT" CFLAGS="-output-obj -runtime-variant _pic -I $abs_top_srcdir/plugins/ocaml -I +unix unix.cmxa -I +threads threads.cmxa NBDKit.cmx -cclib -lnbdkitocaml" \
        --run 'nbdinfo --size $uri' > $out
 test "$(cat $out)" -eq $((512 * 2048))
