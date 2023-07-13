@@ -339,6 +339,21 @@ perl_open (int readonly)
   SV *sv;
   dSP;
 
+  /*
+   * From perlembed(1):
+   *
+   * "PERL_SET_CONTEXT(interp) should also be called whenever "interp"
+   * is used by a thread that did not create it (using either
+   * perl_alloc(), or the more esoteric perl_clone())."
+   *
+   * Since we may be called here from a new thread created within
+   * nbdkit, do this.  This is necessary since Perl 5.38.  It didn't
+   * seem to make a difference with earlier Perl, but doesn't break
+   * them either.
+   */
+
+  PERL_SET_CONTEXT (my_perl);
+
   /* We check in perl_config that this callback is defined. */
   ENTER;
   SAVETMPS;
