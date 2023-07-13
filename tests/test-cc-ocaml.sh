@@ -48,6 +48,11 @@ requires $OCAMLOPT -version
 requires_nbdsh_uri
 requires_nbdinfo
 
+# This test doesn't work with OCaml < 5.0.  That's caused by use of
+# the +threads library.  If that is removed, the test will work, but
+# it's hard to adjust the test to cope with both.
+requires_ocaml_version 5.0
+
 # For unclear reasons linking the OCaml plugin fails on macOS. XXX
 requires_not test "$(uname)" = "Darwin"
 
