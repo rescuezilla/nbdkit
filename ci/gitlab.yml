@@ -87,4 +87,3 @@ include:
   - local: '/ci/gitlab/build-templates.yml'
   - local: '/ci/gitlab/containers.yml'
   - local: '/ci/gitlab/builds.yml'
-  - local: '/ci/gitlab/rust-builds.yml'
