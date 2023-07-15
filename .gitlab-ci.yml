@@ -14,8 +14,9 @@ stages:
   export CCACHE_MAXSIZE="500M"
   export PATH="$CCACHE_WRAPPERSDIR:$PATH"
 
-include: '/ci/gitlab.yml'
-include: '/ci/rust-builds.yml'
+include: 
+  - local: '/ci/rust-builds.yml'
+  - local: '/ci/gitlab.yml'
 
 .base_build_job:
   stage: builds
