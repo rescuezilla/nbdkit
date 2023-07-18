@@ -406,7 +406,7 @@ send_structured_reply_read (uint64_t cookie, uint16_t cmd,
    */
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&conn->write_lock);
   struct nbd_structured_reply reply;
-  struct nbd_structured_reply_offset_data offset_data;
+  struct nbd_chunk_offset_data offset_data;
   int r;
 
   assert (cmd == NBD_CMD_READ);
@@ -584,7 +584,7 @@ send_structured_reply_error (uint64_t cookie, uint16_t cmd, uint16_t flags,
   GET_CONN;
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&conn->write_lock);
   struct nbd_structured_reply reply;
-  struct nbd_structured_reply_error error_data;
+  struct nbd_chunk_error error_data;
   int r;
 
   reply.magic = htobe32 (NBD_STRUCTURED_REPLY_MAGIC);

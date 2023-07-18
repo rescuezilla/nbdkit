@@ -211,20 +211,20 @@ struct nbd_structured_reply {
   uint16_t flags;               /* NBD_REPLY_FLAG_* */
   uint16_t type;                /* NBD_REPLY_TYPE_* */
   uint64_t cookie;              /* Opaque handle. */
-  uint32_t length;              /* Length of payload which follows. */
+  uint32_t length;              /* Length of following nbd_chunk_* payload. */
 } NBD_ATTRIBUTE_PACKED;
 
-struct nbd_structured_reply_offset_data {
+struct nbd_chunk_offset_data {
   uint64_t offset;              /* offset */
   /* Followed by data. */
 } NBD_ATTRIBUTE_PACKED;
 
-struct nbd_structured_reply_offset_hole {
+struct nbd_chunk_offset_hole {
   uint64_t offset;
   uint32_t length;              /* Length of hole. */
 } NBD_ATTRIBUTE_PACKED;
 
-struct nbd_structured_reply_error {
+struct nbd_chunk_error {
   uint32_t error;               /* NBD_E* error number */
   uint16_t len;                 /* Length of human readable error. */
   /* Followed by human readable error string, and possibly more structure. */
