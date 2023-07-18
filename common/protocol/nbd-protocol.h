@@ -98,21 +98,21 @@ struct nbd_fixed_new_option_reply {
 #define NBD_REP_MAGIC UINT64_C (0x3e889045565a9)
 
 /* Global flags. */
-#define NBD_FLAG_FIXED_NEWSTYLE    (1 << 0)
-#define NBD_FLAG_NO_ZEROES         (1 << 1)
+#define NBD_FLAG_FIXED_NEWSTYLE       (1U << 0)
+#define NBD_FLAG_NO_ZEROES            (1U << 1)
 
 /* Per-export flags. */
-#define NBD_FLAG_HAS_FLAGS         (1 << 0)
-#define NBD_FLAG_READ_ONLY         (1 << 1)
-#define NBD_FLAG_SEND_FLUSH        (1 << 2)
-#define NBD_FLAG_SEND_FUA          (1 << 3)
-#define NBD_FLAG_ROTATIONAL        (1 << 4)
-#define NBD_FLAG_SEND_TRIM         (1 << 5)
-#define NBD_FLAG_SEND_WRITE_ZEROES (1 << 6)
-#define NBD_FLAG_SEND_DF           (1 << 7)
-#define NBD_FLAG_CAN_MULTI_CONN    (1 << 8)
-#define NBD_FLAG_SEND_CACHE        (1 << 10)
-#define NBD_FLAG_SEND_FAST_ZERO    (1 << 11)
+#define NBD_FLAG_HAS_FLAGS            (1U << 0)
+#define NBD_FLAG_READ_ONLY            (1U << 1)
+#define NBD_FLAG_SEND_FLUSH           (1U << 2)
+#define NBD_FLAG_SEND_FUA             (1U << 3)
+#define NBD_FLAG_ROTATIONAL           (1U << 4)
+#define NBD_FLAG_SEND_TRIM            (1U << 5)
+#define NBD_FLAG_SEND_WRITE_ZEROES    (1U << 6)
+#define NBD_FLAG_SEND_DF              (1U << 7)
+#define NBD_FLAG_CAN_MULTI_CONN       (1U << 8)
+#define NBD_FLAG_SEND_CACHE           (1U << 10)
+#define NBD_FLAG_SEND_FAST_ZERO       (1U << 11)
 
 /* NBD options (new style handshake only). */
 #define NBD_OPT_EXPORT_NAME        1
@@ -235,10 +235,10 @@ struct nbd_chunk_error {
 #define NBD_STRUCTURED_REPLY_MAGIC  0x668e33ef
 
 /* Structured reply flags. */
-#define NBD_REPLY_FLAG_DONE         (1<<0)
+#define NBD_REPLY_FLAG_DONE         (1U << 0)
 
-#define NBD_REPLY_TYPE_ERR(val) ((1<<15) | (val))
-#define NBD_REPLY_TYPE_IS_ERR(val) (!!((val) & (1<<15)))
+#define NBD_REPLY_TYPE_ERR(val) ((1U<<15) | (val))
+#define NBD_REPLY_TYPE_IS_ERR(val) (!!((val) & (1U<<15)))
 
 /* Structured reply types. */
 #define NBD_REPLY_TYPE_NONE         0
@@ -258,11 +258,11 @@ struct nbd_chunk_error {
 #define NBD_CMD_WRITE_ZEROES      6
 #define NBD_CMD_BLOCK_STATUS      7
 
-#define NBD_CMD_FLAG_FUA       (1<<0)
-#define NBD_CMD_FLAG_NO_HOLE   (1<<1)
-#define NBD_CMD_FLAG_DF        (1<<2)
-#define NBD_CMD_FLAG_REQ_ONE   (1<<3)
-#define NBD_CMD_FLAG_FAST_ZERO (1<<4)
+#define NBD_CMD_FLAG_FUA          (1U << 0)
+#define NBD_CMD_FLAG_NO_HOLE      (1U << 1)
+#define NBD_CMD_FLAG_DF           (1U << 2)
+#define NBD_CMD_FLAG_REQ_ONE      (1U << 3)
+#define NBD_CMD_FLAG_FAST_ZERO    (1U << 4)
 
 /* NBD error codes. */
 #define NBD_SUCCESS     0
