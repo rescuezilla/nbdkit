@@ -50,6 +50,8 @@
 #include <sys/wait.h>
 #endif
 
+#include "exit-with-parent.h"
+
 #include "test.h"
 
 #ifndef WIN32
@@ -161,15 +163,17 @@ test_start_nbdkit (const char *arg, ...)
     const char *argv[MAX_ARGS+1];
     va_list args;
 
-    argv[0] = "nbdkit";
-    argv[1] = "-U";
-    argv[2] = kit->sockpath;
-    argv[3] = "-P";
-    argv[4] = kit->pidpath;
-    argv[5] = "-f";
-    argv[6] = "-v";
-    argv[7] = arg;
-    i = 8;
+    i = 0;
+    argv[i++] = "nbdkit";
+    argv[i++] = "-U";
+    argv[i++] = kit->sockpath;
+    argv[i++] = "-P";
+    argv[i++] = kit->pidpath;
+    argv[i++] = "-f";
+    argv[i++] = "-v";
+    if (can_exit_with_parent ())
+      argv[i++] = "--exit-with-parent";
+    argv[i++] = arg;
 
     va_start (args, arg);
     while ((p = va_arg (args, const char *)) != NULL) {
