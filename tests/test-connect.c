@@ -47,6 +47,13 @@ main (int argc, char *argv[])
   struct nbd_handle *nbd;
   int64_t size;
 
+  if (system ("nbdkit --exit-with-parent --version") != 0) {
+    printf ("%s: --exit-with-parent is not implemented on this platform, "
+            "skipping\n",
+            argv[0]);
+    exit (77);
+  }
+
   nbd = nbd_create ();
   if (nbd == NULL) {
     fprintf (stderr, "%s\n", nbd_get_error ());
