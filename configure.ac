@@ -141,6 +141,7 @@ filters="\
         partition \
         pause \
         protect \
+        qcow2dec \
         rate \
         readahead \
         retry \
@@ -1581,6 +1582,7 @@ AC_CONFIG_FILES([Makefile
                  filters/partition/Makefile
                  filters/pause/Makefile
                  filters/protect/Makefile
+                 filters/qcow2dec/Makefile
                  filters/rate/Makefile
                  filters/readahead/Makefile
                  filters/retry/Makefile

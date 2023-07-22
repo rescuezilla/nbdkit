@@ -1845,6 +1845,10 @@ EXTRA_DIST += \
 	test-protect-ranges.sh \
 	$(NULL)
 
+# qcow2dec filter test.
+TESTS += test-qcow2dec.sh
+EXTRA_DIST += test-qcow2dec.sh
+
 # rate filter test.
 TESTS += \
 	test-rate.sh \
