@@ -35,7 +35,8 @@ Apply nbdkit filters to any other NBD server.
 
 =item *
 
-With L<qemu-nbd(8)>, read and write qcow2 files with nbdkit.
+With L<qemu-nbd(8)>, read and write qcow2 files with nbdkit (see also
+L<nbdkit-qcow2dec-filter(1)>).
 
 =back
 
@@ -339,6 +340,7 @@ L<nbdkit(1)>,
 L<nbdkit-captive(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-exportname-filter(1)>,
+L<nbdkit-qcow2dec-filter(1)>,
 L<nbdkit-tls(1)>,
 L<nbdkit-plugin(3)>,
 L<libnbd(3)>,

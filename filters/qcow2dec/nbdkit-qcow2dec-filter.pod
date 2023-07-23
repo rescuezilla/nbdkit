@@ -19,12 +19,15 @@ This filter can only decode qcow2 files, it cannot write to them, and
 it has other limitations.  See L</LIMITATIONS> below.  The NBD export
 will be read-only unless you use L<nbdkit-cow-filter(1)> on top.
 
+L<qemu-nbd(8)> is an alternate NBD server with native support for
+qcow2.
+
 =head1 LIMITATIONS
 
 This filter has several limitations, and some of them we never intend
 to implement.  For general qcow2 access, especially creating and
 writing to qcow2 files, it is always better to use qemu and tools such
-as L<qemu-img(1)>.
+as L<qemu-img(1)> and L<qemu-nbd(8)>.
 
 =over 4
 
@@ -95,7 +98,8 @@ L<nbdkit-file-plugin(1)>,
 L<nbdkit-filter(3)>,
 L<https://github.com/qemu/qemu/blob/master/docs/interop/qcow2.txt>,
 L<https://web.archive.org/web/20201006212750/https://people.gnome.org/~markmc/qcow-image-format-version-1.html>,
-L<qemu-img(1)>.
+L<qemu-img(1)>,
+L<qemu-nbd(8)>.
 
 =head1 AUTHORS
 
