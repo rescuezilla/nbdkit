@@ -325,6 +325,8 @@ die "$progname: $input: empty NAME section\n"
     unless @name >= 1;
 die "$progname: $input: NAME doesn't start with $package_name\n"
     unless validate_name_field ($name[0]);
+die "$progname: $input: NAME doesn't match man page name\n"
+    unless $name[0] =~ /^$name - /;
 die "$progname: $input: NAME does not conform with Linux man pages standard\n"
     if $name[0] !~ m/- [a-z]/ || $name[@name-1] =~ m/\.$/;
 
