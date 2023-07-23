@@ -37,6 +37,7 @@ filter_LTLIBRARIES = nbdkit-qcow2dec-filter.la
 
 nbdkit_qcow2dec_filter_la_SOURCES = \
 	qcow2dec.c \
+	qcow2.h \
 	$(top_srcdir)/include/nbdkit-filter.h \
 	$(NULL)
 
