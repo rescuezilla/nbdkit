@@ -35,7 +35,6 @@ ACLOCAL_AMFLAGS = -I m4
 
 EXTRA_DIST = \
 	BENCHMARKING \
-	.cirrus.yml \
 	.dir-locals.el \
 	.gitignore \
 	html/pod.css \
