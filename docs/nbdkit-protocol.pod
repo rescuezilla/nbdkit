@@ -1,6 +1,6 @@
 =head1 NAME
 
-nbdkit - which parts of the NBD protocol nbdkit supports
+nbdkit-protocol - which parts of the NBD protocol nbdkit supports
 
 =head1 SYNOPSIS
 
