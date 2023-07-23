@@ -274,6 +274,14 @@ nbdkit-evil-filter:
 * improve the algorithm so it can simulate bursts of corrupted bits
   (https://listman.redhat.com/archives/libguestfs/2023-May/031567.html)
 
+nbdkit-qcow2dec-filter:
+
+* implement extents - we know which clusters are preallocated and
+  sparse, so map that into extent information
+
+* implement internal snapshots - it should be possible to select an
+  internal snapshot by name
+
 Filters for security
 --------------------
 
