@@ -68,6 +68,7 @@ struct curl_slist *headers = NULL;
 const char *header_script = NULL;
 unsigned header_script_renew = 0;
 long http_version = CURL_HTTP_VERSION_NONE;
+long ipresolve = CURL_IPRESOLVE_WHATEVER;
 char *password = NULL;
 #ifndef HAVE_CURLOPT_PROTOCOLS_STR
 long protocols = CURLPROTO_ALL;
@@ -314,6 +315,19 @@ curl_config (const char *key, const char *value)
     }
   }
 
+  else if (strcmp (key, "ipresolve") == 0) {
+    if (strcmp (value, "any") == 0 || strcmp (value, "whatever") == 0)
+      ipresolve = CURL_IPRESOLVE_WHATEVER;
+    else if (strcmp (value, "v4") == 0 || strcmp (value, "4") == 0)
+      ipresolve = CURL_IPRESOLVE_V4;
+    else if (strcmp (value, "v6") == 0 || strcmp (value, "6") == 0)
+      ipresolve = CURL_IPRESOLVE_V6;
+    else {
+      nbdkit_error ("unknown ipresolve: %s", value);
+      return -1;
+    }
+  }
+
   else if (strcmp (key, "password") == 0) {
     free (password);
     if (nbdkit_read_password (value, &password) == -1)
@@ -495,6 +509,7 @@ curl_config_complete (void)
   "header-script=<SCRIPT>     Script to set HTTP/HTTPS headers.\n" \
   "header-script-renew=<SECS> Time to renew HTTP/HTTPS headers.\n" \
   "http-version=none|...      Force a particular HTTP protocol.\n" \
+  "ipresolve=any|v4|v6        Force IPv4 or IPv6.\n" \
   "password=<PASSWORD>        The password for the user account.\n" \
   "protocols=PROTO,PROTO,..   Limit protocols allowed.\n" \
   "proxy=<PROXY>              Set proxy URL.\n" \

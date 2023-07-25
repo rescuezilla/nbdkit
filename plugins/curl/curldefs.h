@@ -61,6 +61,7 @@ extern struct curl_slist *headers;
 extern const char *header_script;
 extern unsigned header_script_renew;
 extern long http_version;
+extern long ipresolve;
 extern char *password;
 #ifndef HAVE_CURLOPT_PROTOCOLS_STR
 extern long protocols;

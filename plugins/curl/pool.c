@@ -257,6 +257,8 @@ allocate_handle (void)
     curl_easy_setopt (ch->c, CURLOPT_HTTPHEADER, headers);
   if (http_version != CURL_HTTP_VERSION_NONE)
     curl_easy_setopt (ch->c, CURLOPT_HTTP_VERSION, (long) http_version);
+  if (ipresolve != CURL_IPRESOLVE_WHATEVER)
+    curl_easy_setopt (ch->c, CURLOPT_IPRESOLVE, (long) ipresolve);
 
   if (password)
     curl_easy_setopt (ch->c, CURLOPT_PASSWORD, password);

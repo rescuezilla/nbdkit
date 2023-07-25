@@ -208,6 +208,19 @@ meaning curl will negotiate the best protocol with the server.  The
 other settings are mainly for testing.  See L<CURLOPT_HTTP_VERSION(3)>
 for details.
 
+=item B<ipresolve=any>
+
+=item B<ipresolve=v4>
+
+=item B<ipresolve=v6>
+
+(nbdkit E<ge> 1.36)
+
+Force curl to use only IPv4 (C<ipresolve=v4>), only IPv6
+(C<ipresolve=v6>) or any IP version supported by your system
+(C<ipresolve=any>).  The default is C<any>.  See
+L<CURLOPT_IPRESOLVE(3)>.
+
 =item B<password=>PASSWORD
 
 Set the password to use when connecting to the remote server.
@@ -559,6 +572,7 @@ L<CURLOPT_COOKIEFILE(3)>,
 L<CURLOPT_COOKIEJAR(3)>,
 L<CURLOPT_FOLLOWLOCATION(3)>,
 L<CURLOPT_HTTPHEADER(3)>,
+L<CURLOPT_IPRESOLVE(3)>,
 L<CURLOPT_PROXY(3)>,
 L<CURLOPT_SSL_CIPHER_LIST(3)>,
 L<CURLOPT_SSLVERSION(3)>,
