@@ -122,9 +122,10 @@ struct curl_handle {
 };
 
 /* pool.c */
+extern void load_pool (void);
+extern void unload_pool (void);
 extern struct curl_handle *get_handle (void);
 extern void put_handle (struct curl_handle *ch);
-extern void free_all_handles (void);
 
 /* scripts.c */
 extern int do_scripts (struct curl_handle *ch);

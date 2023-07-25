@@ -89,14 +89,20 @@ static curl_handle_list curl_handles = empty_vector;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static size_t in_use = 0, waiting = 0;
 
+/* Initialize pool structures. */
+void
+load_pool (void)
+{
+}
+
 /* Close and free all handles in the pool. */
 void
-free_all_handles (void)
+unload_pool (void)
 {
   size_t i;
 
   if (curl_debug_pool)
-    nbdkit_debug ("free_all_handles: number of curl handles allocated: %zu",
+    nbdkit_debug ("unload_pool: number of curl handles allocated: %zu",
                   curl_handles.len);
 
   for (i = 0; i < curl_handles.len; ++i)

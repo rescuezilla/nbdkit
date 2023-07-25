@@ -103,6 +103,8 @@ curl_load (void)
     nbdkit_error ("libcurl initialization failed: %d", (int) r);
     exit (EXIT_FAILURE);
   }
+
+  load_pool ();
 }
 
 static void
@@ -116,7 +118,7 @@ curl_unload (void)
   if (resolves)
     curl_slist_free_all (resolves);
   scripts_unload ();
-  free_all_handles ();
+  unload_pool ();
   curl_global_cleanup ();
 }
 
