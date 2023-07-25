@@ -475,6 +475,7 @@ get_content_length_accept_range (struct curl_handle *ch)
     display_curl_error (ch, r,
                         "problem doing HEAD request to fetch size of URL [%s]",
                         url);
+  update_times (ch->c);
 
     /* Get the HTTP status code, if available. */
     r = curl_easy_getinfo (ch->c, CURLINFO_RESPONSE_CODE, &code);
@@ -569,6 +570,7 @@ try_fallback_GET_method (struct curl_handle *ch)
   curl_easy_setopt (ch->c, CURLOPT_WRITEFUNCTION, error_cb);
   curl_easy_setopt (ch->c, CURLOPT_WRITEDATA, ch);
   r = curl_easy_perform (ch->c);
+  update_times (ch->c);
 
   /* We expect CURLE_WRITE_ERROR here, but CURLE_OK is possible too
    * (eg if the remote has zero length).  Other errors might happen

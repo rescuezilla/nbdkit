@@ -119,6 +119,7 @@ curl_unload (void)
     curl_slist_free_all (resolves);
   scripts_unload ();
   unload_pool ();
+  display_times ();
   curl_global_cleanup ();
 }
 
@@ -639,6 +640,7 @@ curl_pread (void *handle, void *buf, uint32_t count, uint64_t offset)
     display_curl_error (ch, r, "pread: curl_easy_perform");
     return -1;
   }
+  update_times (ch->c);
 
   /* Could use curl_easy_getinfo here to obtain further information
    * about the connection.
@@ -683,6 +685,7 @@ curl_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset)
     display_curl_error (ch, r, "pwrite: curl_easy_perform");
     return -1;
   }
+  update_times (ch->c);
 
   /* Could use curl_easy_getinfo here to obtain further information
    * about the connection.

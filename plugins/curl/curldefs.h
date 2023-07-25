@@ -44,6 +44,15 @@
 #if CURL_AT_LEAST_VERSION (7, 55, 0)
 #define HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
 #endif
+#if CURL_AT_LEAST_VERSION (7, 61, 0)
+#define HAVE_CURLINFO_NAMELOOKUP_TIME_T
+#define HAVE_CURLINFO_CONNECT_TIME_T
+#define HAVE_CURLINFO_APPCONNECT_TIME_T
+#define HAVE_CURLINFO_PRETRANSFER_TIME_T
+#define HAVE_CURLINFO_STARTTRANSFER_TIME_T
+#define HAVE_CURLINFO_TOTAL_TIME_T
+#define HAVE_CURLINFO_REDIRECT_TIME_T
+#endif
 #endif
 
 extern const char *url;
@@ -130,6 +139,10 @@ extern void put_handle (struct curl_handle *ch);
 /* scripts.c */
 extern int do_scripts (struct curl_handle *ch);
 extern void scripts_unload (void);
+
+/* times.c */
+extern void update_times (CURL *c); /* called after every curl_easy_perform */
+extern void display_times (void);
 
 /* Translate CURLcode to nbdkit_error. */
 #define display_curl_error(ch, r, fs, ...)                      \
