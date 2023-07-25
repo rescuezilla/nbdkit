@@ -78,6 +78,7 @@ const char *protocols = NULL;
 const char *proxy = NULL;
 char *proxy_password = NULL;
 const char *proxy_user = NULL;
+struct curl_slist *resolves = NULL;
 bool sslverify = true;
 const char *ssl_cipher_list = NULL;
 long ssl_version = CURL_SSLVERSION_DEFAULT;
@@ -112,6 +113,8 @@ curl_unload (void)
     curl_slist_free_all (headers);
   free (password);
   free (proxy_password);
+  if (resolves)
+    curl_slist_free_all (resolves);
   scripts_unload ();
   free_all_handles ();
   curl_global_cleanup ();
@@ -356,6 +359,14 @@ curl_config (const char *key, const char *value)
   else if (strcmp (key, "proxy-user") == 0)
     proxy_user = value;
 
+  else if (strcmp (key, "resolve") == 0) {
+    resolves = curl_slist_append (headers, value);
+    if (resolves == NULL) {
+      nbdkit_error ("curl_slist_append: %m");
+      return -1;
+    }
+  }
+
   else if (strcmp (key, "sslverify") == 0) {
     r = nbdkit_parse_bool (value);
     if (r == -1)
@@ -515,6 +526,7 @@ curl_config_complete (void)
   "proxy=<PROXY>              Set proxy URL.\n" \
   "proxy-password=<PASSWORD>  The proxy password.\n" \
   "proxy-user=<USER>          The proxy user.\n" \
+  "resolve=<HOST>:<PORT>:<ADDR> Custom host to IP address resolution.\n" \
   "sslverify=false            Do not verify SSL certificate of remote host.\n" \
   "ssl-cipher-list=C1:C2:..   Specify TLS/SSL cipher suites to be used.\n" \
   "ssl-version=<VERSION>      Specify preferred TLS/SSL version.\n" \

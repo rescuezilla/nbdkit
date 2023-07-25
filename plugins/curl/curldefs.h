@@ -74,6 +74,7 @@ extern const char *proxy_user;
 extern bool sslverify;
 extern const char *ssl_cipher_list;
 extern long ssl_version;
+extern struct curl_slist *resolves;
 extern const char *tls13_ciphers;
 extern bool tcp_keepalive;
 extern bool tcp_nodelay;

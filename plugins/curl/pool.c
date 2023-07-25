@@ -283,6 +283,8 @@ allocate_handle (void)
     curl_easy_setopt (ch->c, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt (ch->c, CURLOPT_SSL_VERIFYHOST, 0L);
   }
+  if (resolves)
+    curl_easy_setopt (ch->c, CURLOPT_RESOLVE, resolves);
   if (ssl_version != CURL_SSLVERSION_DEFAULT)
     curl_easy_setopt (ch->c, CURLOPT_SSLVERSION, (long) ssl_version);
   if (ssl_cipher_list)

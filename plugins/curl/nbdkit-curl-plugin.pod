@@ -289,6 +289,12 @@ Set the proxy.  See L<CURLOPT_PROXY(3)>.
 
 Set the proxy username and password.
 
+=item B<resolve=>HOSTB<:>PORTB<:>ADDRESS
+
+Provide custom host name to IP address resolution.  You can supply
+this option as many times as needed.  See L<CURLOPT_RESOLVE(3)> for
+the full details of this option.
+
 =item B<sslverify=false>
 
 Don't verify the SSL certificate of the remote host.
@@ -574,6 +580,7 @@ L<CURLOPT_FOLLOWLOCATION(3)>,
 L<CURLOPT_HTTPHEADER(3)>,
 L<CURLOPT_IPRESOLVE(3)>,
 L<CURLOPT_PROXY(3)>,
+L<CURLOPT_RESOLVE(3)>,
 L<CURLOPT_SSL_CIPHER_LIST(3)>,
 L<CURLOPT_SSLVERSION(3)>,
 L<CURLOPT_TCP_KEEPALIVE(3)>,
