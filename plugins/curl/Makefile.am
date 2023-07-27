@@ -38,6 +38,7 @@ if HAVE_CURL
 plugin_LTLIBRARIES = nbdkit-curl-plugin.la
 
 nbdkit_curl_plugin_la_SOURCES = \
+	config.c \
 	curldefs.h \
 	curl.c \
 	pool.c \

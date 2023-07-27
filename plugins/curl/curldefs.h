@@ -57,40 +57,12 @@
 
 extern const char *url;
 
-extern const char *cainfo;
-extern const char *capath;
 extern unsigned connections;
-extern char *cookie;
-extern const char *cookiefile;
-extern const char *cookiejar;
+
 extern const char *cookie_script;
 extern unsigned cookie_script_renew;
-extern bool followlocation;
-extern struct curl_slist *headers;
 extern const char *header_script;
 extern unsigned header_script_renew;
-extern long http_version;
-extern long ipresolve;
-extern char *password;
-#ifndef HAVE_CURLOPT_PROTOCOLS_STR
-extern long protocols;
-#else
-extern const char *protocols;
-#endif
-extern const char *proxy;
-extern char *proxy_password;
-extern const char *proxy_user;
-extern bool sslverify;
-extern const char *ssl_cipher_list;
-extern long ssl_version;
-extern struct curl_slist *resolves;
-extern const char *tls13_ciphers;
-extern bool tcp_keepalive;
-extern bool tcp_nodelay;
-extern uint32_t timeout;
-extern const char *unix_socket_path;
-extern const char *user;
-extern const char *user_agent;
 
 extern int curl_debug_verbose;
 
@@ -129,6 +101,14 @@ struct curl_handle {
   /* Used by scripts.c */
   struct curl_slist *headers_copy;
 };
+
+/* config.c */
+extern int curl_config (const char *key, const char *value);
+extern int curl_config_complete (void);
+extern const char *curl_config_help;
+extern void unload_config (void);
+extern struct curl_handle *allocate_handle (void);
+extern void free_handle (struct curl_handle *);
 
 /* pool.c */
 extern void load_pool (void);
