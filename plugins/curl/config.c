@@ -48,8 +48,6 @@
 
 #include <nbdkit-plugin.h>
 
-#include "ascii-ctype.h"
-#include "ascii-string.h"
 #include "cleanup.h"
 
 #include "curldefs.h"
@@ -89,12 +87,6 @@ static const char *user_agent = NULL;
 
 static int debug_cb (CURL *handle, curl_infotype type,
                      const char *data, size_t size, void *);
-static size_t write_cb (char *ptr, size_t size, size_t nmemb, void *opaque);
-static size_t read_cb (void *ptr, size_t size, size_t nmemb, void *opaque);
-static int get_content_length_accept_range (struct curl_handle *ch);
-static bool try_fallback_GET_method (struct curl_handle *ch);
-static size_t header_cb (void *ptr, size_t size, size_t nmemb, void *opaque);
-static size_t error_cb (char *ptr, size_t size, size_t nmemb, void *opaque);
 
 /* Use '-D curl.verbose=1' to set. */
 NBDKIT_DLL_PUBLIC int curl_debug_verbose = 0;
@@ -671,17 +663,9 @@ allocate_handle (void)
   if (user_agent)
     curl_easy_setopt (ch->c, CURLOPT_USERAGENT, user_agent);
 
-  if (get_content_length_accept_range (ch) == -1)
-    goto err;
-
   /* Get set up for reading and writing. */
   curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, NULL);
   curl_easy_setopt (ch->c, CURLOPT_HEADERDATA, NULL);
-  curl_easy_setopt (ch->c, CURLOPT_WRITEFUNCTION, write_cb);
-  curl_easy_setopt (ch->c, CURLOPT_WRITEDATA, ch);
-  /* These are only used if !readonly but we always register them. */
-  curl_easy_setopt (ch->c, CURLOPT_READFUNCTION, read_cb);
-  curl_easy_setopt (ch->c, CURLOPT_READDATA, ch);
 
   return ch;
 
@@ -770,234 +754,4 @@ debug_cb (CURL *handle, curl_infotype type,
 
  out:
   return 0;
-}
-
-/* NB: The terminology used by libcurl is confusing!
- *
- * WRITEFUNCTION / write_cb is used when reading from the remote server
- * READFUNCTION / read_cb is used when writing to the remote server.
- *
- * We use the same terminology as libcurl here.
- */
-
-static size_t
-write_cb (char *ptr, size_t size, size_t nmemb, void *opaque)
-{
-  struct curl_handle *ch = opaque;
-  size_t orig_realsize = size * nmemb;
-  size_t realsize = orig_realsize;
-
-  assert (ch->write_buf);
-
-  /* Don't read more than the requested amount of data, even if the
-   * server or libcurl sends more.
-   */
-  if (realsize > ch->write_count)
-    realsize = ch->write_count;
-
-  memcpy (ch->write_buf, ptr, realsize);
-
-  ch->write_count -= realsize;
-  ch->write_buf += realsize;
-
-  return orig_realsize;
-}
-
-static size_t
-read_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
-{
-  struct curl_handle *ch = opaque;
-  size_t realsize = size * nmemb;
-
-  assert (ch->read_buf);
-  if (realsize > ch->read_count)
-    realsize = ch->read_count;
-
-  memcpy (ptr, ch->read_buf, realsize);
-
-  ch->read_count -= realsize;
-  ch->read_buf += realsize;
-
-  return realsize;
-}
-
-/* Get the file size and also whether the remote HTTP server
- * supports byte ranges.
- */
-static int
-get_content_length_accept_range (struct curl_handle *ch)
-{
-  CURLcode r;
-  long code;
-#ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
-  curl_off_t o;
-#else
-  double d;
-#endif
-
-  /* We must run the scripts if necessary and set headers in the
-   * handle.
-   */
-  if (do_scripts (ch) == -1)
-    return -1;
-
-  /* Set this flag in the handle to false.  The callback should set it
-   * to true if byte ranges are supported, which we check below.
-   */
-  ch->accept_range = false;
-
-  /* No Body, not nobody!  This forces a HEAD request. */
-  curl_easy_setopt (ch->c, CURLOPT_NOBODY, 1L);
-  curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, header_cb);
-  curl_easy_setopt (ch->c, CURLOPT_HEADERDATA, ch);
-  r = curl_easy_perform (ch->c);
-  update_times (ch->c);
-  if (r != CURLE_OK) {
-    display_curl_error (ch, r,
-                        "problem doing HEAD request to fetch size of URL [%s]",
-                        url);
-
-    /* Get the HTTP status code, if available. */
-    r = curl_easy_getinfo (ch->c, CURLINFO_RESPONSE_CODE, &code);
-    if (r == CURLE_OK)
-      nbdkit_debug ("HTTP status code: %ld", code);
-    else
-      code = -1;
-
-    /* See comment on try_fallback_GET_method below. */
-    if (code != 403 || !try_fallback_GET_method (ch))
-      return -1;
-  }
-
-  /* Get the content length.
-   *
-   * Note there is some subtlety here: For web servers using chunked
-   * encoding, either the Content-Length header will not be present,
-   * or if present it should be ignored.  (For such servers the only
-   * way to find out the true length would be to read all of the
-   * content, which we don't want to do).
-   *
-   * Curl itself resolves this for us.  It will ignore the
-   * Content-Length header if chunked encoding is used, returning the
-   * length as -1 which we check below (see also
-   * curl:lib/http.c:Curl_http_size).
-   */
-#ifdef HAVE_CURLINFO_CONTENT_LENGTH_DOWNLOAD_T
-  r = curl_easy_getinfo (ch->c, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &o);
-  if (r != CURLE_OK) {
-    display_curl_error (ch, r,
-                        "could not get length of remote file [%s]", url);
-    return -1;
-  }
-
-  if (o == -1) {
-    nbdkit_error ("could not get length of remote file [%s], "
-                  "is the URL correct?", url);
-    return -1;
-  }
-
-  ch->exportsize = o;
-#else
-  r = curl_easy_getinfo (ch->c, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &d);
-  if (r != CURLE_OK) {
-    display_curl_error (ch, r,
-                        "could not get length of remote file [%s]", url);
-    return -1;
-  }
-
-  if (d == -1) {
-    nbdkit_error ("could not get length of remote file [%s], "
-                  "is the URL correct?", url);
-    return -1;
-  }
-
-  ch->exportsize = d;
-#endif
-  nbdkit_debug ("content length: %" PRIi64, ch->exportsize);
-
-  /* If this is HTTP, check that byte ranges are supported. */
-  if (ascii_strncasecmp (url, "http://", strlen ("http://")) == 0 ||
-      ascii_strncasecmp (url, "https://", strlen ("https://")) == 0) {
-    if (!ch->accept_range) {
-      nbdkit_error ("server does not support 'range' (byte range) requests");
-      return -1;
-    }
-
-    nbdkit_debug ("accept range supported (for HTTP/HTTPS)");
-  }
-
-  return 0;
-}
-
-/* S3 servers can return 403 Forbidden for HEAD but still respond
- * to GET, so we give it a second chance in that case.
- * https://github.com/kubevirt/containerized-data-importer/issues/2737
- *
- * This function issues a GET request with a writefunction that always
- * returns an error, thus effectively getting the headers but
- * abandoning the transfer as soon as possible after.
- */
-static bool
-try_fallback_GET_method (struct curl_handle *ch)
-{
-  CURLcode r;
-
-  nbdkit_debug ("attempting to fetch headers using GET method");
-
-  curl_easy_setopt (ch->c, CURLOPT_HTTPGET, 1L);
-  curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, header_cb);
-  curl_easy_setopt (ch->c, CURLOPT_HEADERDATA, ch);
-  curl_easy_setopt (ch->c, CURLOPT_WRITEFUNCTION, error_cb);
-  curl_easy_setopt (ch->c, CURLOPT_WRITEDATA, ch);
-  r = curl_easy_perform (ch->c);
-  update_times (ch->c);
-
-  /* We expect CURLE_WRITE_ERROR here, but CURLE_OK is possible too
-   * (eg if the remote has zero length).  Other errors might happen
-   * but we ignore them since it is a fallback path.
-   */
-  return r == CURLE_OK || r == CURLE_WRITE_ERROR;
-}
-
-static size_t
-header_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
-{
-  struct curl_handle *ch = opaque;
-  size_t realsize = size * nmemb;
-  const char *header = ptr;
-  const char *end = header + realsize;
-  const char *accept_ranges = "accept-ranges:";
-  const char *bytes = "bytes";
-
-  if (realsize >= strlen (accept_ranges) &&
-      ascii_strncasecmp (header, accept_ranges, strlen (accept_ranges)) == 0) {
-    const char *p = strchr (header, ':') + 1;
-
-    /* Skip whitespace between the header name and value. */
-    while (p < end && *p && ascii_isspace (*p))
-      p++;
-
-    if (end - p >= strlen (bytes)
-        && strncmp (p, bytes, strlen (bytes)) == 0) {
-      /* Check that there is nothing but whitespace after the value. */
-      p += strlen (bytes);
-      while (p < end && *p && ascii_isspace (*p))
-        p++;
-
-      if (p == end || !*p)
-        ch->accept_range = true;
-    }
-  }
-
-  return realsize;
-}
-
-static size_t
-error_cb (char *ptr, size_t size, size_t nmemb, void *opaque)
-{
-#ifdef CURL_WRITEFUNC_ERROR
-  return CURL_WRITEFUNC_ERROR;
-#else
-  return 0; /* in older curl, any size < requested will also be an error */
-#endif
 }

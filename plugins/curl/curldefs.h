@@ -62,6 +62,9 @@
 #define HAVE_CURLINFO_TOTAL_TIME_T
 #define HAVE_CURLINFO_REDIRECT_TIME_T
 #endif
+#if CURL_AT_LEAST_VERSION (7, 66, 0)
+#define HAVE_CURL_MULTI_POLL
+#endif
 #if CURL_AT_LEAST_VERSION (8, 2, 0)
 #define HAVE_CURLINFO_CONN_ID
 #define HAVE_CURLINFO_XFER_ID
@@ -89,16 +92,6 @@ struct curl_handle {
   /* The underlying curl handle. */
   CURL *c;
 
-  /* Index of this handle in the pool (for debugging). */
-  size_t i;
-
-  /* True if the handle is in use by a thread. */
-  bool in_use;
-
-  /* These fields are used/initialized when we create the handle. */
-  bool accept_range;
-  int64_t exportsize;
-
   char errbuf[CURL_ERROR_SIZE];
 
   /* Before doing a read or write operation, set these to point to the
@@ -111,8 +104,30 @@ struct curl_handle {
   const char *read_buf;
   uint32_t read_count;
 
+  /* This field is used by curl_get_size. */
+  bool accept_range;
+
   /* Used by scripts.c */
   struct curl_slist *headers_copy;
+
+  /* Used by pool.c */
+  struct command *cmd;
+};
+
+/* Asynchronous commands that can be sent to the pool thread. */
+enum command_type { EASY_HANDLE, STOP };
+struct command {
+  /* These fields are set by the caller. */
+  enum command_type type;       /* command */
+  struct curl_handle *ch;       /* for EASY_HANDLE, the easy handle */
+
+  /* This field is set to a unique value by send_command_and_wait. */
+  uint64_t id;                  /* serial number */
+
+  /* These fields are used to signal back that the command finished. */
+  pthread_mutex_t mutex;        /* completion mutex */
+  pthread_cond_t cond;          /* completion condition */
+  CURLcode status;              /* status code (CURLE_OK = succeeded) */
 };
 
 /* config.c */
@@ -127,8 +142,7 @@ extern void free_handle (struct curl_handle *);
 extern int pool_get_ready (void);
 extern int pool_after_fork (void);
 extern void pool_unload (void);
-extern struct curl_handle *get_handle (void);
-extern void put_handle (struct curl_handle *ch);
+extern CURLcode send_command_and_wait (struct command *cmd);
 
 /* scripts.c */
 extern int do_scripts (struct curl_handle *ch);
