@@ -471,11 +471,11 @@ get_content_length_accept_range (struct curl_handle *ch)
   curl_easy_setopt (ch->c, CURLOPT_HEADERFUNCTION, header_cb);
   curl_easy_setopt (ch->c, CURLOPT_HEADERDATA, ch);
   r = curl_easy_perform (ch->c);
+  update_times (ch->c);
   if (r != CURLE_OK) {
     display_curl_error (ch, r,
                         "problem doing HEAD request to fetch size of URL [%s]",
                         url);
-  update_times (ch->c);
 
     /* Get the HTTP status code, if available. */
     r = curl_easy_getinfo (ch->c, CURLINFO_RESPONSE_CODE, &code);
