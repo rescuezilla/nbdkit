@@ -818,13 +818,15 @@ read_compressed_cluster (nbdkit_next *next, void *buf,
                                        compressed_cluster, compressed_size,
                                        file_offset, err);
 #else
-    static _Atomic int zlib_show_error = 1;
+    {
+      static _Atomic int zlib_show_error = 1;
       if (zlib_show_error) {
-        nbdkit_error ("%s compression is not supported by this build of nbdkit",
-                      "zlib");
+        nbdkit_error ("%s compression is not supported "
+                      "by this build of nbdkit", "zlib");
         zlib_show_error = 0;
       }
       return -1;
+    }
 #endif
 
   case COMPRESSION_ZSTD:
@@ -833,13 +835,15 @@ read_compressed_cluster (nbdkit_next *next, void *buf,
                                     compressed_cluster, compressed_size,
                                     file_offset, err);
 #else
-    static _Atomic int zstd_show_error = 1;
-    if (zstd_show_error) {
-      nbdkit_error ("%s compression is not supported by this build of nbdkit",
-                    "zstd");
-      zstd_show_error = 0;
+    {
+      static _Atomic int zstd_show_error = 1;
+      if (zstd_show_error) {
+        nbdkit_error ("%s compression is not supported "
+                      "by this build of nbdkit", "zstd");
+        zstd_show_error = 0;
+      }
+      return -1;
     }
-    return -1;
 #endif
 
   default:
