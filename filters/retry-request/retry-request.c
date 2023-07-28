@@ -100,15 +100,15 @@ retry_request_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
  * The code between RETRY_START...RETRY_END must set r to 0 or -1 on
  * success or failure.  *err may also be implicitly assigned.
  */
-#define RETRY_START                                                     \
+#define RETRY_START(what)                                               \
   {                                                                     \
     unsigned i;                                                         \
                                                                         \
     r = -1;                                                             \
     for (i = 0; r == -1 && i <= retries; ++i) {                         \
       if (i > 0) {                                                      \
-        nbdkit_debug ("retry %u: waiting %u seconds before retrying",   \
-                      i, delay);                                        \
+        nbdkit_debug ("retry %u: waiting %u seconds before retrying %s",\
+                      i, delay, what);                                  \
         if (nbdkit_nanosleep (delay, 0) == -1) {                        \
           if (*err == 0)                                                \
             *err = errno;                                               \
@@ -130,7 +130,7 @@ retry_request_open (nbdkit_next_open *next, nbdkit_context *nxdata,
   if (retry_open_call) {
     int *err = &errno;          /* used by the RETRY_* macros */
 
-    RETRY_START
+    RETRY_START("open")
       r = next (nxdata, readonly, exportname);
     RETRY_END;
   }
@@ -148,7 +148,7 @@ retry_request_pread (nbdkit_next *next,
 {
   int r;
 
-  RETRY_START
+  RETRY_START("pread")
     r = next->pread (next, buf, count, offset, flags, err);
   RETRY_END;
   return r;
@@ -162,7 +162,7 @@ retry_request_pwrite (nbdkit_next *next,
 {
   int r;
 
-  RETRY_START
+  RETRY_START("pwrite")
     r = next->pwrite (next, buf, count, offset, flags, err);
   RETRY_END;
   return r;
@@ -176,7 +176,7 @@ retry_request_trim (nbdkit_next *next,
 {
   int r;
 
-  RETRY_START
+  RETRY_START("trim")
     r = next->trim (next, count, offset, flags, err);
   RETRY_END;
   return r;
@@ -189,7 +189,7 @@ retry_request_flush (nbdkit_next *next,
 {
   int r;
 
-  RETRY_START
+  RETRY_START("flush")
     r = next->flush (next, flags, err);
   RETRY_END;
   return r;
@@ -203,7 +203,7 @@ retry_request_zero (nbdkit_next *next,
 {
   int r;
 
-  RETRY_START
+  RETRY_START("zero")
     r = next->zero (next, count, offset, flags, err);
   RETRY_END;
   return r;
@@ -218,7 +218,7 @@ retry_request_extents (nbdkit_next *next,
   CLEANUP_EXTENTS_FREE struct nbdkit_extents *extents2 = NULL;
   int r;
 
-  RETRY_START {
+  RETRY_START("extents") {
     /* Each retry must begin with extents reset to the right beginning. */
     nbdkit_extents_free (extents2);
     extents2 = nbdkit_extents_new (offset, next->get_size (next));
@@ -254,7 +254,7 @@ retry_request_cache (nbdkit_next *next,
 {
   int r;
 
-  RETRY_START
+  RETRY_START("cache")
     r = next->cache (next, count, offset, flags, err);
   RETRY_END;
   return r;
