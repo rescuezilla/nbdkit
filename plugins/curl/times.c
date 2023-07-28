@@ -123,7 +123,7 @@ display_times (void)
       v = t;
     prev_t = t;
 
-    nbdkit_debug ("%-30s: %3" PRIi64 ".%06" PRIi64 " s",
+    nbdkit_debug ("%-30s: %4" PRIi64 ".%06" PRIi64 " s",
                   times[i].name,
                   v / 1000000, v % 1000000);
   }

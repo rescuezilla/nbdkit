@@ -551,13 +551,13 @@ information is printed in the debug output before nbdkit exits.  The
 output will look like:
 
  nbdkit: debug: times (-D curl.times=1):
- nbdkit: debug: name resolution               :   0.128442 s
- nbdkit: debug: connection                    :   4.945213 s
- nbdkit: debug: SSL negotiation               :   4.291362 s
- nbdkit: debug: pretransfer                   :   0.104137 s
- nbdkit: debug: first byte received           :  56.115269 s
- nbdkit: debug: data transfer                 : 222.633831 s
- nbdkit: debug: redirection time              :   0.000000 s
+ nbdkit: debug: name resolution               :    0.128442 s
+ nbdkit: debug: connection                    :    4.945213 s
+ nbdkit: debug: SSL negotiation               :    4.291362 s
+ nbdkit: debug: pretransfer                   :    0.104137 s
+ nbdkit: debug: first byte received           :   56.115269 s
+ nbdkit: debug: data transfer                 :  222.633831 s
+ nbdkit: debug: redirection time              :    0.000000 s
 
 The cumulative time taken to perform each step is shown (summed across
 all HTTP connections).  The redirection time is the total time taken
