@@ -58,7 +58,7 @@ main (int argc, char *argv[])
   const char *sockpath;
   CLEANUP_FREE char *usp_param = NULL;
   int i, j;
-  char state = 0;
+  char state;
   struct nbd_handle *nbd = NULL;
 
 #ifndef HAVE_CURLOPT_UNIX_SOCKET_PATH
@@ -104,6 +104,8 @@ main (int argc, char *argv[])
 
     if (nbd_connect_unix (nbd, sock /* NBD socket */) == -1)
       goto nbd_error;
+
+    state = 0;
 
     for (i = 0; i < 7 /* not divisible by 2 or 3 */; ++i) {
       char buf[512];
