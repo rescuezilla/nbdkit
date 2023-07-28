@@ -84,9 +84,9 @@ curl_after_fork (void)
 static void
 curl_unload (void)
 {
+  pool_unload ();
   config_unload ();
   scripts_unload ();
-  pool_unload ();
   display_times ();
   curl_global_cleanup ();
 }
