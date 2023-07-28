@@ -141,6 +141,18 @@ retry_request_open (nbdkit_next_open *next, nbdkit_context *nxdata,
   return r == 0 ? NBDKIT_HANDLE_NOT_NEEDED : NULL;
 }
 
+static int64_t
+retry_request_get_size (nbdkit_next *next, void *handle)
+{
+  int64_t r;
+  int *err = &errno;          /* used by the RETRY_* macros */
+
+  RETRY_START("get_size")
+    r = next->get_size (next);
+  RETRY_END;
+  return r;
+}
+
 static int
 retry_request_pread (nbdkit_next *next,
                      void *handle, void *buf, uint32_t count, uint64_t offset,
@@ -267,6 +279,7 @@ static struct nbdkit_filter filter = {
   .config            = retry_request_config,
   .config_help       = retry_request_config_help,
   .open              = retry_request_open,
+  .get_size          = retry_request_get_size,
   .pread             = retry_request_pread,
   .pwrite            = retry_request_pwrite,
   .trim              = retry_request_trim,
