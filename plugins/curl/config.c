@@ -103,7 +103,7 @@ NBDKIT_DLL_PUBLIC int curl_debug_verbose = 0;
 NBDKIT_DLL_PUBLIC int curl_debug_verbose_ids = 0;
 
 void
-unload_config (void)
+config_unload (void)
 {
   free (cookie);
   if (headers)

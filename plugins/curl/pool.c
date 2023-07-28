@@ -86,7 +86,7 @@ load_pool (void)
 
 /* Close and free all handles in the pool. */
 void
-unload_pool (void)
+pool_unload (void)
 {
   size_t i;
 

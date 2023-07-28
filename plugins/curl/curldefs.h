@@ -119,13 +119,13 @@ struct curl_handle {
 extern int curl_config (const char *key, const char *value);
 extern int curl_config_complete (void);
 extern const char *curl_config_help;
-extern void unload_config (void);
+extern void config_unload (void);
 extern struct curl_handle *allocate_handle (void);
 extern void free_handle (struct curl_handle *);
 
 /* pool.c */
 extern void load_pool (void);
-extern void unload_pool (void);
+extern void pool_unload (void);
 extern struct curl_handle *get_handle (void);
 extern void put_handle (struct curl_handle *ch);
 

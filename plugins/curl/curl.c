@@ -74,9 +74,9 @@ curl_load (void)
 static void
 curl_unload (void)
 {
-  unload_config ();
+  config_unload ();
   scripts_unload ();
-  unload_pool ();
+  pool_unload ();
   display_times ();
   curl_global_cleanup ();
 }
