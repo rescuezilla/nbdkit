@@ -78,10 +78,16 @@ static curl_handle_list curl_handles = empty_vector;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static size_t in_use = 0, waiting = 0;
 
-/* Initialize pool structures. */
-void
-load_pool (void)
+int
+pool_get_ready (void)
 {
+  return 0;
+}
+
+int
+pool_after_fork (void)
+{
+  return 0;
 }
 
 /* Close and free all handles in the pool. */

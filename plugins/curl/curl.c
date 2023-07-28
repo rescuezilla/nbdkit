@@ -67,8 +67,18 @@ curl_load (void)
     nbdkit_error ("libcurl initialization failed: %d", (int) r);
     exit (EXIT_FAILURE);
   }
+}
 
-  load_pool ();
+int
+curl_get_ready (void)
+{
+  return pool_get_ready ();
+}
+
+int
+curl_after_fork (void)
+{
+  return pool_after_fork ();
 }
 
 static void
@@ -249,6 +259,8 @@ static struct nbdkit_plugin plugin = {
    */
   //.config_help       = curl_config_help,
   .magic_config_key  = "url",
+  .get_ready         = curl_get_ready,
+  .after_fork        = curl_after_fork,
   .open              = curl_open,
   .close             = curl_close,
   .get_size          = curl_get_size,
