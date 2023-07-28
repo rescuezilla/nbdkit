@@ -79,7 +79,7 @@
 /* Use '-D curl.pool=1' to debug handle pool. */
 NBDKIT_DLL_PUBLIC int curl_debug_pool = 0;
 
-unsigned connections = 4;
+unsigned connections = 16;
 
 /* Pipe used to notify background thread that a command is pending in
  * the queue.  A pointer to the 'struct command' is sent over the
@@ -114,6 +114,10 @@ pool_get_ready (void)
     nbdkit_error ("curl_multi_init failed: %m");
     return -1;
   }
+
+#ifdef HAVE_CURLMOPT_MAX_TOTAL_CONNECTIONS
+  curl_multi_setopt(multi, CURLMOPT_MAX_TOTAL_CONNECTIONS, (long) connections);
+#endif
 
   return 0;
 }
