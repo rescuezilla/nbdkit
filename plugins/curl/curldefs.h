@@ -35,6 +35,15 @@
 
 #include <stdbool.h>
 
+#ifdef HAVE_STDATOMIC_H
+#include <stdatomic.h>
+#else
+/* Some old platforms lack atomic types, but 32 bit ints are usually
+ * "atomic enough".
+ */
+#define _Atomic /**/
+#endif
+
 #include "windows-compat.h"
 
 /* Macro CURL_AT_LEAST_VERSION was added in 2015 (Curl 7.43) so if the

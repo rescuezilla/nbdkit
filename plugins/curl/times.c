@@ -54,7 +54,7 @@ static struct {
   bool cumulative;
   const char *name;
   CURLINFO info;
-  curl_off_t t;
+  _Atomic curl_off_t t;
 } times[] = {
 #ifdef HAVE_CURLINFO_NAMELOOKUP_TIME_T
   { true, "name resolution", CURLINFO_NAMELOOKUP_TIME_T },
