@@ -99,6 +99,9 @@ static size_t error_cb (char *ptr, size_t size, size_t nmemb, void *opaque);
 /* Use '-D curl.verbose=1' to set. */
 NBDKIT_DLL_PUBLIC int curl_debug_verbose = 0;
 
+/* Use '-D curl.verbose.ids=1' to set. */
+NBDKIT_DLL_PUBLIC int curl_debug_verbose_ids = 0;
+
 void
 unload_config (void)
 {
@@ -707,6 +710,14 @@ debug_cb (CURL *handle, curl_infotype type,
 {
   size_t origsize = size;
   CLEANUP_FREE char *str;
+  curl_off_t conn_id = -1, xfer_id = -1;
+
+#if defined(HAVE_CURLINFO_CONN_ID) && defined(HAVE_CURLINFO_XFER_ID)
+  if (curl_debug_verbose_ids) {
+    curl_easy_getinfo (handle, CURLINFO_CONN_ID, &conn_id);
+    curl_easy_getinfo (handle, CURLINFO_XFER_ID, &xfer_id);
+  }
+#endif
 
   /* The data parameter passed is NOT \0-terminated, but also it may
    * have \n or \r\n line endings.  The only sane way to deal with
@@ -726,17 +737,35 @@ debug_cb (CURL *handle, curl_infotype type,
 
   switch (type) {
   case CURLINFO_TEXT:
-    nbdkit_debug ("%s", str);
+    if (conn_id >= 0 && xfer_id >= 0)
+      nbdkit_debug ("conn %" PRIi64 " xfer %" PRIi64 ": %s",
+                    conn_id, xfer_id, str);
+    else
+      nbdkit_debug ("%s",str);
     break;
   case CURLINFO_HEADER_IN:
-    nbdkit_debug ("S: %s", str);
+    if (conn_id >= 0 && xfer_id >= 0)
+      nbdkit_debug ("conn %" PRIi64 " xfer %" PRIi64 ": S: %s",
+                    conn_id, xfer_id, str);
+    else
+      nbdkit_debug ("S: %s", str);
     break;
   case CURLINFO_HEADER_OUT:
-    nbdkit_debug ("C: %s", str);
+    if (conn_id >= 0 && xfer_id >= 0)
+      nbdkit_debug ("conn %" PRIi64 " xfer %" PRIi64 ": C: %s",
+                    conn_id, xfer_id, str);
+    else
+      nbdkit_debug ("C: %s", str);
     break;
   default:
     /* Assume everything else is binary data that we cannot print. */
-    nbdkit_debug ("<data with size=%zu>", origsize);
+    if (conn_id >= 0 && xfer_id >= 0)
+      nbdkit_debug ("conn %" PRIi64 " xfer %" PRIi64 ": "
+                    "<data with size=%zu>",
+                    conn_id, xfer_id,
+                    origsize);
+    else
+      nbdkit_debug ("<data with size=%zu>", origsize);
   }
 
  out:

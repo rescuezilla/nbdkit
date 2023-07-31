@@ -62,6 +62,10 @@
 #define HAVE_CURLINFO_TOTAL_TIME_T
 #define HAVE_CURLINFO_REDIRECT_TIME_T
 #endif
+#if CURL_AT_LEAST_VERSION (8, 2, 0)
+#define HAVE_CURLINFO_CONN_ID
+#define HAVE_CURLINFO_XFER_ID
+#endif
 #endif
 
 extern const char *url;

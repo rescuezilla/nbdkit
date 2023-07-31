@@ -570,6 +570,12 @@ This enables very verbose curl debugging.  See L<CURLOPT_VERBOSE(3)>.
 This is mainly useful if you suspect there is a bug inside libcurl
 itself.
 
+=item B<-D curl.verbose.ids=1>
+
+This enhances C<-D curl.verbose=1> by printing connection and transfer
+IDs next to each debug message.  As this has some overhead it is not
+enabled by default.
+
 =back
 
 =head1 FILES
