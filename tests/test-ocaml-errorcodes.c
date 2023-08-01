@@ -34,8 +34,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <errno.h>
-#include <assert.h>
 
 #include <libnbd.h>
 
@@ -84,10 +85,19 @@ main (int argc, char *argv[])
     exit (EXIT_FAILURE);
   }
 
-  assert (nbd_pread (nbd, buf, 512, 0, 0) == 0);
+  if (nbd_pread (nbd, buf, 512, 0, 0) == -1) {
+    fprintf (stderr, "%s: FAIL: did not expect reading sector 0 to fail\n",
+             argv[0]);
+    exit (EXIT_FAILURE);
+  }
 
   for (i = 0; tests[i].offset != 0; ++i) {
-    assert (nbd_pread (nbd, buf, 512, tests[i].offset, 0) == -1);
+    if (nbd_pread (nbd, buf, 512, tests[i].offset, 0) != -1) {
+      fprintf (stderr,
+               "%s: FAIL: reading sector %" PRIu64 "should have failed\n",
+               argv[0], tests[i].offset / 512);
+      exit (EXIT_FAILURE);
+    }
     actual_errno = nbd_get_errno ();
     if (actual_errno != tests[i].expected_errno) {
       fprintf (stderr, "%s: FAIL: actual errno = %d expected errno = %d\n",
