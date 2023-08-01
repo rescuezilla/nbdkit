@@ -78,7 +78,7 @@ main (int argc, char *argv[])
 
   if (nbd_connect_command (nbd,
                            (char *[]) {
-                             "nbdkit", "-s", "--exit-with-parent",
+                             "nbdkit", "-s", "--exit-with-parent", "-v",
                              "./test-ocaml-errorcodes-plugin.so",
                              NULL }) == -1) {
     fprintf (stderr, "%s\n", nbd_get_error ());
