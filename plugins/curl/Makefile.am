@@ -34,6 +34,8 @@ include $(top_srcdir)/common-rules.mk
 EXTRA_DIST = nbdkit-curl-plugin.pod
 
 if HAVE_CURL
+# Disabled on Windows because no self-pipe.
+if !IS_WINDOWS
 
 plugin_LTLIBRARIES = nbdkit-curl-plugin.la
 
@@ -85,4 +87,5 @@ nbdkit-curl-plugin.1: nbdkit-curl-plugin.pod \
 
 endif HAVE_POD
 
-endif
+endif !IS_WINDOWS
+endif HAVE_CURL

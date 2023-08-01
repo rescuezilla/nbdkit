@@ -645,6 +645,7 @@ EXTRA_DIST += test-cdi.sh
 # curl plugin test.
 if HAVE_MKE2FS_WITH_D
 if HAVE_CURL
+if !IS_WINDOWS
 TESTS += \
 	test-curl-file.sh \
 	test-curl-header-script-fail.sh \
@@ -751,6 +752,7 @@ test_curl_cookie_script_LDADD = \
 	$(LIBNBD_LIBS) \
 	$(NULL)
 
+endif !IS_WINDOWS
 endif HAVE_CURL
 endif HAVE_MKE2FS_WITH_D
 
