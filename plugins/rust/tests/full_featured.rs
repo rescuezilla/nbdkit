@@ -47,6 +47,7 @@ static INIT: Once = Once::new();
 
 plugin!(MockServer{
     after_fork,
+    block_size,
     cache,
     can_cache,
     can_extents,
@@ -127,6 +128,29 @@ fn with_fixture<F: FnMut(&mut Fixture)>(mut f: F) {
     f(&mut fixture);
 
     (plugin.close)(handle);
+}
+
+mod block_size {
+    use super::*;
+
+    #[test]
+    fn ok() {
+        with_fixture(|fixture| {
+            unsafe{ &mut *fixture.mockp }.expect_block_size()
+                .returning(|| Ok((512,4096,65536)));
+            let block_size = fixture.plugin.block_size.as_ref().unwrap();
+            let mut min : u32 = 0;
+            let mut pref : u32 = 0;
+            let mut max : u32 = 0;
+            assert_eq!(0, (block_size)(fixture.handle,
+                                       &mut min,
+                                       &mut pref,
+                                       &mut max));
+            assert_eq!(min, 512);
+            assert_eq!(pref, 4096);
+            assert_eq!(max, 65536);
+        });
+    }
 }
 
 /// Helper for testing methods that take a handle and return a boolean

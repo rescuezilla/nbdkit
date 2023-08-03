@@ -51,6 +51,7 @@ mock!{
     #[allow(dead_code)]
     impl Server for Server {
         fn after_fork() -> Result<()> where Self: Sized;
+        fn block_size(&self) -> Result<(u32,u32,u32)>;
         fn cache(&self, count: u32, offset: u64) -> Result<()>;
         fn can_cache(&self) -> Result<CacheFlags>;
         fn can_extents(&self) -> Result<bool>;
