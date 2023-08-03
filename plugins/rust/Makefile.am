@@ -40,7 +40,7 @@ EXTRA_DIST = \
 	nbdkit-rust-plugin.pod \
 	README.md \
 	src/lib.rs \
-	test.sh \
+	run-cargo-tests.sh \
 	tests/bare_bones.rs \
 	tests/common/mod.rs \
 	tests/full_featured.rs \
@@ -65,7 +65,9 @@ target/release/examples/libramdisk.so: Cargo.lock Cargo.toml examples/ramdisk.rs
 distclean-local:
 	cargo clean
 
-TESTS = test.sh
+TESTS = \
+	run-cargo-tests.sh \
+	$(NULL)
 
 if HAVE_POD
 
