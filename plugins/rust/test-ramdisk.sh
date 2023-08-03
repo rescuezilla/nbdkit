@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # nbdkit
 # Copyright Red Hat
 #
@@ -29,66 +30,32 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-include $(top_srcdir)/common-rules.mk
+# The cargo tests use a mock environment which doesn't test the full
+# stack.  In particular it doesn't load the plugin into nbdkit and try
+# to access it with a client.  This test checks that the ramdisk
+# example works.
 
-EXTRA_DIST = \
-	Cargo.lock.msrv \
-	Cargo.toml \
-	CHANGELOG.md \
-	examples/ramdisk.rs \
-	LICENSE \
-	nbdkit-rust-plugin.pod \
-	README.md \
-	src/lib.rs \
-	run-cargo-tests.sh \
-	test-ramdisk.sh \
-	tests/bare_bones.rs \
-	tests/common/mod.rs \
-	tests/full_featured.rs \
-	$(NULL)
+source ../../tests/functions.sh
+set -e
 
-if HAVE_RUST
+# Not supported on Windows.
+if is_windows; then
+    echo "$0: test not implemented on Windows"
+    exit 77
+fi
 
-noinst_SCRIPTS = \
-	target/release/libnbdkit.rlib \
-	target/release/examples/libramdisk.so \
-	$(NULL)
+ramdisk=target/release/examples/libramdisk.so
 
-Cargo.lock: Cargo.toml
-	if [ `rustc --version | cut -d . -f 2` -lt 64 ]; then cp Cargo.lock.msrv Cargo.lock; else cargo update; fi
+requires test -x $ramdisk
+requires_nbdinfo
+requires_nbdsh_uri
 
-target/release/libnbdkit.rlib: Cargo.lock Cargo.toml src/lib.rs
-	cargo build --release
-
-target/release/examples/libramdisk.so: Cargo.lock Cargo.toml examples/ramdisk.rs
-	cargo build --release --example ramdisk
-
-distclean-local:
-	cargo clean
-
-if !IS_WINDOWS
-TESTS_ENVIRONMENT = \
-	LIBNBD_DEBUG=1 \
-	PATH=$(abs_top_builddir):$(PATH) \
-	$(NULL)
-endif
-
-TESTS = \
-	run-cargo-tests.sh \
-	test-ramdisk.sh \
-	$(NULL)
-
-if HAVE_POD
-
-man_MANS = nbdkit-rust-plugin.3
-CLEANFILES += $(man_MANS)
-
-nbdkit-rust-plugin.3: nbdkit-rust-plugin.pod \
-		$(top_builddir)/podwrapper.pl
-	$(PODWRAPPER) --section=3 --man $@ \
-	    --html $(top_builddir)/html/$@.html \
-	    $<
-
-endif HAVE_POD
-
-endif
+nbdkit -fv -U - $ramdisk size=10M --run 'nbdinfo "$uri"'
+nbdkit -fv -U - $ramdisk size=10M \
+       --run '
+    nbdsh -u "$uri" \
+          -c "buf = b\"1234\"*1024" \
+          -c "h.pwrite(buf, 16384)" \
+          -c "buf2 = h.pread(4096, 16384)" \
+          -c "assert buf == buf2"
+'
