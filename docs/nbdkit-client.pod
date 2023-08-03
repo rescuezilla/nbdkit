@@ -69,6 +69,18 @@ You can either reboot now or do:
 Other systemd services which need this mount point can depend on this
 mount unit.
 
+=head1 LIMITATIONS
+
+Red Hat Enterprise Linux 8 enabled the C<nbd.ko> Linux kernel module
+but only for Unix domain sockets (ie. local connections).  This means
+you cannot connect to an NBD server over a TCP network.  This also
+affects Linux distributions derived from RHEL like CentOS, Alma and
+others.
+
+This does not affect use of nbdkit as an NBD server, only the Linux
+kernel as an NBD client.  Userspace Linux clients such as L<libnbd(3)>
+tools will work.
+
 =head1 SEE ALSO
 
 L<nbdkit(1)>,
