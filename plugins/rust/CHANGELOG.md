@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] - ReleaseDate
+## [0.3.0] - 20 July 2023
 ### Added
 
 - The C function `nbdkit_parse_probability` is now available as
