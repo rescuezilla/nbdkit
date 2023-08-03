@@ -326,6 +326,25 @@ mod ffi {
         }
     }
 
+    pub(super) extern fn block_size(h: *mut c_void,
+                                    minp: *mut u32,
+                                    prefp: *mut u32,
+                                    maxp: *mut u32) -> c_int {
+        let server = unsafe { downcast(h) };
+        match server.block_size() {
+            Err(e) => {
+                set_error(e);
+                -1
+            },
+            Ok((min, pref, max)) => unsafe {
+                *minp = min;
+                *prefp = pref;
+                *maxp = max;
+                0
+            }
+        }
+    }
+
     macro_rules! can_method {
         ( $meth:ident ) => {
             pub(super) extern fn $meth(h: *mut c_void) -> c_int {
@@ -606,6 +625,19 @@ pub trait Server {
     /// It is called after the server forks and changes directory. If
     /// a plugin needs to create background threads it should do so here.
     fn after_fork() -> Result<()> where Self: Sized { unimplemented!() }
+
+    /// Return block size hints to the client.
+    ///
+    /// This is called during option negotiation to get the
+    /// minimum, preferred and maximum block size (all in bytes).
+    /// The client should (but is not required to) obey these
+    /// constraints by not making requests smaller than the
+    /// minimum block size or larger than the maximum size
+    /// and usually making requests of a multiple of the
+    /// preferred size.  Additionally requests should be
+    /// aligned to the minimum (and usually the preferred)
+    /// block size.
+    fn block_size(&self) -> Result<(u32, u32, u32)> { unimplemented!() }
 
     /// Indicates that the client intends to make further accesses to the given
     /// data region.
@@ -924,6 +956,7 @@ macro_rules! opt_method {
 #[derive(Default)]
 pub struct Builder {
     pub after_fork: bool,
+    pub block_size: bool,
     pub cache: bool,
     pub can_cache: bool,
     pub can_extents: bool,
@@ -1047,7 +1080,12 @@ impl Builder {
             can_fast_zero: opt_method!(self, can_fast_zero),
             preconnect: opt_method!(self, preconnect),
             get_ready: opt_method!(self, get_ready),
-            after_fork: opt_method!(self, after_fork)
+            after_fork: opt_method!(self, after_fork),
+            _list_exports: None, // not implemented
+            _default_export: ptr::null(), // not implemented
+            _export_description: ptr::null(), // not implemented
+            _cleanup: None, // not implemented
+            block_size: opt_method!(self, block_size)
         };
         // Leak the memory to C.  NBDKit will never give it back.
         Box::into_raw(Box::new(plugin))
@@ -1320,6 +1358,18 @@ pub struct Plugin {
     pub preconnect: Option<extern fn(readonly: c_int) -> c_int>,
     pub get_ready: Option<extern fn() -> c_int>,
     pub after_fork: Option<extern fn() -> c_int>,
+
+    // These fields exist in the struct but have not been implemented
+    // by the Rust bindings yet.
+    #[doc(hidden)] pub _list_exports: Option<extern fn ()>,
+    #[doc(hidden)] pub _default_export: *const c_char,
+    #[doc(hidden)] pub _export_description: *const c_char,
+    #[doc(hidden)] pub _cleanup: Option<extern fn ()>,
+
+    pub block_size: Option<extern fn(h: *mut c_void,
+                                     minp: *mut u32,
+                                     prefp: *mut u32,
+                                     maxp: *mut u32) -> c_int>,
 }
 
 /// Register your plugin with NBDKit.
