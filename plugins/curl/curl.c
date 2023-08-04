@@ -428,6 +428,7 @@ static size_t
 write_cb (char *ptr, size_t size, size_t nmemb, void *opaque)
 {
   struct curl_handle *ch = opaque;
+  /* XXX We should check this does not overflow. */
   size_t orig_realsize = size * nmemb;
   size_t realsize = orig_realsize;
 
@@ -512,6 +513,7 @@ static size_t
 read_cb (void *ptr, size_t size, size_t nmemb, void *opaque)
 {
   struct curl_handle *ch = opaque;
+  /* XXX We should check this does not overflow. */
   size_t realsize = size * nmemb;
 
   assert (ch->read_buf);
