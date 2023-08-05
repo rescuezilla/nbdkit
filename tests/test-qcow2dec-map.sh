@@ -40,6 +40,10 @@ requires qemu-img --version
 requires qemu-nbd --version
 requires diff --version
 
+# nbdinfo in RHEL 8 did not support [ .. ] to run an external server
+# under systemd socket activation.
+requires nbdinfo --map -- [ nbdkit --exit-with-parent null ]
+
 qcow2=qcow2dec-map-disk.qcow2
 map_expected=qcow2dec-map-expected.txt
 map_actual=qcow2dec-map-actual.txt
