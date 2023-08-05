@@ -22,6 +22,10 @@ nbdkit-probing - how to probe for nbdkit configuration and plugins
 
  nbdkit --filter=FILTER null --version
 
+=for paragraph
+
+ nbdkit --filter=FILTER null --dump-plugin
+
 =head1 DESCRIPTION
 
 You can query information about nbdkit and available plugins and
@@ -92,6 +96,18 @@ however, newer plugins may not be fully supported by an older nbdkit
 binary (for example, a plugin compiled with C<NBDKIT_API_VERSION> of 2
 fails to load with an older nbdkit that only knows
 C<NBDKIT_API_VERSION> 1).
+
+=head2 Query information about a particular filter
+
+You can use the I<--dump-plugin> option to dump information about a
+filter, by using the null plugin with the I<--filter> parameter:
+
+ $ nbdkit null --filter=qcow2dec --dump-plugin
+ [...]
+ qcow2dec_path=/usr/lib64/nbdkit/filters/nbdkit-qcow2dec-filter.so
+ qcow2dec_name=qcow2dec
+ qcow2dec_deflate=yes
+ qcow2dec_zstd=yes
 
 =head2 Detect if a plugin is installed
 
