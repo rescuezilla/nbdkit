@@ -66,6 +66,7 @@
 #include "cleanup.h"
 #include "isaligned.h"
 #include "minmax.h"
+#include "rounding.h"
 
 #include "qcow2.h"
 
@@ -146,12 +147,11 @@ qcow2dec_can_multi_conn (nbdkit_next *next,
   return 1;
 }
 
-/* We don't yet support extents (qcow2 bitmaps) but might in future. */
 static int
 qcow2dec_can_extents (nbdkit_next *next,
                       void *handle)
 {
-  return 0;
+  return 1;
 }
 
 /* The first thread that calls .prepare reads the qcow2 metadata. */
@@ -885,6 +885,90 @@ read_compressed_cluster (nbdkit_next *next, void *buf,
   }
 }
 
+/* Extents. */
+static int
+qcow2dec_extents (nbdkit_next *next,
+                  void *handle,
+                  uint32_t count32, uint64_t offset, uint32_t flags,
+                  struct nbdkit_extents *extents,
+                  int *err)
+{
+  const bool req_one = flags & NBDKIT_FLAG_REQ_ONE;
+  uint64_t count = count32;
+  uint64_t end;
+
+  /* To make this easier, align the requested extents to whole
+   * clusters.  Note that count is a 64 bit variable containing at
+   * most a 32 bit value so rounding up is safe here.
+   */
+  end = offset + count;
+  offset = ROUND_DOWN (offset, cluster_size);
+  end = ROUND_UP (end, cluster_size);
+  count = end - offset;
+
+  assert (IS_ALIGNED (offset, cluster_size));
+  assert (IS_ALIGNED (count, cluster_size));
+  assert (count > 0);           /* We must make forward progress. */
+
+  while (count > 0) {
+    bool l2_present;
+    uint64_t l2_entry;
+    uint64_t file_offset;
+    struct nbdkit_extent e = { .offset = offset, .length = cluster_size };
+
+    if (read_l2_entry (next, offset, flags, &l2_present, &l2_entry, err) == -1)
+      return -1;
+
+    /* L2 table is unallocated. */
+    if (!l2_present)
+      e.type = NBDKIT_EXTENT_HOLE|NBDKIT_EXTENT_ZERO;
+    /* Compressed cluster, so allocated. */
+    else if (l2_entry & QCOW2_L2_ENTRY_TYPE_MASK)
+      e.type = 0;
+    /* From here on we know this is a standard cluster because we
+     * handled compressed clusters above and we don't support extended
+     * clusters.
+     */
+    else if ((l2_entry & QCOW2_L2_ENTRY_RESERVED_MASK) != 0) {
+      nbdkit_error ("invalid L2 table entry: "
+                    "reserved bits are not zero (0x%" PRIx64 ")",
+                    l2_entry);
+      *err = ERANGE;
+      return -1;
+    }
+    else {
+      file_offset = l2_entry & QCOW2_L2_ENTRY_OFFSET_MASK;
+
+      /* Does the cluster read as all zeroes?  Note we can check
+       * file_offset == 0 here because we don't support external files.
+       */
+      if ((l2_entry & 1) != 0 || file_offset == 0)
+        e.type = NBDKIT_EXTENT_HOLE|NBDKIT_EXTENT_ZERO;
+      else
+        /* Regular allocated non-compressed cluster. */
+        e.type = 0;
+    }
+
+    if (nbdkit_add_extent (extents, e.offset, e.length, e.type) == -1) {
+      *err = errno;
+      return -1;
+    }
+
+    /* If the caller only wanted the first extent, and we've managed
+     * to add at least one extent to the list, then we can drop out
+     * now.  (Note calling nbdkit_add_extent above does not mean the
+     * extent got added since it might be before the first offset.)
+     */
+    if (req_one && nbdkit_extents_count (extents) > 0)
+      break;
+
+    offset += cluster_size;
+    count -= cluster_size;
+  }
+
+  return 0;
+}
+
 static struct nbdkit_filter filter = {
   .name              = "qcow2dec",
   .longname          = "nbdkit qcow2dec filter",
@@ -897,6 +981,7 @@ static struct nbdkit_filter filter = {
   .prepare           = qcow2dec_prepare,
   .get_size          = qcow2dec_get_size,
   .pread             = qcow2dec_pread,
+  .extents           = qcow2dec_extents,
 };
 
 NBDKIT_REGISTER_FILTER (filter)
