@@ -467,6 +467,28 @@ foreach_plugin ()
     done
 }
 
+# foreach_filter f [args]
+#
+# For each filter that was built, run the function or command f with
+# the filter name as the first argument, optionally followed by the
+# remaining args.
+foreach_filter ()
+{
+    local f d fi
+
+    f="$1"
+    shift
+
+    for fi in @filters@; do
+        # Was the filter built?
+        d="@top_builddir@/filters/$fi"
+        if [ -f "$d/.libs/nbdkit-$fi-filter.$SOEXT" ]; then
+            # Yes so run the test.
+            "$f" "$fi" "$@"
+        fi
+    done
+}
+
 # pick_unused_port
 #
 # Picks and returns an "unused" port, setting the global variable

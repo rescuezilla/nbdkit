@@ -120,10 +120,36 @@ filter_usage (struct backend *b)
   }
 }
 
+/* This implements the --dump-plugin option which can dump additional
+ * fields for any filters present.
+ */
 static void
 filter_dump_fields (struct backend *b)
 {
+  struct backend_filter *f = container_of (b, struct backend_filter, backend);
+  char *path;
+
   b->next->dump_fields (b->next);
+
+  debug ("%s: dump_plugin", b->name);
+
+  /* Dump some information about the filter. */
+  path = nbdkit_realpath (b->filename);
+  printf ("%s_path=%s\n", b->name, path);
+  free (path);
+
+  printf ("%s_name=%s\n", b->name, b->name);
+
+  /* We could add filter struct fields here, but they are not so
+   * interesting for filters because they are always tied to the exact
+   * current version of nbdkit so we can determine which fields are
+   * present just by looking at the source.
+   */
+
+  /* Custom fields. */
+  if (f->filter.dump_plugin) {
+    f->filter.dump_plugin ();
+  }
 }
 
 static int

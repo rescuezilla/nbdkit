@@ -197,6 +197,8 @@ struct nbdkit_filter {
                           nbdkit_backend *nxdata);
   const char *config_help;
   int (*thread_model) (void);
+  void (*dump_plugin) (void);
+
   int (*get_ready) (int thread_model);
   int (*after_fork) (nbdkit_backend *backend);
   void (*cleanup) (nbdkit_backend *backend);

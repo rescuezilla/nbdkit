@@ -420,6 +420,16 @@ filter doesn't slow down other filters or plugins.
 If there is an error, C<.thread_model> should call C<nbdkit_error>
 with an error message and return C<-1>.
 
+=head2 C<.dump_plugin>
+
+ void (*dump_plugin) (void);
+
+This optional callback is called when the
+S<C<nbdkit null --filter=filtername --dump-plugin>> command is used.
+It should print any additional informative C<key=value> fields to
+stdout as needed.  Prefixing the keys with the name of the filter will
+avoid conflicts.
+
 =head2 C<.get_ready>
 
  int (*get_ready) (int thread_model);

@@ -235,8 +235,10 @@ TESTS += \
 	test-dump-plugin-name.sh \
 	test-dump-plugin-and-single.sh \
 	test-dump-plugin-thread-model.sh \
+	test-dump-plugin-filter.sh \
 	test-probe-filter.sh \
 	test-probe-plugin.sh \
+	test-probe-filter-dump-plugin.sh \
 	test-start.sh \
 	test-single.sh \
 	test-single-from-file.sh \
@@ -277,6 +279,7 @@ EXTRA_DIST += \
 	test-dump-plugin-and-single.sh \
 	test-dump-plugin-example1.sh \
 	test-dump-plugin-example2.sh \
+	test-dump-plugin-filter.sh \
 	test-dump-plugin-name.sh \
 	test-dump-plugin-thread-model.sh \
 	test-dump-plugin.sh \
@@ -293,6 +296,7 @@ EXTRA_DIST += \
 	test-nbdkit-backend-debug.sh \
 	test-not-linked-to-libssl.sh \
 	test-probe-filter.sh \
+	test-probe-filter-dump-plugin.sh \
 	test-probe-plugin.sh \
 	test-random-sock.sh \
 	test-read-password.sh \
