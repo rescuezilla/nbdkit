@@ -151,6 +151,19 @@ of clean up are C<exit-when-pipe-closed> or putting all of the
 processes into a cgroup.  (See L<nbdkit-captive(1)> and
 L<nbdkit-service(1)>).
 
+=head2 Query --dump-plugin output
+
+Not all events are supported on all platforms.  To query which events
+the filter supports use:
+
+ $ nbdkit null --filter=exitwhen --dump-plugin
+ [...]
+ exitwhen_file_created=yes
+ exitwhen_file_deleted=yes
+ exitwhen_process_exits=yes
+ exitwhen_pipe_closed=yes
+ exitwhen_script=yes
+
 =head1 FILES
 
 =over 4

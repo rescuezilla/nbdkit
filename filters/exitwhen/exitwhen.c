@@ -119,6 +119,26 @@ exitwhen_unload (void)
   free (events.ptr);
 }
 
+static void
+exitwhen_dump_plugin (void)
+{
+#ifdef EVENT_FILE_CREATED
+  printf ("exitwhen_file_created=yes\n");
+#endif
+#ifdef EVENT_FILE_DELETED
+  printf ("exitwhen_file_deleted=yes\n");
+#endif
+#ifdef EVENT_PROCESS_EXITS
+  printf ("exitwhen_process_exits=yes\n");
+#endif
+#ifdef EVENT_FD_CLOSED
+  printf ("exitwhen_pipe_closed=yes\n");
+#endif
+#ifdef EVENT_SCRIPT
+  printf ("exitwhen_script=yes\n");
+#endif
+}
+
 /* If exiting is already true, this does nothing and returns true.
  * Otherwise it checks if any event in the list has happened.  If an
  * event has happened, sets exiting to true.  It returns the exiting
@@ -501,6 +521,7 @@ static struct nbdkit_filter filter = {
   .name              = "exitwhen",
   .longname          = "nbdkit exitwhen filter",
   .unload            = exitwhen_unload,
+  .dump_plugin       = exitwhen_dump_plugin,
 
   .config            = exitwhen_config,
   .get_ready         = exitwhen_get_ready,
