@@ -421,6 +421,8 @@ qcow2dec_get_size (nbdkit_next *next,
 /* Read data. */
 static int read_cluster (nbdkit_next *next, void *buf, uint64_t offset,
                          uint32_t flags, int *err);
+static int read_l2_entry (nbdkit_next *next, uint64_t offset, uint32_t flags,
+                          bool *l2_present, uint64_t *l2_entry, int *err);
 static int read_compressed_cluster (nbdkit_next *next, void *buf,
                                     uint64_t offset, uint64_t l2_entry,
                                     uint32_t flags, int *err);
@@ -487,8 +489,61 @@ static int
 read_cluster (nbdkit_next *next, void *buf, uint64_t offset,
               uint32_t flags, int *err)
 {
+  bool l2_present;
+  uint64_t l2_entry;
+  uint64_t file_offset;
+
+  /* Get the L2 table entry. */
+  if (read_l2_entry (next, offset, flags, &l2_present, &l2_entry, err) == -1)
+    return -1;
+  /* L2 table is unallocated, so return zeroes. */
+  if (!l2_present) {
+    memset (buf, 0, cluster_size);
+    return 0;
+  }
+  if (l2_entry & QCOW2_L2_ENTRY_TYPE_MASK) /* 1 = compressed cluster. */
+    return read_compressed_cluster (next, buf, offset, l2_entry, flags, err);
+
+  /* From here on we know this is a standard cluster because we
+   * handled compressed clusters above and we don't support extended
+   * clusters.
+   */
+  if ((l2_entry & QCOW2_L2_ENTRY_RESERVED_MASK) != 0) {
+    nbdkit_error ("invalid L2 table entry: "
+                  "reserved bits are not zero (0x%" PRIx64 ")",
+                  l2_entry);
+    *err = ERANGE;
+    return -1;
+  }
+
+  file_offset = l2_entry & QCOW2_L2_ENTRY_OFFSET_MASK;
+
+  /* Does the cluster read as all zeroes?  Note we can check
+   * file_offset == 0 here because we don't support external files.
+   */
+  if ((l2_entry & 1) != 0 || file_offset == 0) {
+    memset (buf, 0, cluster_size);
+    return 0;
+  }
+
+  if (file_offset < cluster_size
+      || (file_offset & (cluster_size-1)) != 0
+      || file_offset > qcow2_size - cluster_size) {
+    nbdkit_error ("invalid L2 table entry: "
+                  "offset of L2 table is beyond the end of the file");
+    *err = ERANGE;
+    return -1;
+  }
+
+  return next->pread (next, buf, cluster_size, file_offset, flags, err);
+}
+
+static int
+read_l2_entry (nbdkit_next *next, uint64_t offset, uint32_t flags,
+               bool *l2_present, uint64_t *l2_entry, int *err)
+{
   size_t i;
-  uint64_t l1_index, l2_index, l1_entry, l2_entry, l2_offset, file_offset;
+  uint64_t l1_index, l2_index, l1_entry, l2_offset;
   // uint64_t l1_top_bit;
   uint64_t *l2_table;
 
@@ -514,9 +569,10 @@ read_cluster (nbdkit_next *next, void *buf, uint64_t offset,
 
   /* L2 table is unallocated, so return zeroes. */
   if (l2_offset == 0) {
-    memset (buf, 0, cluster_size);
+    *l2_present = false;
     return 0;
   }
+  *l2_present = true;
 
   /* Read the L2 table cluster into memory. */
   {
@@ -557,43 +613,9 @@ read_cluster (nbdkit_next *next, void *buf, uint64_t offset,
     }
   }
 
-  /* Get the L2 table entry. */
-  l2_entry = l2_table[l2_index];
-  if (l2_entry & QCOW2_L2_ENTRY_TYPE_MASK) /* 1 = compressed cluster. */
-    return read_compressed_cluster (next, buf, offset, l2_entry, flags, err);
-
-  /* From here on we know this is a standard cluster because we
-   * handled compressed clusters above and we don't support extended
-   * clusters.
-   */
-  if ((l2_entry & QCOW2_L2_ENTRY_RESERVED_MASK) != 0) {
-    nbdkit_error ("invalid L2 table entry: "
-                  "reserved bits are not zero (0x%" PRIx64 ")",
-                  l2_entry);
-    *err = ERANGE;
-    return -1;
-  }
-
-  file_offset = l2_entry & QCOW2_L2_ENTRY_OFFSET_MASK;
-
-  /* Does the cluster read as all zeroes?  Note we can check
-   * file_offset == 0 here because we don't support external files.
-   */
-  if ((l2_entry & 1) != 0 || file_offset == 0) {
-    memset (buf, 0, cluster_size);
-    return 0;
-  }
-
-  if (file_offset < cluster_size
-      || (file_offset & (cluster_size-1)) != 0
-      || file_offset > qcow2_size - cluster_size) {
-    nbdkit_error ("invalid L2 table entry: "
-                  "offset of L2 table is beyond the end of the file");
-    *err = ERANGE;
-    return -1;
-  }
-
-  return next->pread (next, buf, cluster_size, file_offset, flags, err);
+  /* Return the L2 table entry. */
+  *l2_entry = l2_table[l2_index];
+  return 0;
 }
 
 #ifdef HAVE_ZLIB
