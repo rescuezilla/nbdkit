@@ -43,7 +43,14 @@ C<compat=1.1>) are supported.
 
 =item Deflate or Zstd compression only
 
-The most common types of qcow2 compression are supported.
+The most common types of qcow2 compression are supported if nbdkit was
+built with the correct libraries.  To find out which types of
+compression are supported, use:
+
+ $ nbdkit null --filter=qcow2dec --dump-plugin
+ ...
+ qcow2dec_deflate=yes       # printed if Deflate (zlib) is supported
+ qcow2dec_zstd=yes          # printed if Zstd is supported
 
 =item No snapshots
 

@@ -111,6 +111,18 @@ qcow2dec_unload (void)
   free (l1_table);
 }
 
+/* Which compression do we support (in --dump-plugin output). */
+static void
+qcow2dec_dump_plugin (void)
+{
+#ifdef HAVE_ZLIB
+  printf ("qcow2dec_deflate=yes\n");
+#endif
+#ifdef HAVE_LIBZSTD
+  printf ("qcow2dec_zstd=yes\n");
+#endif
+}
+
 /* Force read-only. */
 static int
 qcow2dec_can_write (nbdkit_next *next,
@@ -855,6 +867,7 @@ static struct nbdkit_filter filter = {
   .name              = "qcow2dec",
   .longname          = "nbdkit qcow2dec filter",
   .unload            = qcow2dec_unload,
+  .dump_plugin       = qcow2dec_dump_plugin,
   .can_write         = qcow2dec_can_write,
   .can_cache         = qcow2dec_can_cache,
   .can_multi_conn    = qcow2dec_can_multi_conn,
