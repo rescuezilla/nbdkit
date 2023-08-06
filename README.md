@@ -61,7 +61,7 @@ For SELinux socket labelling support:
 
 * libselinux
 
-For the gzip filter:
+For the gzip filter and supporting compressed qcow2:
 
 * zlib
 
@@ -69,7 +69,7 @@ For the xz filter:
 
 * liblzma
 
-For the memory plugin with allocator=zstd:
+For the memory plugin with allocator=zstd and supporting compressed qcow2:
 
 * zstd
 
