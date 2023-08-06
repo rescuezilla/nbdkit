@@ -63,7 +63,7 @@ For SELinux socket labelling support:
 
 For the gzip filter and supporting compressed qcow2:
 
-* zlib
+* zlib or zlib-ng
 
 For the xz filter:
 

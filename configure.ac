@@ -1316,6 +1316,22 @@ AS_IF([test "$with_zlib" != "no"],[
 ])
 AM_CONDITIONAL([HAVE_ZLIB],[test "x$ZLIB_LIBS" != "x"])
 
+dnl Check for zlib-ng (optimizes uses of zlib).
+AC_ARG_WITH([zlib-ng],
+    [AS_HELP_STRING([--without-zlib-ng],
+                    [disable zlib-ng support @<:@default=check@:>@])],
+    [],
+    [with_zlib_ng=check])
+AS_IF([test "$with_zlib_ng" != "no"],[
+    PKG_CHECK_MODULES([ZLIB_NG], [zlib-ng],[
+        AC_SUBST([ZLIB_NG_CFLAGS])
+        AC_SUBST([ZLIB_NG_LIBS])
+        AC_DEFINE([HAVE_ZLIB_NG],[1],[zlib-ng found at compile time.])
+    ],
+    [AC_MSG_WARN([zlib-ng not found, zlib operations will run slower])])
+])
+AM_CONDITIONAL([HAVE_ZLIB],[test "x$ZLIB_LIBS" != "x"])
+
 dnl Check for libnbd (only if you want to compile the nbd plugin).
 AC_ARG_WITH([libnbd],
     [AS_HELP_STRING([--without-libnbd],
@@ -1684,6 +1700,7 @@ feature "allocator=zstd"      test "x$HAVE_LIBZSTD_TRUE" = "x"
 feature "tests using libguestfs" \
                               test "x$HAVE_LIBGUESTFS_TRUE" = "x" -a \
                                    "x$USE_LIBGUESTFS_FOR_TESTS_TRUE" = "x"
+feature "zlib-ng"             test "x$ZLIB_NG_LIBS" != "x"
 
 echo
 echo "If any optional component is configured ‘no’ when you expected ‘yes’"

@@ -52,6 +52,7 @@ nbdkit_qcow2dec_filter_la_CFLAGS = \
 	$(WARNINGS_CFLAGS) \
 	$(LIBZSTD_CFLAGS) \
 	$(ZLIB_CFLAGS) \
+	$(ZLIB_NG_CFLAGS) \
 	$(NULL)
 nbdkit_qcow2dec_filter_la_LDFLAGS = \
 	-module -avoid-version -shared $(NO_UNDEFINED_ON_WINDOWS) \
@@ -66,6 +67,7 @@ nbdkit_qcow2dec_filter_la_LIBADD = \
 	$(IMPORT_LIBRARY_ON_WINDOWS) \
 	$(LIBZSTD_LIBS) \
 	$(ZLIB_LIBS) \
+	$(ZLIB_NG_LIBS) \
 	$(NULL)
 
 if HAVE_POD

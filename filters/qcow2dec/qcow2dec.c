@@ -52,8 +52,16 @@
 #define _Atomic /**/
 #endif
 
+#ifdef HAVE_ZLIB_NG
+#include <zlib-ng.h>
+#define z_stream zng_stream
+#define inflateInit2 zng_inflateInit2
+#define inflate zng_inflate
+#define inflateEnd zng_inflateEnd
+#else
 #ifdef HAVE_ZLIB
 #include <zlib.h>
+#endif
 #endif
 
 #ifdef HAVE_LIBZSTD
@@ -116,7 +124,7 @@ qcow2dec_unload (void)
 static void
 qcow2dec_dump_plugin (void)
 {
-#ifdef HAVE_ZLIB
+#if defined(HAVE_ZLIB) || defined(HAVE_ZLIB_NG)
   printf ("qcow2dec_deflate=yes\n");
 #endif
 #ifdef HAVE_LIBZSTD
@@ -618,7 +626,7 @@ read_l2_entry (nbdkit_next *next, uint64_t offset, uint32_t flags,
   return 0;
 }
 
-#ifdef HAVE_ZLIB
+#if defined(HAVE_ZLIB) || defined(HAVE_ZLIB_NG)
 
 static void
 zerror (const char *op, const z_stream *strm, int zerr, int *err)
@@ -686,7 +694,7 @@ inflate_compressed_cluster (void *buf,
   return 0;
 }
 
-#endif /* HAVE_ZLIB */
+#endif /* HAVE_ZLIB || HAVE_ZLIB_NG */
 
 #ifdef HAVE_LIBZSTD
 
@@ -847,7 +855,7 @@ read_compressed_cluster (nbdkit_next *next, void *buf,
   switch (compression_type) {
   case COMPRESSION_NONE: /* ? maybe for QCOW2 v2 */
   case COMPRESSION_DEFLATE:
-#ifdef HAVE_ZLIB
+#if defined(HAVE_ZLIB) || defined(HAVE_ZLIB_NG)
     return inflate_compressed_cluster (buf,
                                        compressed_cluster, compressed_size,
                                        file_offset, err);
