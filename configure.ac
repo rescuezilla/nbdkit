@@ -1698,8 +1698,8 @@ echo "Other optional features:"
 echo
 feature "allocator=zstd"      test "x$HAVE_LIBZSTD_TRUE" = "x"
 feature "tests using libguestfs" \
-                              test "x$HAVE_LIBGUESTFS_TRUE" = "x" -a \
-                                   "x$USE_LIBGUESTFS_FOR_TESTS_TRUE" = "x"
+                              test "x$HAVE_LIBGUESTFS_TRUE" = "x" && \
+                              test "x$USE_LIBGUESTFS_FOR_TESTS_TRUE" = "x"
 feature "zlib-ng"             test "x$ZLIB_NG_LIBS" != "x"
 
 echo
