@@ -53,25 +53,6 @@
 
 #include "plugin.h"
 
-/* This constructor runs when the plugin loads, and initializes the
- * OCaml runtime, and lets the plugin set up its callbacks.
- */
-static void constructor (void) __attribute__ ((constructor));
-static void
-constructor (void)
-{
-  char *argv[2] = { "nbdkit", NULL };
-
-  /* Initialize OCaml runtime. */
-  caml_startup (argv);
-
-  /* We need to release the runtime system here so other threads may
-   * use it.  Before we call any OCaml callbacks we must acquire the
-   * runtime system again.
-   */
-  caml_release_runtime_system ();
-}
-
 /* Instead of using the NBDKIT_REGISTER_PLUGIN macro, we construct the
  * nbdkit_plugin struct and return it from our own plugin_init
  * function.
@@ -88,7 +69,7 @@ static struct nbdkit_plugin plugin = {
 
   /* The following field is used as a canary to detect whether the
    * OCaml code started up and called us back successfully.  If it's
-   * still set to NULL when plugin_init is called, then we can print a
+   * still set to NULL (see plugin_init below), then we can print a
    * suitable error message.
    */
   .name = NULL,
@@ -103,6 +84,23 @@ static struct nbdkit_plugin plugin = {
 NBDKIT_DLL_PUBLIC struct nbdkit_plugin *
 plugin_init (void)
 {
+  char *argv[2] = { "nbdkit", NULL };
+
+  /* Initialize OCaml runtime. */
+  caml_startup (argv);
+
+  /* We need to release the runtime system here so other threads may
+   * use it.  Before we call any OCaml callbacks we must acquire the
+   * runtime system again.
+   */
+  caml_release_runtime_system ();
+
+  /* It is expected that top level statements in the OCaml code have
+   * by this point called NBDKit.register_plugin.  We know if this was
+   * called because plugin.name will have been set (by
+   * set_string_field "name").  If that didn't happen, something went
+   * wrong so exit here.
+   */
   if (plugin.name == NULL) {
     fprintf (stderr, "error: OCaml code did not call NBDKit.register_plugin\n");
     exit (EXIT_FAILURE);
