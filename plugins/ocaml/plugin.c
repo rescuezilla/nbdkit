@@ -119,9 +119,29 @@ plugin_init (void)
 /*----------------------------------------------------------------------*/
 /* Wrapper functions that translate calls from C (ie. nbdkit) to OCaml. */
 
+/* A note about nbdkit threads and OCaml:
+ *
+ * OCaml requires that all C threads are registered and unregistered.
+ *
+ * The main thread (used for callbacks like load, config, get_ready
+ * etc) is already registered.  nbdkit also creates its own threads
+ * but does not provide a way to intercept thread creation or
+ * destruction.  However we can register the current thread in every
+ * callback, and unregister the thread only in close_wrapper.
+ *
+ * This is safe and cheap: Registering a thread is basically free if
+ * the thread is already registered (the OCaml code checks a
+ * thread-local variable to see if it needs to register).  nbdkit will
+ * always call the .close method, which does not necessarily indicate
+ * that the thread is being destroyed, but if the thread is reused we
+ * will register the same thread again when .open or similar is called
+ * next time.
+ */
+
 static void
 load_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   caml_callback (load_fn, Val_unit);
 }
@@ -132,6 +152,7 @@ load_wrapper (void)
 static void
 unload_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
 
   if (unload_fn) {
@@ -149,6 +170,7 @@ unload_wrapper (void)
 static void
 dump_plugin_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -162,6 +184,7 @@ dump_plugin_wrapper (void)
 static int
 config_wrapper (const char *key, const char *val)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal3 (keyv, valv, rv);
@@ -181,6 +204,7 @@ config_wrapper (const char *key, const char *val)
 static int
 config_complete_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -197,6 +221,7 @@ config_complete_wrapper (void)
 static int
 thread_model_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -213,6 +238,7 @@ thread_model_wrapper (void)
 static int
 get_ready_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -229,6 +255,7 @@ get_ready_wrapper (void)
 static int
 after_fork_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -245,6 +272,7 @@ after_fork_wrapper (void)
 static void
 cleanup_wrapper (void)
 {
+  caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
@@ -257,27 +285,6 @@ cleanup_wrapper (void)
 
   CAMLreturn0;
 }
-
-/* A note about nbdkit threads and OCaml:
- *
- * OCaml requires that all C threads are registered and unregistered.
- *
- * For the main thread callbacks like load, config, get_ready [above
- * this comment] we don't need to do anything.
- *
- * For the connected callbacks [below this comment] nbdkit creates its
- * own threads but does not provide a way to intercept thread creation
- * or destruction.  However we can register the current thread in
- * every callback, and unregister the thread only in close_wrapper.
- *
- * This is safe and cheap: Registering a thread is basically free if
- * the thread is already registered (the OCaml code checks a
- * thread-local variable to see if it needs to register).  nbdkit will
- * always call the .close method, which does not necessarily indicate
- * that the thread is being destroyed, but if the thread is reused we
- * will register the same thread again when .open or similar is called
- * next time.
- */
 
 static int
 preconnect_wrapper (int readonly)
