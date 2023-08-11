@@ -80,6 +80,11 @@ let unload () =
   Gc.compact ();
   NBDKit.debug "test ocaml plugin unloaded"
 
+(* See test-ocaml-dump-plugin.sh *)
+let dump_plugin () =
+  Printf.printf "testocaml=42\n";
+  flush stdout
+
 let params = ref []
 
 let config k v =
@@ -217,4 +222,6 @@ let () =
 
     ~list_exports
     ~default_export
+
+    ~dump_plugin
     ()
