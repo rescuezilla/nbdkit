@@ -93,7 +93,7 @@ plugin_init (void)
    * use it.  Before we call any OCaml callbacks we must acquire the
    * runtime system again.
    */
-  caml_release_runtime_system ();
+  do_caml_release_runtime_system ();
 
   /* It is expected that top level statements in the OCaml code have
    * by this point called NBDKit.register_plugin.  We know if this was
@@ -380,7 +380,7 @@ static void
 close_wrapper (void *h)
 {
   caml_c_thread_register ();
-  caml_acquire_runtime_system ();
+  do_caml_acquire_runtime_system ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
 
@@ -394,7 +394,7 @@ close_wrapper (void *h)
 
   caml_remove_generational_global_root (h);
   free (h);
-  caml_release_runtime_system ();
+  do_caml_release_runtime_system ();
   caml_c_thread_unregister ();
 
   CAMLreturn0;
