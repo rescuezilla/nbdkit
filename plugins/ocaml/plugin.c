@@ -270,7 +270,7 @@ cleanup_wrapper (void)
  * For the connected callbacks [below this comment] nbdkit creates its
  * own threads but does not provide a way to intercept thread creation
  * or destruction.  However we can register the current thread in
- * every callback, and unregister the thread only call_wrapper.
+ * every callback, and unregister the thread only in close_wrapper.
  *
  * This is safe and cheap: Registering a thread is basically free if
  * the thread is already registered (the OCaml code checks a
@@ -375,7 +375,7 @@ open_wrapper (int readonly)
   CAMLreturnT (void *, ret);
 }
 
-/* We always have a close function, since we need to unregister the
+/* We always have a close wrapper, since we need to unregister the
  * global root, free the handle and unregister the thread.
  */
 static void
