@@ -46,6 +46,23 @@ caml_alloc_initialized_string (mlsize_t len, const char *p)
 }
 #endif
 
+/* To debug all runtime acquire/release, uncomment this section. */
+#if 0
+#define do_caml_acquire_runtime_system()                \
+  do {                                                  \
+    nbdkit_debug ("caml_acquire_runtime_system");       \
+    caml_acquire_runtime_system ();                     \
+  } while (0)
+#define do_caml_release_runtime_system()                \
+  do {                                                  \
+    nbdkit_debug ("caml_release_runtime_system");       \
+    caml_release_runtime_system ();                     \
+  } while (0)
+#else
+#define do_caml_acquire_runtime_system() caml_acquire_runtime_system()
+#define do_caml_release_runtime_system() caml_release_runtime_system()
+#endif
+
 /* For functions which call into OCaml code, call
  * caml_acquire_runtime_system ... caml_release_runtime_system around
  * the code.  This prevents other threads in the same domain running.
@@ -53,12 +70,12 @@ caml_alloc_initialized_string (mlsize_t len, const char *p)
  */
 #define ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE() \
   __attribute__ ((unused, cleanup (cleanup_release_runtime_system))) \
-  int _unused;                                              \
-  caml_acquire_runtime_system ()
+  int _unused;                                                       \
+  do_caml_acquire_runtime_system ()
 static inline void
 cleanup_release_runtime_system (int *unused)
 {
-  caml_release_runtime_system ();
+  do_caml_release_runtime_system ();
 }
 
 #endif /* NBDKIT_OCAML_PLUGIN_H */
