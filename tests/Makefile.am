@@ -1156,6 +1156,12 @@ if HAVE_OCAML
 
 LIBGUESTFS_TESTS += test-ocaml
 LIBNBD_TESTS += test-ocaml-errorcodes
+TESTS += \
+	test-ocaml-fork.sh \
+	$(NULL)
+EXTRA_DIST += \
+	test-ocaml-fork.sh \
+	$(NULL)
 
 test_ocaml_SOURCES = test-ocaml.c test.h
 test_ocaml_CFLAGS = \
