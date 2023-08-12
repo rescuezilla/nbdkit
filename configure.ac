@@ -962,6 +962,21 @@ AM_CONDITIONAL([HAVE_OCAMLDOC],[test "x$OCAMLDOC" != "xno"])
 dnl Check if OCaml has caml_alloc_initialized_string (added 2017).
 AS_IF([test "x$OCAMLC" != "xno" && test "x$OCAMLFIND" != "xno" && \
        test "x$enable_ocaml" = "xyes"],[
+    dnl Check for how to link OCaml plugins.
+    AC_MSG_CHECKING([major version of OCaml])
+    [OCAML_MAJOR=` echo $OCAMLVERSION | $SED 's/\([[:digit:]]\+\).*/\1/' `]
+    AC_MSG_RESULT([$OCAML_MAJOR])
+    AC_SUBST([OCAML_MAJOR])
+
+    AC_MSG_CHECKING([for what libraries are needed for OCaml plugins])
+    AS_IF([test $OCAML_MAJOR -ge 5],[
+        OCAML_PLUGIN_LIBRARIES="-I +unix unix.cmxa -I +threads threads.cmxa"
+    ],[
+        OCAML_PLUGIN_LIBRARIES="unix.cmxa"
+    ])
+    AC_MSG_RESULT([$OCAML_PLUGIN_LIBRARIES])
+    AC_SUBST([OCAML_PLUGIN_LIBRARIES])
+
     AC_MSG_CHECKING([for caml_alloc_initialized_string])
     cat >conftest.c <<'EOF'
 #include <caml/alloc.h>

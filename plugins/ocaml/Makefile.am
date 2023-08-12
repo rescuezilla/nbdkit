@@ -84,7 +84,7 @@ noinst_SCRIPTS = nbdkit-ocamlexample-plugin.so
 nbdkit-ocamlexample-plugin.so: example.cmx libnbdkitocaml.la NBDKit.cmi NBDKit.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) \
 	  -output-obj -runtime-variant _pic -o $@ \
-	  -I +unix unix.cmxa -I +threads threads.cmxa NBDKit.cmx $< \
+	  $(OCAML_PLUGIN_LIBRARIES) NBDKit.cmx $< \
 	  -cclib -L.libs -cclib -lnbdkitocaml
 example.cmx: example.ml NBDKit.cmi NBDKit.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) -c $< -o $@
@@ -101,6 +101,7 @@ nbdkit-ocaml-plugin.3: nbdkit-ocaml-plugin.pod \
 		$(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
+	    --replace "__OCAML_PLUGIN_LIBRARIES__:$(OCAML_PLUGIN_LIBRARIES)" \
 	    $<
 
 if HAVE_OCAMLDOC
