@@ -37,11 +37,6 @@ set -x
 plugin="./test-ocaml-plugin.so"
 requires test -f $plugin
 
-# This test doesn't work in OCaml 4 because linking the plugin with
-# +threads breaks forking (it is fine on OCaml 5).  Just disable the
-# test.
-requires bash -c "nbdkit $plugin --dump-plugin | grep -E 'ocaml=[5-9]'"
-
 requires jq --version
 requires_nbdinfo
 requires_run

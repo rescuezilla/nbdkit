@@ -350,22 +350,6 @@ if version.parse(vv) < version.parse(v):
 '; then exit 77; fi
 }
 
-# Check for a minimum version of OCaml
-# eg: requires_ocaml_version 5.0
-requires_ocaml_version ()
-{
-    local ver
-    local min="$1"
-
-    requires $OCAMLOPT --version
-    requires $CUT --version
-    requires sort -V /dev/null
-
-    # https://stackoverflow.com/a/24067243
-    ver=$($OCAMLOPT --version | $CUT -d. -f1-2)
-    requires test "$(printf "$ver\n$min" | sort -V | head -n 1)" = "$min"
-}
-
 # Tests may fail when the test suite is run as root.  While it's a bad
 # idea to run the whole test suite as root (except for the specific
 # "make check-root" tests), people do it anyway so for tests that we
