@@ -157,6 +157,19 @@ of the input file.
 
 =cut
 
+my @replaces;
+
+=item B<--replace> __PATTERN__:CONTENT
+
+In the input file, replace the literal text C<__PATTERN__> with the
+literal replacement string <CONTENT>.  You can give this option
+multiple times.
+
+Although it is conventional to use C<__...__> (double underscores) for
+patterns, in fact you can use any string as the pattern.
+
+=cut
+
 my $section;
 
 =item B<--section> N
@@ -204,6 +217,7 @@ GetOptions ("help|?" => \$help,
             "insert=s" => \@inserts,
             "man=s" => \$man,
             "name=s" => \$name,
+            "replace=s" => \@replaces,
             "section=s" => \$section,
             "text=s" => \$text,
             "verbatim=s" => \@verbatims,
@@ -267,6 +281,16 @@ foreach (@inserts) {
 
 # Turn external links to this man page into simple cross-section links.
 $content =~ s,\QL<$name($section)/\E,L</,g;
+
+# Perform @replaces.
+foreach (@replaces) {
+    my @a = split /:/, $_, 2;
+    die "$progname: $input: no colon in parameter of --replace\n" unless @a >= 2;
+    my $oldcontent = $content;
+    $content =~ s/$a[0]/$a[1]/g;
+    die "$progname: $input: could not find pattern '$a[0]' in input file\n"
+        if $content eq $oldcontent;
+}
 
 # Perform @verbatims.
 foreach (@verbatims) {
