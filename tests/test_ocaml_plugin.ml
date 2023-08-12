@@ -80,9 +80,10 @@ let unload () =
   Gc.compact ();
   NBDKit.debug "test ocaml plugin unloaded"
 
-(* See test-ocaml-dump-plugin.sh *)
+(* See test-ocaml-dump-plugin.sh and test-ocaml-list-exports.sh *)
 let dump_plugin () =
   Printf.printf "testocaml=42\n";
+  Printf.printf "ocaml=%s\n" Sys.ocaml_version;
   flush stdout
 
 let params = ref []
@@ -147,6 +148,7 @@ let close h =
   assert (h.h_sentinel = "TESTING");
   ()
 
+(* See test-ocaml-list-exports.sh *)
 let list_exports _ _ =
   [ { NBDKit.name = "name1"; description = Some "desc1" };
     { name = "name2"; description = None } ]

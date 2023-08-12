@@ -1168,8 +1168,14 @@ if HAVE_OCAML
 
 LIBGUESTFS_TESTS += test-ocaml
 LIBNBD_TESTS += test-ocaml-errorcodes
-TESTS += test-ocaml-dump-plugin.sh
-EXTRA_DIST += test-ocaml-dump-plugin.sh
+TESTS += \
+	test-ocaml-dump-plugin.sh \
+	test-ocaml-list-exports.sh \
+	$(NULL)
+EXTRA_DIST += \
+	test-ocaml-dump-plugin.sh \
+	test-ocaml-list-exports.sh \
+	$(NULL)
 
 test_ocaml_SOURCES = test-ocaml.c test.h
 test_ocaml_CFLAGS = \
