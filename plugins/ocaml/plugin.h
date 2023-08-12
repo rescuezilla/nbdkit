@@ -33,6 +33,8 @@
 #ifndef NBDKIT_OCAML_PLUGIN_H
 #define NBDKIT_OCAML_PLUGIN_H
 
+#include <caml/version.h>
+
 /* Replacement if caml_alloc_initialized_string is missing, added
  * to OCaml runtime in 2017.
  */
@@ -44,6 +46,18 @@ caml_alloc_initialized_string (mlsize_t len, const char *p)
   memcpy ((char *) String_val (sv), p, len);
   return sv;
 }
+#endif
+
+/* For OCaml < 5 only, you shouldn't link the plugin with threads.cmxa
+ * since that breaks nbdkit forking.  Symbols caml_c_thread_register
+ * and caml_c_thread_unregister are pulled in only when you link with
+ * threads.cmxa (which pulls in ocamllib/libthreads.a as a
+ * side-effect), so when _not_ using threads.cmxa these symbols are
+ * not present.
+ */
+#if OCAML_VERSION_MAJOR < 5
+#define caml_c_thread_register() /* nothing */
+#define caml_c_thread_unregister() /* nothing */
 #endif
 
 /* To debug all runtime acquire/release, uncomment this section. */

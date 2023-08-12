@@ -61,6 +61,6 @@ cleanup_fn rm -f $out
 rm -f $out
 
 nbdkit -v -U - cc $script a=1 b=2 c=3 d=4 \
-       CC="$OCAMLOPT" CFLAGS="-output-obj -runtime-variant _pic -I $abs_top_srcdir/plugins/ocaml -I +unix unix.cmxa -I +threads threads.cmxa NBDKit.cmx -cclib -L../plugins/ocaml/.libs -cclib -lnbdkitocaml" \
+       CC="$OCAMLOPT" CFLAGS="-output-obj -runtime-variant _pic -I $abs_top_srcdir/plugins/ocaml $OCAML_PLUGIN_LIBRARIES NBDKit.cmx -cclib -L../plugins/ocaml/.libs -cclib -lnbdkitocaml" \
        --run 'nbdinfo --size $uri' > $out
 test "$(cat $out)" -eq $((512 * 2048))
