@@ -42,10 +42,6 @@ requires_plugin cc
 requires_run
 requires_nbdsh_uri
 
-# This test doesn't work with OCaml < 5.0.  That's caused by use of
-# the +threads library.  If that is removed, the test will work, but
-# it's hard to adjust the test to cope with both.
-requires_ocaml_version 5.0
 export OCAML_PLUGIN_LIBRARIES
 
 # For unclear reasons linking the OCaml plugin fails on macOS. XXX
