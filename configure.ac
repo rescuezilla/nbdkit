@@ -966,7 +966,7 @@ AS_IF([test "x$OCAMLC" != "xno" && test "x$OCAMLFIND" != "xno" && \
        test "x$enable_ocaml" = "xyes"],[
     dnl Check for how to link OCaml plugins.
     AC_MSG_CHECKING([major version of OCaml])
-    [OCAML_MAJOR=` echo $OCAMLVERSION | $SED 's/\([[:digit:]]\+\).*/\1/' `]
+    [OCAML_MAJOR=` echo $OCAMLVERSION | $SED 's/\([[:digit:]]*\).*/\1/' `]
     AC_MSG_RESULT([$OCAML_MAJOR])
     AC_SUBST([OCAML_MAJOR])
 
