@@ -397,7 +397,7 @@ work.
 For the rest of this section we talk about cross-compiling for Windows
 using Linux and mingw-w64.  At a minimum you will need:
 
-* mingw-w64 GCC
+* mingw-w64 gcc
 * mingw-w64 dlfcn
 * mingw-w64 winpthreads
 * mingw-w64 gnutls  (optional, but highly recommended)
@@ -412,9 +412,18 @@ Other mingw-w64 libraries may be installed which will add
 functionality (see full list of requirements above), but you may end
 up hitting areas we have not compiled or tested before.
 
-To cross compile do:
+To cross compile under Fedora or RHEL, ensure you have the following
+prerequisites:
 
 ```
+dnf install -y mingw64-{gcc,dlfcn,winpthreads,gnutls}
+dnf install -y autoconf automake libtool make
+```
+
+then do:
+
+```
+autoreconf -i  # when building from git
 mingw64-configure --disable-ocaml --disable-perl --disable-vddk
 mingw64-make
 ```
