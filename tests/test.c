@@ -135,10 +135,15 @@ cleanup (void)
 int
 test_start_nbdkit (const char *arg, ...)
 {
+  bool have_exit_with_parent;
   size_t i, len;
-  struct test_nbdkit *kit = malloc (sizeof *kit);
+  struct test_nbdkit *kit;
   bool exists;
 
+  have_exit_with_parent =
+    system ("nbdkit --exit-with-parent --version >/dev/null 2>&1") == 0;
+
+  kit = malloc (sizeof *kit);
   if (!kit) {
     perror ("malloc");
     return -1;
@@ -161,15 +166,17 @@ test_start_nbdkit (const char *arg, ...)
     const char *argv[MAX_ARGS+1];
     va_list args;
 
-    argv[0] = "nbdkit";
-    argv[1] = "-U";
-    argv[2] = kit->sockpath;
-    argv[3] = "-P";
-    argv[4] = kit->pidpath;
-    argv[5] = "-f";
-    argv[6] = "-v";
-    argv[7] = arg;
-    i = 8;
+    i = 0;
+    argv[i++] = "nbdkit";
+    argv[i++] = "-U";
+    argv[i++] = kit->sockpath;
+    argv[i++] = "-P";
+    argv[i++] = kit->pidpath;
+    argv[i++] = "-f";
+    argv[i++] = "-v";
+    if (have_exit_with_parent)
+      argv[i++] = "--exit-with-parent";
+    argv[i++] = arg;
 
     va_start (args, arg);
     while ((p = va_arg (args, const char *)) != NULL) {
