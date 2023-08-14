@@ -600,8 +600,6 @@ EXTRA_DIST += \
 check_LTLIBRARIES += libtest.la
 libtest_la_SOURCES = test.c test.h
 libtest_la_CFLAGS = $(WARNINGS_CFLAGS)
-libtest_la_CPPFLAGS = -I$(top_srcdir)/common/utils
-libtest_la_LIBADD = $(top_builddir)/common/utils/libutils.la
 
 # Basic connection test.
 LIBNBD_TESTS += test-connect
