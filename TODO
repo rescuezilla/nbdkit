@@ -68,8 +68,6 @@ General ideas for improvements
   good enough?  Also allowing multiple instances of nbdkit to be
   loaded in the same process is probably impossible.
 
-* Examine other fuzzers: https://gitlab.com/akihe/radamsa
-
 * common/utils/vector.h could be extended and used in other places:
   - there are some more possible places in the server (anywhere using
     realloc is suspect)
