@@ -44,7 +44,7 @@
 
 #include "partition.h"
 
-static void
+static int
 get_gpt_header (uint8_t *sector,
                 uint32_t *nr_partition_entries,
                 uint32_t *size_partition_entry)
@@ -52,6 +52,19 @@ get_gpt_header (uint8_t *sector,
   struct gpt_header *header = (struct gpt_header *) sector;
   *nr_partition_entries = le32toh (header->nr_partition_entries);
   *size_partition_entry = le32toh (header->size_partition_entry);
+
+  /* Many things are not checked here, but in particular, previously
+   * written code has always needed partition_entries_lba to equal 2
+   * because the original logic assumed the partition entries followed
+   * the header, rather than looking in the header to see what LBA
+   * they actually start at.  Let's at least check for that now.
+   */
+   if (header->partition_entries_lba != 2) {
+     nbdkit_error ("non-standard GPT layout: "
+                   "partition entries are not adjacent to header");
+     return -1;
+   }
+   return 0;
 }
 
 static void
@@ -70,21 +83,29 @@ find_gpt_partition (nbdkit_next *next,
                     int64_t size, uint8_t *header_bytes,
                     int64_t *offset_r, int64_t *range_r)
 {
-  uint8_t partition_bytes[128];
-  uint32_t nr_partition_entries, size_partition_entry;
+  uint8_t partition_entry_sector[SECTOR_SIZE_4K]; /* May only use 512 bytes */
+  uint8_t *partition_bytes;
+  uint32_t nr_partition_entries, size_partition_entry, entries_per_sector;
   uint8_t partition_type_guid[16];
   uint64_t first_lba, last_lba;
   int i;
   int err;
 
-  get_gpt_header (header_bytes, &nr_partition_entries, &size_partition_entry);
+  if (get_gpt_header (header_bytes,
+                      &nr_partition_entries, &size_partition_entry) == -1) {
+    nbdkit_error ("cannot support non-standard GPT header");
+    return -1;
+  }
+
   if (partnum > nr_partition_entries) {
     nbdkit_error ("GPT partition number out of range");
     return -1;
   }
 
-  if (size_partition_entry < 128) {
-    nbdkit_error ("GPT partition entry size is < 128 bytes");
+  if (size_partition_entry < 128 || size_partition_entry > sector_size ||
+      sector_size % size_partition_entry != 0) {
+    nbdkit_error ("GPT partition entry size is invalid (%d bytes)",
+      size_partition_entry);
     return -1;
   }
 
@@ -98,11 +119,18 @@ find_gpt_partition (nbdkit_next *next,
     return -1;
   }
 
+  entries_per_sector = sector_size / size_partition_entry;
+
   for (i = 0; i < nr_partition_entries; ++i) {
     /* We already checked these are within bounds above. */
-    if (next->pread (next, partition_bytes, sizeof partition_bytes,
-                     2 * sector_size + i * size_partition_entry, 0, &err) == -1)
-      return -1;
+    if (i % entries_per_sector == 0) {
+      if (next->pread (next, partition_entry_sector, sector_size,
+                       sector_size * (2 + i / entries_per_sector), 0,
+                       &err) == -1)
+        return -1;
+    }
+    partition_bytes =
+      &partition_entry_sector[(i % entries_per_sector) * size_partition_entry];
     get_gpt_partition (partition_bytes,
                        partition_type_guid, &first_lba, &last_lba);
     if (memcmp (partition_type_guid,

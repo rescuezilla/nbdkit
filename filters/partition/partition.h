@@ -35,6 +35,10 @@
 
 #include <nbdkit-filter.h>
 
+#define SECTOR_SIZE_4K      4096
+#define SECTOR_SIZE_512     512
+#define SECTOR_SIZE_DEFAULT SECTOR_SIZE_512
+
 extern unsigned partnum;
 
 extern unsigned sector_size;

@@ -76,7 +76,7 @@ find_mbr_partition (nbdkit_next *next,
   struct mbr_partition partition;
   uint32_t ep_start_sector, ep_nr_sectors;
   uint64_t ebr, next_ebr;
-  uint8_t sector[sector_size];
+  uint8_t sector[SECTOR_SIZE_4K]; /* may be reading 512b or 4k at a time */
 
   /* Primary partition. */
   if (partnum <= 4) {
@@ -86,6 +86,12 @@ find_mbr_partition (nbdkit_next *next,
           partition.part_type_byte != 0 &&
           !is_extended (partition.part_type_byte) &&
           partnum == i+1) {
+        if (partition.part_type_byte == 0xEE) {
+          nbdkit_error ("rejecting GPT protective entry from MBR, "
+                        "if the underlying storage uses 4K sectors "
+                        "try using partition-sectorsize=4k");
+          return -1;
+        }
         *offset_r = partition.start_sector * (int64_t) sector_size;
         *range_r = partition.nr_sectors * (int64_t) sector_size;
         return 0;
@@ -132,7 +138,7 @@ find_mbr_partition (nbdkit_next *next,
 
       /* Read the EBR sector. */
       nbdkit_debug ("partition: reading EBR at %" PRIi64, ebr);
-      if (next->pread (next, sector, sizeof sector, ebr, 0, &errno) == -1)
+      if (next->pread (next, sector, sector_size, ebr, 0, &errno) == -1)
         return -1;
 
       if (partnum == i) {

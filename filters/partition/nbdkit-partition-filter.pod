@@ -29,6 +29,21 @@ The partition number to serve, counting from 1.
 
 This parameter is required.
 
+=item B<partition-sectorsize=>SECTOR_SIZE
+
+The default for this parameter is chosen according to the minimum block
+size advertised by the underlying device.  If it is 512 or 4K, then the
+sector size is set to that.  If the underlying device does not advertise
+a minimum block size, or it is something other than 512 or 4K, the
+default is 512 bytes.
+
+The user may specify 512 or 4096 as the sector size manually via config.
+
+However set, this parameter instructs the partition table
+logic to treat the underlying storage as having the
+indicated sector size.  This is important for MBR
+and GPT logic using LBA (logical block addressing).
+
 =back
 
 =head1 EXAMPLE

@@ -48,7 +48,11 @@
 
 unsigned partnum = 0;
 
-unsigned sector_size = 512;
+/* sector_size will default to 512, may get set to 4096.
+ * finalized in prepare. user can override via config.
+ * if still zero at prepare time, apply default.
+ */
+unsigned sector_size = 0;
 
 /* Called for each key=value passed on the command line. */
 static int
@@ -60,6 +64,15 @@ partition_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
       return -1;
     if (partnum == 0) {
       nbdkit_error ("invalid partition number");
+      return -1;
+    }
+    return 0;
+  }
+  else if (strcmp (key, "partition-sectorsize") == 0) {
+    sector_size = nbdkit_parse_size (value);
+    /* N.B. error from parse_size() -> -1 is covered by below: -1 != [512, 4096] */
+    if ( sector_size != SECTOR_SIZE_512 && sector_size != SECTOR_SIZE_4K ) {
+      nbdkit_error ("invalid partition-sectorsize, it must be '512' or '4086'");
       return -1;
     }
     return 0;
@@ -126,9 +139,23 @@ partition_prepare (nbdkit_next *next,
 {
   struct handle *h = handle;
   int64_t size;
-  uint8_t lba01[2*sector_size]; /* LBA 0 and 1 */
+  uint8_t lba01[2*SECTOR_SIZE_4K]; /* LBA 0 and 1, may only use 2*512 bytes */
   int r;
   int err;
+
+  if (sector_size == 0) {
+    uint32_t minimum, preferred, maximum;
+    if (next->block_size (next, &minimum, &preferred, &maximum) != 0)
+      return -1;
+    if (minimum == SECTOR_SIZE_512 || minimum == SECTOR_SIZE_4K) {
+      nbdkit_debug ("underlying storage has a minimum read blocksize: "
+                    "setting partition-sectorsize=%d",
+                    minimum);
+      sector_size = minimum;
+    } else {
+      sector_size = SECTOR_SIZE_DEFAULT; /* aka 512 */
+    }
+  }
 
   size = next->get_size (next);
   if (size == -1)
@@ -140,11 +167,23 @@ partition_prepare (nbdkit_next *next,
 
   nbdkit_debug ("disk size=%" PRIi64, size);
 
-  if (next->pread (next, lba01, sizeof lba01, 0, 0, &err) == -1)
+  if (next->pread (next, lba01, 2 * sector_size, 0, 0, &err) == -1)
     return -1;
 
   /* Is it GPT? */
-  if (size >= 2 * 34 * sector_size &&
+  /* for 512b sectors, this used to be 2 * 34 * sector_size.
+   * Which was pmbr sector + primary gpt header sector + 32 sectors of entries,
+   * and then doubled.
+   * (though the secondary only has header & entries, so the pmbr shouldn't
+   * have been part of the doubling, but was harmless overcounting,
+   * since the minimum disk should have at least one LBA in a partition, and
+   * in practice is much, much larger.
+   * Now that we are 512b/4k sector-aware, count the entries as the 16kb they
+   * are.  Only the pmbr and headers are tied to the sector size.
+   * This also now more closely matches the similar calculation done in
+   * partition-gpt.c
+   */
+  if (size >= 3 * sector_size + 2 * 128 * 128  &&
       memcmp (&lba01[sector_size], "EFI PART", 8) == 0) {
     r = find_gpt_partition (next, size, &lba01[sector_size], &h->offset,
                             &h->range);
