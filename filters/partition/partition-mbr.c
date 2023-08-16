@@ -76,7 +76,7 @@ find_mbr_partition (nbdkit_next *next,
   struct mbr_partition partition;
   uint32_t ep_start_sector, ep_nr_sectors;
   uint64_t ebr, next_ebr;
-  uint8_t sector[SECTOR_SIZE];
+  uint8_t sector[sector_size];
 
   /* Primary partition. */
   if (partnum <= 4) {
@@ -86,8 +86,8 @@ find_mbr_partition (nbdkit_next *next,
           partition.part_type_byte != 0 &&
           !is_extended (partition.part_type_byte) &&
           partnum == i+1) {
-        *offset_r = partition.start_sector * (int64_t) SECTOR_SIZE;
-        *range_r = partition.nr_sectors * (int64_t) SECTOR_SIZE;
+        *offset_r = partition.start_sector * (int64_t) sector_size;
+        *range_r = partition.nr_sectors * (int64_t) sector_size;
         return 0;
       }
     }
@@ -112,7 +112,7 @@ find_mbr_partition (nbdkit_next *next,
   found_extended:
     ep_start_sector = partition.start_sector;
     ep_nr_sectors = partition.nr_sectors;
-    ebr = ep_start_sector * (uint64_t)SECTOR_SIZE;
+    ebr = ep_start_sector * (uint64_t)sector_size;
 
     /* This loop will terminate eventually because we only accept
      * links which strictly increase the EBR pointer.  There are valid
@@ -123,8 +123,8 @@ find_mbr_partition (nbdkit_next *next,
       /* Check that the ebr is aligned and pointing inside the disk
        * and doesn't point to the MBR.
        */
-      if (!IS_ALIGNED (ebr, SECTOR_SIZE) ||
-          ebr < SECTOR_SIZE || ebr >= size-SECTOR_SIZE) {
+      if (!IS_ALIGNED (ebr, sector_size) ||
+          ebr < sector_size || ebr >= size-sector_size) {
         nbdkit_error ("invalid EBR chain: "
                       "next EBR boot sector is located outside disk boundary");
         return -1;
@@ -142,8 +142,8 @@ find_mbr_partition (nbdkit_next *next,
         get_mbr_partition (sector, 0, &partition);
 
         /* The first entry start sector is relative to the EBR. */
-        offset = ebr + partition.start_sector * (uint64_t)SECTOR_SIZE;
-        range = partition.nr_sectors * (uint64_t)SECTOR_SIZE;
+        offset = ebr + partition.start_sector * (uint64_t)sector_size;
+        range = partition.nr_sectors * (uint64_t)sector_size;
 
         /* Logical partition cannot be before the corresponding EBR,
          * and it cannot extend beyond the enclosing extended
@@ -151,7 +151,7 @@ find_mbr_partition (nbdkit_next *next,
          */
         if (offset <= ebr ||
             offset + range >
-            ((uint64_t)ep_start_sector + ep_nr_sectors) * SECTOR_SIZE) {
+            ((uint64_t)ep_start_sector + ep_nr_sectors) * sector_size) {
           nbdkit_error ("logical partition start or size out of range "
                         "(offset=%" PRIu64 ", range=%" PRIu64 ", "
                         "ep:startsect=%" PRIu32 ", ep:nrsects=%" PRIu32 ")",
@@ -174,7 +174,7 @@ find_mbr_partition (nbdkit_next *next,
        * extended partition.
        */
       next_ebr =
-        ((uint64_t)ep_start_sector + partition.start_sector) * SECTOR_SIZE;
+        ((uint64_t)ep_start_sector + partition.start_sector) * sector_size;
 
       /* Make sure the next EBR > current EBR. */
       if (next_ebr <= ebr) {

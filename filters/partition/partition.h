@@ -35,9 +35,9 @@
 
 #include <nbdkit-filter.h>
 
-#define SECTOR_SIZE 512
-
 extern unsigned partnum;
+
+extern unsigned sector_size;
 
 extern int find_mbr_partition (nbdkit_next *next,
                                int64_t size, uint8_t *mbr,

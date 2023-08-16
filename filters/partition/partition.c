@@ -48,6 +48,8 @@
 
 unsigned partnum = 0;
 
+unsigned sector_size = 512;
+
 /* Called for each key=value passed on the command line. */
 static int
 partition_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
@@ -124,14 +126,14 @@ partition_prepare (nbdkit_next *next,
 {
   struct handle *h = handle;
   int64_t size;
-  uint8_t lba01[2*SECTOR_SIZE]; /* LBA 0 and 1 */
+  uint8_t lba01[2*sector_size]; /* LBA 0 and 1 */
   int r;
   int err;
 
   size = next->get_size (next);
   if (size == -1)
     return -1;
-  if (size < 2 * SECTOR_SIZE) {
+  if (size < 2 * sector_size) {
     nbdkit_error ("disk is too small to be a partitioned disk");
     return -1;
   }
@@ -142,9 +144,9 @@ partition_prepare (nbdkit_next *next,
     return -1;
 
   /* Is it GPT? */
-  if (size >= 2 * 34 * SECTOR_SIZE &&
-      memcmp (&lba01[SECTOR_SIZE], "EFI PART", 8) == 0) {
-    r = find_gpt_partition (next, size, &lba01[SECTOR_SIZE], &h->offset,
+  if (size >= 2 * 34 * sector_size &&
+      memcmp (&lba01[sector_size], "EFI PART", 8) == 0) {
+    r = find_gpt_partition (next, size, &lba01[sector_size], &h->offset,
                             &h->range);
     h->type = "GPT";
   }
