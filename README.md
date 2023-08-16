@@ -424,8 +424,8 @@ then do:
 
 ```
 autoreconf -i  # when building from git
-mingw64-configure --disable-ocaml --disable-perl --disable-vddk
-mingw64-make
+mingw64-configure --disable-ocaml --disable-perl
+make
 ```
 
 You can test if the server is working by doing:
@@ -452,7 +452,7 @@ You can run them under Wine without installing using eg:
 You can run the test suite in the usual way:
 
 ```
-mingw64-make check
+make check
 ```
 
 ### Running the cross-compiled binary on Windows
