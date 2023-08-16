@@ -50,8 +50,7 @@ nbdkit_partition_filter_la_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
 	-I$(top_srcdir)/common/utils \
 	$(NULL)
-# XXX -Wno-error=vla will be removed in a later commit.
-nbdkit_partition_filter_la_CFLAGS = $(WARNINGS_CFLAGS) -Wno-error=vla
+nbdkit_partition_filter_la_CFLAGS = $(WARNINGS_CFLAGS)
 nbdkit_partition_filter_la_LDFLAGS = \
 	-module -avoid-version -shared $(NO_UNDEFINED_ON_WINDOWS) \
 	$(NULL)
