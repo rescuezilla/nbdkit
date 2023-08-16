@@ -1832,10 +1832,14 @@ EXTRA_DIST += test-offset-truncate.sh
 TESTS += \
 	test-partition1.sh \
 	test-partition2.sh \
+	test-partition-4k-gpt.sh \
+	test-partition-4k-mbr.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-partition1.sh \
 	test-partition2.sh \
+	test-partition-4k-gpt.sh \
+	test-partition-4k-mbr.sh \
 	$(NULL)
 
 # pause filter test.

@@ -171,6 +171,7 @@ To test for memory leaks (`make check-valgrind`):
 For non-essential enhancements to the test suite:
 
 * expect
+* fdisk, sfdisk (from util-linux)
 * flake8
 * hexdump
 * ip, ss (from iproute package)
@@ -179,7 +180,6 @@ For non-essential enhancements to the test suite:
 * mke2fs (from e2fsprogs)
 * nbdcopy, nbdinfo, nbdsh (from libnbd)
 * qemu-img, qemu-io, qemu-nbd (usually shipped with qemu)
-* sfdisk (from util-linux)
 * socat
 * stat (from coreutils)
 
