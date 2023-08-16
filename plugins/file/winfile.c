@@ -153,7 +153,8 @@ winfile_open (int readonly)
 
     if (!DeviceIoControl (fh, IOCTL_DISK_GET_LENGTH_INFO, NULL, 0,
                           (LPVOID) &li, lisz, &obsz, NULL)) {
-      nbdkit_error ("%s: DeviceIoControl: %lu", filename, GetLastError ());
+      nbdkit_error ("%s: DeviceIoControl: IOCTL_DISK_GET_LENGTH_INFO: %lu",
+                    filename, GetLastError ());
       CloseHandle (fh);
       return NULL;
     }
