@@ -48,7 +48,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       make \
                       mount \
                       ocaml \
-                      original-awk \
                       perl \
                       perl-base \
                       pkgconf \

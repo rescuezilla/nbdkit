@@ -47,7 +47,6 @@ function install_buildenv() {
             make \
             mount \
             ocaml \
-            original-awk \
             perl \
             perl-base \
             pkgconf \
