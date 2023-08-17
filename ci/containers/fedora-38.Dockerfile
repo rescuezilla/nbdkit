@@ -29,7 +29,6 @@ exec "$@"\n' > /usr/bin/nosync && \
                clippy \
                e2fsprogs \
                expect \
-               gawk \
                gcc \
                gcc-c++ \
                genisoimage \

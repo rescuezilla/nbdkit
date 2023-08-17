@@ -17,7 +17,6 @@ function install_buildenv() {
         clippy \
         e2fsprogs \
         expect \
-        gawk \
         genisoimage \
         git \
         glibc-langpack-en \

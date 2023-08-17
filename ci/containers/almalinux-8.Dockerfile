@@ -23,7 +23,6 @@ RUN dnf update -y && \
         clippy \
         e2fsprogs \
         expect \
-        gawk \
         gcc \
         gcc-c++ \
         genisoimage \

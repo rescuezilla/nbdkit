@@ -28,7 +28,6 @@ exec "$@"\n' > /usr/bin/nosync && \
                clippy \
                e2fsprogs \
                expect \
-               gawk \
                genisoimage \
                git \
                glibc-langpack-en \
