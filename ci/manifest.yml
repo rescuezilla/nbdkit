@@ -18,14 +18,12 @@ targets:
           CC: clang
           PERL: skip
 
-  alpine-315:
+  alpine-318:
     jobs:
       - arch: x86_64
         variables:
           # cgo does not play well with musl: https://github.com/golang/go/issues/13492
           GOLANG: skip
-          # https://listman.redhat.com/archives/libguestfs/2023-January/thread.html#30476
-          RUST: skip
 
   alpine-edge:
     jobs:
@@ -36,13 +34,6 @@ targets:
 
   centos-stream-8: x86_64
 
-  debian-10:
-    jobs:
-      - arch: x86_64
-        variables:
-          # cargo build crashes on debian-10 for some reason
-          RUST: skip
-
   debian-11:
     jobs:
       - arch: x86_64
@@ -50,9 +41,11 @@ targets:
           # https://listman.redhat.com/archives/libguestfs/2023-January/thread.html#30476
           RUST: skip
 
+  debian-12: x86_64
+
   debian-sid: x86_64
 
-  fedora-36:
+  fedora-38:
     jobs:
       - arch: x86_64
         variables:
@@ -101,7 +94,7 @@ targets:
           GOLANG: skip
           PERL: skip
 
-  opensuse-leap-154: x86_64
+  opensuse-leap-15: x86_64
 
   opensuse-tumbleweed: x86_64
 
@@ -115,3 +108,5 @@ targets:
           GOLANG: skip
 
   ubuntu-2004: x86_64
+
+  ubuntu-2204: x86_64

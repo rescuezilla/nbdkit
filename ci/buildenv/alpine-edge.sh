@@ -54,7 +54,7 @@ function install_buildenv() {
         xz \
         xz-dev \
         zlib-dev \
-        zstd
+        zstd-dev
     apk list | sort > /packages.txt
     mkdir -p /usr/libexec/ccache-wrappers
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++

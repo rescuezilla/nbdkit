@@ -27,7 +27,6 @@ function install_buildenv() {
         libnbd-devel \
         libtool \
         libtorrent-devel \
-        libzstd-devel \
         lua-devel \
         make \
         ocaml \

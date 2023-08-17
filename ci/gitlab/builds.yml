@@ -47,26 +47,24 @@ x86_64-almalinux-8-clang-local-env:
     PERL: skip
 
 
-x86_64-alpine-315-prebuilt-env:
+x86_64-alpine-318-prebuilt-env:
   extends: .native_build_job_prebuilt_env
   needs:
-    - job: x86_64-alpine-315-container
+    - job: x86_64-alpine-318-container
       optional: true
   allow_failure: false
   variables:
     GOLANG: skip
-    NAME: alpine-315
-    RUST: skip
+    NAME: alpine-318
 
-x86_64-alpine-315-local-env:
+x86_64-alpine-318-local-env:
   extends: .native_build_job_local_env
   needs: []
   allow_failure: false
   variables:
     GOLANG: skip
-    IMAGE: docker.io/library/alpine:3.15
-    NAME: alpine-315
-    RUST: skip
+    IMAGE: docker.io/library/alpine:3.18
+    NAME: alpine-318
 
 
 x86_64-alpine-edge-prebuilt-env:
@@ -107,26 +105,6 @@ x86_64-centos-stream-8-local-env:
     NAME: centos-stream-8
 
 
-x86_64-debian-10-prebuilt-env:
-  extends: .native_build_job_prebuilt_env
-  needs:
-    - job: x86_64-debian-10-container
-      optional: true
-  allow_failure: false
-  variables:
-    NAME: debian-10
-    RUST: skip
-
-x86_64-debian-10-local-env:
-  extends: .native_build_job_local_env
-  needs: []
-  allow_failure: false
-  variables:
-    IMAGE: docker.io/library/debian:10-slim
-    NAME: debian-10
-    RUST: skip
-
-
 x86_64-debian-11-prebuilt-env:
   extends: .native_build_job_prebuilt_env
   needs:
@@ -147,6 +125,24 @@ x86_64-debian-11-local-env:
     RUST: skip
 
 
+x86_64-debian-12-prebuilt-env:
+  extends: .native_build_job_prebuilt_env
+  needs:
+    - job: x86_64-debian-12-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: debian-12
+
+x86_64-debian-12-local-env:
+  extends: .native_build_job_local_env
+  needs: []
+  allow_failure: false
+  variables:
+    IMAGE: docker.io/library/debian:12-slim
+    NAME: debian-12
+
+
 x86_64-debian-sid-prebuilt-env:
   extends: .native_build_job_prebuilt_env
   needs:
@@ -165,23 +161,23 @@ x86_64-debian-sid-local-env:
     NAME: debian-sid
 
 
-x86_64-fedora-36-prebuilt-env:
+x86_64-fedora-38-prebuilt-env:
   extends: .native_build_job_prebuilt_env
   needs:
-    - job: x86_64-fedora-36-container
+    - job: x86_64-fedora-38-container
       optional: true
   allow_failure: false
   variables:
-    NAME: fedora-36
+    NAME: fedora-38
     PERL: force
 
-x86_64-fedora-36-local-env:
+x86_64-fedora-38-local-env:
   extends: .native_build_job_local_env
   needs: []
   allow_failure: false
   variables:
-    IMAGE: registry.fedoraproject.org/fedora:36
-    NAME: fedora-36
+    IMAGE: registry.fedoraproject.org/fedora:38
+    NAME: fedora-38
     PERL: force
 
 
@@ -227,22 +223,22 @@ x86_64-fedora-rawhide-clang-local-env:
     PERL: skip
 
 
-x86_64-opensuse-leap-154-prebuilt-env:
+x86_64-opensuse-leap-15-prebuilt-env:
   extends: .native_build_job_prebuilt_env
   needs:
-    - job: x86_64-opensuse-leap-154-container
+    - job: x86_64-opensuse-leap-15-container
       optional: true
   allow_failure: false
   variables:
-    NAME: opensuse-leap-154
+    NAME: opensuse-leap-15
 
-x86_64-opensuse-leap-154-local-env:
+x86_64-opensuse-leap-15-local-env:
   extends: .native_build_job_local_env
   needs: []
   allow_failure: false
   variables:
-    IMAGE: registry.opensuse.org/opensuse/leap:15.4
-    NAME: opensuse-leap-154
+    IMAGE: registry.opensuse.org/opensuse/leap:15.5
+    NAME: opensuse-leap-15
 
 
 x86_64-opensuse-tumbleweed-prebuilt-env:
@@ -281,54 +277,72 @@ x86_64-ubuntu-2004-local-env:
     NAME: ubuntu-2004
 
 
+x86_64-ubuntu-2204-prebuilt-env:
+  extends: .native_build_job_prebuilt_env
+  needs:
+    - job: x86_64-ubuntu-2204-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: ubuntu-2204
+
+x86_64-ubuntu-2204-local-env:
+  extends: .native_build_job_local_env
+  needs: []
+  allow_failure: false
+  variables:
+    IMAGE: docker.io/library/ubuntu:22.04
+    NAME: ubuntu-2204
+
+
 
 # Cross build jobs
 
-mingw32-fedora-36-prebuilt-env:
+mingw32-fedora-38-prebuilt-env:
   extends: .cross_build_job_prebuilt_env
   needs:
-    - job: mingw32-fedora-36-container
+    - job: mingw32-fedora-38-container
       optional: true
   allow_failure: false
   variables:
     CROSS: mingw32
     GOLANG: skip
-    NAME: fedora-36
+    NAME: fedora-38
     RUST: skip
 
-mingw32-fedora-36-local-env:
+mingw32-fedora-38-local-env:
   extends: .cross_build_job_local_env
   needs: []
   allow_failure: false
   variables:
     CROSS: mingw32
     GOLANG: skip
-    IMAGE: registry.fedoraproject.org/fedora:36
-    NAME: fedora-36
+    IMAGE: registry.fedoraproject.org/fedora:38
+    NAME: fedora-38
     RUST: skip
 
 
-mingw64-fedora-36-prebuilt-env:
+mingw64-fedora-38-prebuilt-env:
   extends: .cross_build_job_prebuilt_env
   needs:
-    - job: mingw64-fedora-36-container
+    - job: mingw64-fedora-38-container
       optional: true
   allow_failure: false
   variables:
     CROSS: mingw64
     GOLANG: skip
-    NAME: fedora-36
+    NAME: fedora-38
     RUST: skip
 
-mingw64-fedora-36-local-env:
+mingw64-fedora-38-local-env:
   extends: .cross_build_job_local_env
   needs: []
   allow_failure: false
   variables:
     CROSS: mingw64
     GOLANG: skip
-    IMAGE: registry.fedoraproject.org/fedora:36
-    NAME: fedora-36
+    IMAGE: registry.fedoraproject.org/fedora:38
+    NAME: fedora-38
     RUST: skip
 
 

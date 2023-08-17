@@ -4,7 +4,7 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM registry.fedoraproject.org/fedora:36
+FROM registry.fedoraproject.org/fedora:38
 
 RUN dnf install -y nosync && \
     printf '#!/bin/sh\n\
@@ -38,7 +38,6 @@ exec "$@"\n' > /usr/bin/nosync && \
                libnbd-devel \
                libtool \
                libtorrent-devel \
-               libzstd-devel \
                lua-devel \
                make \
                ocaml \

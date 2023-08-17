@@ -4,7 +4,7 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM docker.io/library/alpine:3.15
+FROM docker.io/library/alpine:3.18
 
 RUN apk update && \
     apk upgrade && \
@@ -48,13 +48,14 @@ RUN apk update && \
         python3-dev \
         qemu-img \
         rust \
+        rust-clippy \
         sfdisk \
         socat \
         tcl \
         xz \
         xz-dev \
         zlib-dev \
-        zstd && \
+        zstd-dev && \
     apk list | sort > /packages.txt && \
     mkdir -p /usr/libexec/ccache-wrappers && \
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++ && \
