@@ -124,6 +124,7 @@ struct nbd_fixed_new_option_reply {
 #define NBD_OPT_STRUCTURED_REPLY   8
 #define NBD_OPT_LIST_META_CONTEXT  9
 #define NBD_OPT_SET_META_CONTEXT   10
+#define NBD_OPT_EXTENDED_HEADERS   11
 
 #define NBD_REP_ERR(val) (0x80000000 | (val))
 #define NBD_REP_IS_ERR(val) (!!((val) & 0x80000000))
@@ -141,6 +142,7 @@ struct nbd_fixed_new_option_reply {
 #define NBD_REP_ERR_SHUTDOWN         NBD_REP_ERR (7)
 #define NBD_REP_ERR_BLOCK_SIZE_REQD  NBD_REP_ERR (8)
 #define NBD_REP_ERR_TOO_BIG          NBD_REP_ERR (9)
+#define NBD_REP_ERR_EXT_HEADER_REQD  NBD_REP_ERR (10)
 
 #define NBD_INFO_EXPORT      0
 #define NBD_INFO_NAME        1
@@ -182,14 +184,24 @@ struct nbd_fixed_new_option_reply_meta_context {
   /* followed by a string */
 } NBD_ATTRIBUTE_PACKED;
 
-/* Request (client -> server). */
+/* Compact request (client -> server). */
 struct nbd_request {
   uint32_t magic;               /* NBD_REQUEST_MAGIC. */
-  uint16_t flags;               /* Request flags. */
-  uint16_t type;                /* Request type. */
+  uint16_t flags;               /* Request flags: NBD_CMD_FLAG_*. */
+  uint16_t type;                /* Request type: NBD_CMD_*. */
   uint64_t cookie;              /* Opaque handle. */
   uint64_t offset;              /* Request offset. */
   uint32_t count;               /* Request length. */
+} NBD_ATTRIBUTE_PACKED;
+
+/* Extended request (client -> server). */
+struct nbd_request_ext {
+  uint32_t magic;               /* NBD_EXTENDED_REQUEST_MAGIC. */
+  uint16_t flags;               /* Request flags: NBD_CMD_FLAG_*. */
+  uint16_t type;                /* Request type: NBD_CMD_*. */
+  uint64_t cookie;              /* Opaque handle. */
+  uint64_t offset;              /* Request offset. */
+  uint64_t count;               /* Request effect or payload length. */
 } NBD_ATTRIBUTE_PACKED;
 
 /* Simple reply (server -> client). */
@@ -206,6 +218,16 @@ struct nbd_structured_reply {
   uint16_t type;                /* NBD_REPLY_TYPE_* */
   uint64_t cookie;              /* Opaque handle. */
   uint32_t length;              /* Length of following nbd_chunk_* payload. */
+} NBD_ATTRIBUTE_PACKED;
+
+/* Extended reply (server -> client). */
+struct nbd_extended_reply {
+  uint32_t magic;               /* NBD_EXTENDED_REPLY_MAGIC. */
+  uint16_t flags;               /* NBD_REPLY_FLAG_* */
+  uint16_t type;                /* NBD_REPLY_TYPE_* */
+  uint64_t cookie;              /* Opaque handle. */
+  uint64_t offset;              /* Client's offset. */
+  uint64_t length;              /* Length of following nbd_chunk_* payload. */
 } NBD_ATTRIBUTE_PACKED;
 
 struct nbd_chunk_offset_data {
@@ -228,6 +250,17 @@ struct nbd_block_descriptor_32 {
   uint32_t status_flags;        /* block type (hole etc) */
 } NBD_ATTRIBUTE_PACKED;
 
+struct nbd_chunk_block_status_64 {
+  uint32_t context_id;          /* metadata context ID */
+  uint32_t count;               /* non-zero descriptor count */
+  /* followed by nbd_block_descriptor_64[count] extents */
+} NBD_ATTRIBUTE_PACKED;
+
+struct nbd_block_descriptor_64 {
+  uint64_t length;              /* length of block */
+  uint64_t status_flags;        /* block type (hole etc) */
+} NBD_ATTRIBUTE_PACKED;
+
 struct nbd_chunk_error {
   uint32_t error;               /* NBD_E* error number */
   uint16_t len;                 /* Length of human readable error. */
@@ -235,8 +268,10 @@ struct nbd_chunk_error {
 } NBD_ATTRIBUTE_PACKED;
 
 #define NBD_REQUEST_MAGIC           0x25609513
+#define NBD_EXTENDED_REQUEST_MAGIC  0x21e41c71
 #define NBD_SIMPLE_REPLY_MAGIC      0x67446698
 #define NBD_STRUCTURED_REPLY_MAGIC  0x668e33ef
+#define NBD_EXTENDED_REPLY_MAGIC    0x6e8a278c
 
 /* Structured reply flags. */
 #define NBD_REPLY_FLAG_DONE         (1U << 0)
@@ -245,12 +280,13 @@ struct nbd_chunk_error {
 #define NBD_REPLY_TYPE_IS_ERR(val) (!!((val) & (1U<<15)))
 
 /* Structured reply types. */
-#define NBD_REPLY_TYPE_NONE         0
-#define NBD_REPLY_TYPE_OFFSET_DATA  1
-#define NBD_REPLY_TYPE_OFFSET_HOLE  2
-#define NBD_REPLY_TYPE_BLOCK_STATUS 5
-#define NBD_REPLY_TYPE_ERROR        NBD_REPLY_TYPE_ERR (1)
-#define NBD_REPLY_TYPE_ERROR_OFFSET NBD_REPLY_TYPE_ERR (2)
+#define NBD_REPLY_TYPE_NONE             0
+#define NBD_REPLY_TYPE_OFFSET_DATA      1
+#define NBD_REPLY_TYPE_OFFSET_HOLE      2
+#define NBD_REPLY_TYPE_BLOCK_STATUS     5
+#define NBD_REPLY_TYPE_BLOCK_STATUS_EXT 6
+#define NBD_REPLY_TYPE_ERROR            NBD_REPLY_TYPE_ERR (1)
+#define NBD_REPLY_TYPE_ERROR_OFFSET     NBD_REPLY_TYPE_ERR (2)
 
 /* NBD commands. */
 #define NBD_CMD_READ              0
@@ -267,6 +303,7 @@ struct nbd_chunk_error {
 #define NBD_CMD_FLAG_DF           (1U << 2)
 #define NBD_CMD_FLAG_REQ_ONE      (1U << 3)
 #define NBD_CMD_FLAG_FAST_ZERO    (1U << 4)
+#define NBD_CMD_FLAG_PAYLOAD_LEN  (1U << 5)
 
 /* NBD error codes. */
 #define NBD_SUCCESS     0
