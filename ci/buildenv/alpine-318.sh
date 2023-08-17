@@ -47,13 +47,14 @@ function install_buildenv() {
         python3-dev \
         qemu-img \
         rust \
+        rust-clippy \
         sfdisk \
         socat \
         tcl \
         xz \
         xz-dev \
         zlib-dev \
-        zstd
+        zstd-dev
     apk list | sort > /packages.txt
     mkdir -p /usr/libexec/ccache-wrappers
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++
