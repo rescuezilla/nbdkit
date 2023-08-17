@@ -24,6 +24,7 @@ RUN dnf distro-sync -y && \
         clippy \
         e2fsprogs \
         expect \
+        gawk \
         gcc \
         gcc-c++ \
         genisoimage \

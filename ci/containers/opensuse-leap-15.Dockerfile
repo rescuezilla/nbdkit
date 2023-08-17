@@ -10,6 +10,7 @@ RUN zypper update -y && \
     zypper install -y \
            autoconf \
            automake \
+           awk \
            bash \
            bash-completion \
            ca-certificates \
