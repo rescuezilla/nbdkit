@@ -182,12 +182,6 @@ struct nbd_fixed_new_option_reply_meta_context {
   /* followed by a string */
 } NBD_ATTRIBUTE_PACKED;
 
-/* NBD_REPLY_TYPE_BLOCK_STATUS block descriptor. */
-struct nbd_block_descriptor {
-  uint32_t length;              /* length of block */
-  uint32_t status_flags;        /* block type (hole etc) */
-} NBD_ATTRIBUTE_PACKED;
-
 /* Request (client -> server). */
 struct nbd_request {
   uint32_t magic;               /* NBD_REQUEST_MAGIC. */
@@ -222,6 +216,16 @@ struct nbd_chunk_offset_data {
 struct nbd_chunk_offset_hole {
   uint64_t offset;
   uint32_t length;              /* Length of hole. */
+} NBD_ATTRIBUTE_PACKED;
+
+struct nbd_chunk_block_status_32 {
+  uint32_t context_id;          /* metadata context ID */
+  /* followed by array of nbd_block_descriptor_32 extents */
+} NBD_ATTRIBUTE_PACKED;
+
+struct nbd_block_descriptor_32 {
+  uint32_t length;              /* length of block */
+  uint32_t status_flags;        /* block type (hole etc) */
 } NBD_ATTRIBUTE_PACKED;
 
 struct nbd_chunk_error {

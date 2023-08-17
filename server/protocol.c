@@ -442,7 +442,7 @@ send_structured_reply_read (uint64_t cookie, uint16_t cmd,
 /* Convert a list of extents into NBD_REPLY_TYPE_BLOCK_STATUS blocks.
  * The rules here are very complicated.  Read the spec carefully!
  */
-static struct nbd_block_descriptor *
+static struct nbd_block_descriptor_32 *
 extents_to_block_descriptors (struct nbdkit_extents *extents,
                               uint16_t flags,
                               uint32_t count, uint64_t offset,
@@ -451,14 +451,14 @@ extents_to_block_descriptors (struct nbdkit_extents *extents,
   const bool req_one = flags & NBD_CMD_FLAG_REQ_ONE;
   const size_t nr_extents = nbdkit_extents_count (extents);
   size_t i;
-  struct nbd_block_descriptor *blocks;
+  struct nbd_block_descriptor_32 *blocks;
 
   /* This is checked in server/plugins.c. */
   assert (nr_extents >= 1);
 
   /* We may send fewer than nr_extents blocks, but never more. */
   blocks = calloc (req_one ? 1 : nr_extents,
-                   sizeof (struct nbd_block_descriptor));
+                   sizeof (struct nbd_block_descriptor_32));
   if (blocks == NULL) {
     nbdkit_error ("calloc: %m");
     return NULL;
@@ -530,7 +530,7 @@ send_structured_reply_block_status (uint64_t cookie,
   GET_CONN;
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&conn->write_lock);
   struct nbd_structured_reply reply;
-  CLEANUP_FREE struct nbd_block_descriptor *blocks = NULL;
+  CLEANUP_FREE struct nbd_block_descriptor_32 *blocks = NULL;
   size_t nr_blocks;
   uint32_t context_id;
   size_t i;
@@ -549,7 +549,7 @@ send_structured_reply_block_status (uint64_t cookie,
   reply.flags = htobe16 (NBD_REPLY_FLAG_DONE);
   reply.type = htobe16 (NBD_REPLY_TYPE_BLOCK_STATUS);
   reply.length = htobe32 (sizeof context_id +
-                          nr_blocks * sizeof (struct nbd_block_descriptor));
+                          nr_blocks * sizeof (struct nbd_block_descriptor_32));
 
   r = conn->send (&reply, sizeof reply, SEND_MORE);
   if (r == -1) {
