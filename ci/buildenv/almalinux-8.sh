@@ -22,6 +22,7 @@ function install_buildenv() {
         clippy \
         e2fsprogs \
         expect \
+        gawk \
         gcc \
         gcc-c++ \
         genisoimage \
