@@ -73,7 +73,7 @@
  * Once some optimizations are made it would be worth profiling to
  * find the hot spots.
  */
-#define PAGE_SIZE 32768
+#define ZSTD_PAGE 32768
 #define L2_SIZE   4096
 
 struct l2_entry {
@@ -158,7 +158,7 @@ compare_l1_offsets (const void *offsetp, const struct l1_entry *e)
   const uint64_t offset = *(uint64_t *)offsetp;
 
   if (offset < e->offset) return -1;
-  if (offset >= e->offset + PAGE_SIZE*L2_SIZE) return 1;
+  if (offset >= e->offset + ZSTD_PAGE*L2_SIZE) return 1;
   return 0;
 }
 
@@ -204,7 +204,7 @@ insert_l1_entry (struct zstd_array *za, const struct l1_entry *entry)
 /* Look up a virtual offset.
  *
  * If the L2 page is mapped then this uncompresses the page into the
- * caller's buffer (of size PAGE_SIZE), returning the address of the
+ * caller's buffer (of size ZSTD_PAGE), returning the address of the
  * offset, the count of bytes to the end of the page, and a pointer to
  * the L2 directory entry containing the page pointer.
  *
@@ -227,7 +227,7 @@ lookup_decompress (struct zstd_array *za, uint64_t offset, void *buf,
   uint64_t o;
   void *page;
 
-  *remaining = PAGE_SIZE - (offset & (PAGE_SIZE-1));
+  *remaining = ZSTD_PAGE - (offset & (ZSTD_PAGE-1));
 
   /* Search the L1 directory. */
   entry = l1_dir_search (&za->l1_dir, &offset, compare_l1_offsets);
@@ -244,7 +244,7 @@ lookup_decompress (struct zstd_array *za, uint64_t offset, void *buf,
     l2_dir = entry->l2_dir;
 
     /* Which page in the L2 directory? */
-    o = (offset - entry->offset) / PAGE_SIZE;
+    o = (offset - entry->offset) / ZSTD_PAGE;
     if (l2_entry)
       *l2_entry = &l2_dir[o];
     page = l2_dir[o].page;
@@ -257,22 +257,22 @@ lookup_decompress (struct zstd_array *za, uint64_t offset, void *buf,
        * whereas the streaming API does not.
        */
       ZSTD_inBuffer inb = { .src = page, .size = SIZE_MAX, .pos = 0 };
-      ZSTD_outBuffer outb = { .dst = buf, .size = PAGE_SIZE, .pos = 0 };
+      ZSTD_outBuffer outb = { .dst = buf, .size = ZSTD_PAGE, .pos = 0 };
 
       ZSTD_initDStream (za->zdstrm);
       while (outb.pos < outb.size)
         ZSTD_decompressStream (za->zdstrm, &outb, &inb);
-      assert (outb.pos == PAGE_SIZE);
+      assert (outb.pos == ZSTD_PAGE);
     }
     else
-      memset (buf, 0, PAGE_SIZE);
+      memset (buf, 0, ZSTD_PAGE);
 
-    return buf + (offset & (PAGE_SIZE-1));
+    return buf + (offset & (ZSTD_PAGE-1));
   }
 
   /* No L1 directory entry found. */
-  memset (buf, 0, PAGE_SIZE);
-  return buf + (offset & (PAGE_SIZE-1));
+  memset (buf, 0, ZSTD_PAGE);
+  return buf + (offset & (ZSTD_PAGE-1));
 }
 
 /* Compress a page back after modifying it.
@@ -308,19 +308,19 @@ compress (struct zstd_array *za, uint64_t offset, void *buf)
     l2_dir = entry->l2_dir;
 
     /* Which page in the L2 directory? */
-    o = (offset - entry->offset) / PAGE_SIZE;
+    o = (offset - entry->offset) / ZSTD_PAGE;
     free (l2_dir[o].page);
     l2_dir[o].page = NULL;
 
     /* Allocate a new page. */
-    n = ZSTD_compressBound (PAGE_SIZE);
+    n = ZSTD_compressBound (ZSTD_PAGE);
     page = malloc (n);
     if (page == NULL) {
       nbdkit_error ("malloc: %m");
       return -1;
     }
     n = ZSTD_compressCCtx (za->zcctx, page, n,
-                           buf, PAGE_SIZE, ZSTD_CLEVEL_DEFAULT);
+                           buf, ZSTD_PAGE, ZSTD_CLEVEL_DEFAULT);
     if (ZSTD_isError (n)) {
       nbdkit_error ("ZSTD_compressCCtx: %s", ZSTD_getErrorName (n));
       return -1;
@@ -328,7 +328,7 @@ compress (struct zstd_array *za, uint64_t offset, void *buf)
     page = realloc (page, n);
     assert (page != NULL);
     l2_dir[o].page = page;
-    za->stats_uncompressed_bytes += PAGE_SIZE;
+    za->stats_uncompressed_bytes += ZSTD_PAGE;
     za->stats_compressed_bytes += n;
     return 0;
   }
@@ -338,7 +338,7 @@ compress (struct zstd_array *za, uint64_t offset, void *buf)
    * directory with NULL page pointers.  Then we can repeat the above
    * search to create the page.
    */
-  new_entry.offset = offset & ~(PAGE_SIZE*L2_SIZE-1);
+  new_entry.offset = offset & ~(ZSTD_PAGE*L2_SIZE-1);
   new_entry.l2_dir = calloc (L2_SIZE, sizeof (struct l2_entry));
   if (new_entry.l2_dir == NULL) {
     nbdkit_error ("calloc: %m");
@@ -361,7 +361,7 @@ zstd_array_read (struct allocator *a,
   uint64_t n;
   void *p;
 
-  tbuf = malloc (PAGE_SIZE);
+  tbuf = malloc (ZSTD_PAGE);
   if (tbuf == NULL) {
     nbdkit_error ("malloc: %m");
     return -1;
@@ -392,7 +392,7 @@ zstd_array_write (struct allocator *a,
   uint64_t n;
   void *p;
 
-  tbuf = malloc (PAGE_SIZE);
+  tbuf = malloc (ZSTD_PAGE);
   if (tbuf == NULL) {
     nbdkit_error ("malloc: %m");
     return -1;
@@ -435,7 +435,7 @@ zstd_array_fill (struct allocator *a, char c,
 
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&za->lock);
 
-  tbuf = malloc (PAGE_SIZE);
+  tbuf = malloc (ZSTD_PAGE);
   if (tbuf == NULL) {
     nbdkit_error ("malloc: %m");
     return -1;
@@ -468,7 +468,7 @@ zstd_array_zero (struct allocator *a, uint64_t count, uint64_t offset)
   void *p;
   struct l2_entry *l2_entry = NULL;
 
-  tbuf = malloc (PAGE_SIZE);
+  tbuf = malloc (ZSTD_PAGE);
   if (tbuf == NULL) {
     nbdkit_error ("malloc: %m");
     return -1;
@@ -483,7 +483,7 @@ zstd_array_zero (struct allocator *a, uint64_t count, uint64_t offset)
 
     if (l2_entry && l2_entry->page) {
       /* If the whole page is now zero, free it. */
-      if (n >= PAGE_SIZE || is_zero (l2_entry->page, PAGE_SIZE)) {
+      if (n >= ZSTD_PAGE || is_zero (l2_entry->page, ZSTD_PAGE)) {
         if (za->a.debug)
           nbdkit_debug ("%s: freeing zero page at offset %" PRIu64,
                         __func__, offset);
@@ -518,7 +518,7 @@ zstd_array_blit (struct allocator *a1,
   assert (a1 != a2);
   assert (strcmp (a2->f->type, "zstd") == 0);
 
-  tbuf = malloc (PAGE_SIZE);
+  tbuf = malloc (ZSTD_PAGE);
   if (tbuf == NULL) {
     nbdkit_error ("malloc: %m");
     return -1;
@@ -560,7 +560,7 @@ zstd_array_extents (struct allocator *a,
   void *p;
   struct l2_entry *l2_entry;
 
-  buf = malloc (PAGE_SIZE);
+  buf = malloc (ZSTD_PAGE);
   if (buf == NULL) {
     nbdkit_error ("malloc: %m");
     return -1;

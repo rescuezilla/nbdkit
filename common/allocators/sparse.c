@@ -92,7 +92,7 @@
  * should be very rare.  Because the L1 directory is stored in order
  * of offset, we can use an efficient binary search for lookups.
  *
- * Each L1 directory entry can address up to PAGE_SIZE*L2_SIZE bytes
+ * Each L1 directory entry can address up to SPARSE_PAGE*L2_SIZE bytes
  * in the virtual disk image.  With the current parameters this is
  * 128MB, which is enough for a 100MB image to fit into a single L1
  * directory, or a 10GB image to fit into 80 L1 entries.  The page
@@ -109,11 +109,11 @@
  *                              │ page L2_SIZE-1  ─────────▶ page
  *                              └────────────────────┘
  */
-#define PAGE_SIZE 32768
-#define L2_SIZE   4096
+#define SPARSE_PAGE 32768
+#define L2_SIZE     4096
 
 struct l2_entry {
-  void *page;                   /* Pointer to page (array of PAGE_SIZE bytes).*/
+  void *page;                /* Pointer to page (array of SPARSE_PAGE bytes).*/
 };
 
 struct l1_entry {
@@ -183,7 +183,7 @@ compare_l1_offsets (const void *offsetp, const struct l1_entry *e)
   const uint64_t offset = *(uint64_t *)offsetp;
 
   if (offset < e->offset) return -1;
-  if (offset >= e->offset + PAGE_SIZE*L2_SIZE) return 1;
+  if (offset >= e->offset + SPARSE_PAGE*L2_SIZE) return 1;
   return 0;
 }
 
@@ -247,7 +247,7 @@ lookup (struct sparse_array *sa, uint64_t offset, bool create,
   void *page;
   struct l1_entry new_entry;
 
-  *remaining = PAGE_SIZE - (offset & (PAGE_SIZE-1));
+  *remaining = SPARSE_PAGE - (offset & (SPARSE_PAGE-1));
 
  again:
   /* Search the L1 directory. */
@@ -265,13 +265,13 @@ lookup (struct sparse_array *sa, uint64_t offset, bool create,
     l2_dir = entry->l2_dir;
 
     /* Which page in the L2 directory? */
-    o = (offset - entry->offset) / PAGE_SIZE;
+    o = (offset - entry->offset) / SPARSE_PAGE;
     if (l2_entry)
       *l2_entry = &l2_dir[o];
     page = l2_dir[o].page;
     if (!page && create) {
       /* No page allocated.  Allocate one if creating. */
-      page = calloc (PAGE_SIZE, 1);
+      page = calloc (SPARSE_PAGE, 1);
       if (page == NULL) {
         nbdkit_error ("calloc: %m");
         return NULL;
@@ -281,7 +281,7 @@ lookup (struct sparse_array *sa, uint64_t offset, bool create,
     if (!page)
       return NULL;
     else
-      return page + (offset & (PAGE_SIZE-1));
+      return page + (offset & (SPARSE_PAGE-1));
   }
 
   /* No L1 directory entry found. */
@@ -293,7 +293,7 @@ lookup (struct sparse_array *sa, uint64_t offset, bool create,
    * allocate the L2 directory with NULL page pointers.  Then we can
    * repeat the above search to create the page.
    */
-  new_entry.offset = offset & ~(PAGE_SIZE*L2_SIZE-1);
+  new_entry.offset = offset & ~(SPARSE_PAGE*L2_SIZE-1);
   new_entry.l2_dir = calloc (L2_SIZE, sizeof (struct l2_entry));
   if (new_entry.l2_dir == NULL) {
     nbdkit_error ("calloc: %m");
@@ -439,13 +439,13 @@ do_zero (bool exclusive, struct sparse_array *sa,
       n = count;
 
     if (p) {
-      if (n < PAGE_SIZE)
+      if (n < SPARSE_PAGE)
         memset (p, 0, n);
       else
         assert (p == l2_entry->page);
 
       /* If the whole page is now zero, free it. */
-      if (n >= PAGE_SIZE || is_zero (l2_entry->page, PAGE_SIZE)) {
+      if (n >= SPARSE_PAGE || is_zero (l2_entry->page, SPARSE_PAGE)) {
         if (!exclusive)
           return RESTART_EXCLUSIVE;
 
@@ -516,7 +516,7 @@ sparse_array_blit (struct allocator *a1,
       return -1;
 
     /* If the whole page is now zero, free it. */
-    if (is_zero (l2_entry->page, PAGE_SIZE)) {
+    if (is_zero (l2_entry->page, SPARSE_PAGE)) {
       if (sa2->a.debug)
         nbdkit_debug ("%s: freeing zero page at offset %" PRIu64,
                       __func__, offset2);

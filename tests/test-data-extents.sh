@@ -30,7 +30,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Unfortunately the output of this test depends on the PAGE_SIZE
+# Unfortunately the output of this test depends on the SPARSE_PAGE
 # defined in common/allocators/sparse.c and would change (breaking the
 # test) if we ever changed that definition.
 

@@ -64,13 +64,13 @@
 
 #include "random.h"
 
-#define PAGE_SIZE   32768       /* See common/allocators/sparse.c */
+#define SPARSE_PAGE 32768       /* See common/allocators/sparse.c */
 #define L2_SIZE     4096
-#define DISK_SIZE   (4*L2_SIZE*PAGE_SIZE)
+#define DISK_SIZE   (4*L2_SIZE*SPARSE_PAGE)
 #define MAX_THREADS 16
 #define DURATION    60          /* seconds */
 #define MAX_IN_FLIGHT 64
-#define MAX_REQUEST (128*1024)  /* Should be larger than PAGE_SIZE. */
+#define MAX_REQUEST (128*1024)  /* Should be larger than SPARSE_PAGE. */
 
 static pid_t pid;
 static char sockfile[] = "/tmp/sockXXXXXX";
