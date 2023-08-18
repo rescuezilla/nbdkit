@@ -45,8 +45,8 @@ nbdkit_cc_plugin_la_SOURCES = \
 	$(NULL)
 
 nbdkit_cc_plugin_la_CPPFLAGS = \
-	-DCC="\"$(CC)\"" \
-	-DCFLAGS="\"$(CFLAGS)\"" \
+	-DCC="\"$(CC_PLUGIN_CC)\"" \
+	-DCFLAGS="\"$(CC_PLUGIN_CFLAGS)\"" \
 	-I$(top_srcdir)/include \
 	-I$(top_builddir)/include \
 	-I$(top_srcdir)/common/include \

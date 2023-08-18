@@ -820,6 +820,16 @@ AC_ARG_ENABLE([plugins],
                     [disable all bundled plugins and filters])])
 AM_CONDITIONAL([HAVE_PLUGINS], [test "x$enable_plugins" != "xno"])
 
+dnl For the cc plugin, let the user hard-code their preferred compiler setup
+dnl Default to the settings used for nbdkit itself
+AC_ARG_VAR([CC_PLUGIN_CC],
+  [Value to hard-code into the cc plugin's default for CC, instead of $CC])
+: "${CC_PLUGIN_CC:=$CC}"
+AC_ARG_VAR([CC_PLUGIN_CFLAGS],
+  [Value to hard-code into the cc plugin's default for CFLAGS, instead of
+  $CFLAGS])
+: "${CC_PLUGIN_CFLAGS:=$CFLAGS}"
+
 dnl Check for Perl, for embedding in the perl plugin.
 dnl Note that the perl binary is checked above.
 AC_ARG_ENABLE([perl],
@@ -1716,6 +1726,8 @@ feature "tests using libguestfs" \
                               test "x$HAVE_LIBGUESTFS_TRUE" = "x" && \
                               test "x$USE_LIBGUESTFS_FOR_TESTS_TRUE" = "x"
 feature "zlib-ng"             test "x$ZLIB_NG_LIBS" != "x"
+print cc-plugin-CC            "$CC_PLUGIN_CC"
+print cc-plugin-CFLAGS        "$CC_PLUGIN_CFLAGS"
 
 echo
 echo "If any optional component is configured ‘no’ when you expected ‘yes’"
