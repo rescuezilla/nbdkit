@@ -73,19 +73,19 @@ curl_load (void)
 int
 curl_get_ready (void)
 {
-  return pool_get_ready ();
+  return worker_get_ready ();
 }
 
 int
 curl_after_fork (void)
 {
-  return pool_after_fork ();
+  return worker_after_fork ();
 }
 
 static void
 curl_unload (void)
 {
-  pool_unload ();
+  worker_unload ();
   config_unload ();
   scripts_unload ();
   display_times ();
@@ -164,7 +164,7 @@ curl_get_size (void *handle)
     .ch = ch,
   };
 
-  r = send_command_and_wait (&cmd);
+  r = send_command_to_worker_and_wait (&cmd);
   update_times (ch->c);
   if (r != CURLE_OK) {
     display_curl_error (ch, r,
@@ -303,7 +303,7 @@ try_fallback_GET_method (struct curl_handle *ch)
     .ch = ch,
   };
 
-  r = send_command_and_wait (&cmd);
+  r = send_command_to_worker_and_wait (&cmd);
   update_times (ch->c);
 
   /* We expect CURLE_WRITE_ERROR here, but CURLE_OK is possible too
@@ -394,7 +394,7 @@ curl_pread (void *handle, void *buf, uint32_t count, uint64_t offset)
     .ch = ch,
   };
 
-  r = send_command_and_wait (&cmd);
+  r = send_command_to_worker_and_wait (&cmd);
   if (r != CURLE_OK) {
     display_curl_error (ch, r, "pread");
     goto err;
@@ -486,7 +486,7 @@ curl_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset)
     .ch = ch,
   };
 
-  r = send_command_and_wait (&cmd);
+  r = send_command_to_worker_and_wait (&cmd);
   if (r != CURLE_OK) {
     display_curl_error (ch, r, "pwrite");
     goto err;

@@ -113,11 +113,11 @@ struct curl_handle {
   /* Used by scripts.c */
   struct curl_slist *headers_copy;
 
-  /* Used by pool.c */
+  /* Used by worker thread in worker.c */
   struct command *cmd;
 };
 
-/* Asynchronous commands that can be sent to the pool thread. */
+/* Asynchronous commands that can be sent to the worker thread. */
 enum command_type { EASY_HANDLE, STOP };
 struct command {
   /* These fields are set by the caller. */
@@ -141,11 +141,11 @@ extern void config_unload (void);
 extern struct curl_handle *allocate_handle (void);
 extern void free_handle (struct curl_handle *);
 
-/* pool.c */
-extern int pool_get_ready (void);
-extern int pool_after_fork (void);
-extern void pool_unload (void);
-extern CURLcode send_command_and_wait (struct command *cmd);
+/* worker.c */
+extern int worker_get_ready (void);
+extern int worker_after_fork (void);
+extern void worker_unload (void);
+extern CURLcode send_command_to_worker_and_wait (struct command *cmd);
 
 /* scripts.c */
 extern int do_scripts (struct curl_handle *ch);

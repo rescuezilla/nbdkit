@@ -76,8 +76,8 @@
 
 #include "curldefs.h"
 
-/* Use '-D curl.pool=1' to debug handle pool. */
-NBDKIT_DLL_PUBLIC int curl_debug_pool = 0;
+/* Use '-D curl.worker=1' to debug the worker thread. */
+NBDKIT_DLL_PUBLIC int curl_debug_worker = 0;
 
 unsigned connections = 16;
 
@@ -107,7 +107,7 @@ command_type_to_string (enum command_type type)
 }
 
 int
-pool_get_ready (void)
+worker_get_ready (void)
 {
   multi = curl_multi_init ();
   if (multi == NULL) {
@@ -122,13 +122,13 @@ pool_get_ready (void)
   return 0;
 }
 
-/* Start and stop the background thread. */
+/* Start and stop the background worker thread. */
 static pthread_t thread;
 static bool thread_running;
-static void *pool_worker (void *);
+static void *worker_thread (void *);
 
 int
-pool_after_fork (void)
+worker_after_fork (void)
 {
   int err;
 
@@ -137,8 +137,8 @@ pool_after_fork (void)
     return -1;
   }
 
-  /* Start the pool background thread where all the curl work is done. */
-  err = pthread_create (&thread, NULL, pool_worker, NULL);
+  /* Start the background worker thread where all the curl work is done. */
+  err = pthread_create (&thread, NULL, worker_thread, NULL);
   if (err != 0) {
     errno = err;
     nbdkit_error ("pthread_create: %m");
@@ -149,14 +149,14 @@ pool_after_fork (void)
   return 0;
 }
 
-/* Unload the background thread. */
+/* Unload the background worker thread. */
 void
-pool_unload (void)
+worker_unload (void)
 {
   if (thread_running) {
     /* Stop the background thread. */
     struct command cmd = { .type = STOP };
-    send_command_and_wait (&cmd);
+    send_command_to_worker_and_wait (&cmd);
     pthread_join (thread, NULL);
     thread_running = false;
   }
@@ -187,11 +187,11 @@ pool_unload (void)
 /* Command queue. */
 static _Atomic uint64_t id;     /* next command ID */
 
-/* Send command to the background thread and wait for completion.
- * This is only called by one of the nbdkit threads.
+/* Send command to the background worker thread and wait for
+ * completion.  This is only called by one of the nbdkit threads.
  */
 CURLcode
-send_command_and_wait (struct command *cmd)
+send_command_to_worker_and_wait (struct command *cmd)
 {
   cmd->id = id++;
 
@@ -223,19 +223,19 @@ send_command_and_wait (struct command *cmd)
   return cmd->status;
 }
 
-/* The background thread. */
+/* The background worker thread. */
 static struct command *process_multi_handle (void);
 static void check_for_finished_handles (void);
 static void retire_command (struct command *cmd, CURLcode code);
 static void do_easy_handle (struct command *cmd);
 
 static void *
-pool_worker (void *vp)
+worker_thread (void *vp)
 {
   bool stop = false;
 
-  if (curl_debug_pool)
-    nbdkit_debug ("curl: background thread started");
+  if (curl_debug_worker)
+    nbdkit_debug ("curl: background worker thread started");
 
   while (!stop) {
     struct command *cmd = NULL;
@@ -244,7 +244,7 @@ pool_worker (void *vp)
     if (cmd == NULL)
       continue; /* or die?? */
 
-    if (curl_debug_pool)
+    if (curl_debug_worker)
       nbdkit_debug ("curl: dispatching %s command %" PRIu64,
                     command_type_to_string (cmd->type), cmd->id);
 
@@ -260,8 +260,8 @@ pool_worker (void *vp)
     }
   } /* while (!stop) */
 
-  if (curl_debug_pool)
-    nbdkit_debug ("curl: background thread stopped");
+  if (curl_debug_worker)
+    nbdkit_debug ("curl: background worker thread stopped");
 
   return NULL;
 }
@@ -319,7 +319,7 @@ process_multi_handle (void)
       repeats = 0;
 #endif
 
-    if (curl_debug_pool)
+    if (curl_debug_worker)
       nbdkit_debug (
 #ifdef HAVE_CURL_MULTI_POLL
                     "curl_multi_poll"
@@ -373,7 +373,7 @@ check_for_finished_handles (void)
 static void
 retire_command (struct command *cmd, CURLcode status)
 {
-  if (curl_debug_pool)
+  if (curl_debug_worker)
     nbdkit_debug ("curl: retiring %s command %" PRIu64,
                   command_type_to_string (cmd->type), cmd->id);
 

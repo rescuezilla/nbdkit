@@ -43,9 +43,9 @@ nbdkit_curl_plugin_la_SOURCES = \
 	config.c \
 	curldefs.h \
 	curl.c \
-	pool.c \
 	scripts.c \
 	times.c \
+	worker.c \
 	$(top_srcdir)/include/nbdkit-plugin.h \
 	$(NULL)
 
