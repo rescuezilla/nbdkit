@@ -30,6 +30,40 @@
  * SUCH DAMAGE.
  */
 
+/* How this plugin works
+ * =====================
+ *
+ * Curl handle configuration from the nbdkit command line is all done
+ * in config.c.  This file also contains a function to allocate fully
+ * configured curl easy handles.
+ *
+ * The main nbdkit threads (this file) create curl easy handles
+ * initialized with the work they want to carry out.  Note there is
+ * one easy handle per request (eg. per pread/pwrite request).  The
+ * easy handles are not reused.
+ *
+ * There is a background worker thread (worker.c) which has a single
+ * curl multi handle.
+ *
+ * The commands (including the easy handle) are submitted to the
+ * worker thread over a self-pipe.  It's easy to use a pipe for this
+ * because the way curl multi works it can listen on an extra fd, but
+ * not on anything else like a pthread condition.  In the worker
+ * thread the curl multi performs the work of the outstanding easy
+ * handles.
+ *
+ * When an easy handle finishes work or errors, we retire the command
+ * by signalling back to the waiting nbdkit thread using a pthread
+ * condition.
+ *
+ * In my experiments, we're almost always I/O bound so I haven't seen
+ * any strong need to use more than one curl multi and/or worker
+ * thread, although it would be possible to add more in future.
+ *
+ * See also this extremely useful thread:
+ * https://curl.se/mail/lib-2019-03/0100.html
+ */
+
 #include <config.h>
 
 #include <stdio.h>

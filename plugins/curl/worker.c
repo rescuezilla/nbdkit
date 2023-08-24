@@ -30,31 +30,6 @@
  * SUCH DAMAGE.
  */
 
-/* Worker thread which processes the curl multi interface.
- *
- * The main nbdkit threads (see curl.c) create curl easy handles
- * initialized with the work they want to carry out.  Note there is
- * one easy handle per task (eg. per pread/pwrite request).  The easy
- * handles are not reused.
- *
- * The commands + optional easy handle are submitted to the worker
- * thread over a self-pipe (it's easy to use a pipe here because the
- * way curl multi works is it can listen on an extra fd, but not on
- * anything else like a pthread condition).  The curl multi performs
- * the work of the outstanding easy handles.
- *
- * When an easy handle finishes work or errors, we retire the command
- * by signalling back to the waiting nbdkit thread using a pthread
- * condition.
- *
- * In my experiments, we're almost always I/O bound so I haven't seen
- * any strong need to use more than one curl multi / worker thread,
- * although it would be possible to add more in future.
- *
- * See also this extremely useful thread:
- * https://curl.se/mail/lib-2019-03/0100.html
- */
-
 #include <config.h>
 
 #include <stdio.h>
