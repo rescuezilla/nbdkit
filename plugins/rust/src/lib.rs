@@ -1480,9 +1480,9 @@ mod t {
                     unsafe {
                         *sin = libc::sockaddr_in {
                             sin_family: libc::AF_INET as libc::sa_family_t,
-                            sin_port: u16::from_le_bytes([4, 0xd2]),
+                            sin_port: u16::from_ne_bytes([4, 0xd2]),
                             sin_addr: libc::in_addr {
-                                s_addr: u32::from_le_bytes([127, 0, 0, 1])
+                                s_addr: u32::from_ne_bytes([127, 0, 0, 1])
                             },
                             .. mem::zeroed()
                         };
@@ -1508,7 +1508,7 @@ mod t {
                     unsafe {
                         *sin6 = libc::sockaddr_in6 {
                             sin6_family: libc::AF_INET6 as libc::sa_family_t,
-                            sin6_port: u16::from_le_bytes([4, 0xd2]),
+                            sin6_port: u16::from_ne_bytes([4, 0xd2]),
                             sin6_addr: libc::in6_addr {
                                 s6_addr: [0, 0, 0, 0, 0, 0, 0, 0,
                                          0, 0, 0, 0, 0, 0, 0, 1],
