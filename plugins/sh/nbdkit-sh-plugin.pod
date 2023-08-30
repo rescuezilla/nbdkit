@@ -534,7 +534,7 @@ C<"fua">, C<"fua,may_trim,fast"> are some of the 8 possible values).
 Unlike in other languages, if you provide a C<zero> method you B<must>
 also provide a C<can_zero> method which exits with code C<0> (true).
 
-To trigger a fallback to <pwrite> on a normal zero request, or to
+To trigger a fallback to C<pwrite> on a normal zero request, or to
 respond quickly to the C<"fast"> flag that a specific zero request is
 no faster than a corresponding write, the script must output
 C<ENOTSUP> or C<EOPNOTSUPP> to stderr (possibly followed by a
