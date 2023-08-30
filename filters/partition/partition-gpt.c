@@ -59,12 +59,12 @@ get_gpt_header (uint8_t *sector,
    * the header, rather than looking in the header to see what LBA
    * they actually start at.  Let's at least check for that now.
    */
-   if (header->partition_entries_lba != 2) {
-     nbdkit_error ("non-standard GPT layout: "
-                   "partition entries are not adjacent to header");
-     return -1;
-   }
-   return 0;
+  if (le64toh (header->partition_entries_lba) != 2) {
+    nbdkit_error ("non-standard GPT layout: "
+                  "partition entries are not adjacent to header");
+    return -1;
+  }
+  return 0;
 }
 
 static void
