@@ -1325,11 +1325,13 @@ test-shell.img:
 TESTS += \
 	test-sh-errors.sh \
 	test-sh-extents.sh \
+	test-sh-pwrite-ignore-stdin.sh \
 	test-sh-tmpdir-leak.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-sh-errors.sh \
 	test-sh-extents.sh \
+	test-sh-pwrite-ignore-stdin.sh \
 	test-sh-tmpdir-leak.sh \
 	$(NULL)
 

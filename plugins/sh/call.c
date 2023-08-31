@@ -275,22 +275,36 @@ call3 (const char *wbuf, size_t wbuflen, /* sent to stdin (can be NULL) */
       r = write (pfds[0].fd, wbuf, wbuflen);
       if (r == -1) {
         if (errno == EPIPE) {
-          /* We tried to write to the script but it didn't consume
-           * the data.  Probably the script exited without reading
-           * from stdin.  This is an error in the script.
+          /* In nbdkit <= 1.35.11 we gave an error here, arguing that
+           * scripts must always consume or discard their full input
+           * when 'pwrite' is called.  Previously we had many cases
+           * where scripts forgot to discard the data on a path out of
+           * pwrite (such as an error or where the script is not
+           * interested in the data being written), resulting in
+           * intermittent test failures.
+           *
+           * It is valid for a script to ignore the written data
+           * (plenty of non-sh plugins do this), or for a script to be
+           * gradually processing the data, encounter an error and
+           * wish to exit immediately.
+           *
+           * If a script crashes (ie. the EPIPE is not voluntary) then
+           * we catch that case in WIFSIGNALED below.
+           *
+           * Therefore ignore this error.
            */
-          nbdkit_error ("%s: write to script failed because of a broken pipe: "
-                        "this can happen if the script exits without "
-                        "consuming stdin, which usually indicates a bug "
-                        "in the script",
-                        argv0);
+          nbdkit_debug ("%s: write: %m (ignored)", argv0);
+          wbuflen = 0;          /* discard the rest */
         }
-        else
+        else {
           nbdkit_error ("%s: write: %m", argv0);
-        goto error;
+          goto error;
+        }
       }
-      wbuf += r;
-      wbuflen -= r;
+      else {
+        wbuf += r;
+        wbuflen -= r;
+      }
       /* After writing all the data we close the pipe so that
        * the reader on the other end doesn't wait for more.
        */
