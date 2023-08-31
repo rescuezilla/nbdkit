@@ -47,7 +47,9 @@ cleanup_fn rm -f $files
 
 start_nbdkit -P $pid -U $sock sh - <<'EOF'
 case "$1" in
-    can_write) echo 0 ;;
+    can_write)
+        exit 0
+        ;;
     pwrite)
         # Always ignore the input.  If the offset >= 32M return an error.
         if [ $4 -ge 33554432 ]; then
