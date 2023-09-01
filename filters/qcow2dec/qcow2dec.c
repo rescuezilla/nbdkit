@@ -332,7 +332,7 @@ get_qcow2_metadata (nbdkit_next *next)
   }
   l1_table_size = header.l1_size * 8;
   if (header.l1_table_offset < 512 || header.l1_table_offset >= header.size
-      || header.l1_table_offset - l1_table_size > header.size) {
+      || header.l1_table_offset + l1_table_size > header.size) {
     nbdkit_error ("plugin contains qcow2 file with L1 table outside the file, "
                   "refusing to load it");
     errno = ERANGE;
