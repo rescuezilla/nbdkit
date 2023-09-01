@@ -488,6 +488,11 @@ open_file_by_name (struct handle *h, int readonly, int dfd, const char *file)
 
   assert (h->fd == -1);
 
+  if (file[0] == '\0') {
+    nbdkit_error ("open: cannot use empty file name or export name (\"\")");
+    return -1;
+  }
+
   flags = O_CLOEXEC|O_NOCTTY;
   if (readonly)
     flags |= O_RDONLY;
