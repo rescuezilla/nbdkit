@@ -504,7 +504,6 @@ open_file_by_name (struct handle *h, int readonly, int dfd, const char *file)
   }
   if (h->fd == -1) {
     nbdkit_error ("open: %s: %m", file);
-    free (h);
     return -1;
   }
 
