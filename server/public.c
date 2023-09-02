@@ -76,6 +76,7 @@
 #include "ascii-string.h"
 #include "get_current_dir_name.h"
 #include "getline.h"
+#include "human-size.h"
 #include "poll.h"
 #include "realpath.h"
 #include "strndup.h"
@@ -343,83 +344,16 @@ nbdkit_parse_uint64_t (const char *what, const char *str, uint64_t *rp)
 NBDKIT_DLL_PUBLIC int64_t
 nbdkit_parse_size (const char *str)
 {
+  const char *error, *pstr;
   int64_t size;
-  char *end;
-  uint64_t scale = 1;
 
-  /* Disk sizes cannot usefully exceed off_t (which is signed) and
-   * cannot be negative.  */
-  /* XXX Should we also parse things like '1.5M'? */
-  /* XXX Should we allow hex? If so, hex cannot use scaling suffixes,
-   * because some of them are valid hex digits */
-  errno = 0;
-  size = strtoimax (str, &end, 10);
-  if (str == end) {
-    nbdkit_error ("could not parse size string (%s)", str);
-    return -1;
-  }
-  if (size < 0) {
-    nbdkit_error ("size cannot be negative (%s)", str);
-    return -1;
-  }
-  if (errno) {
-    nbdkit_error ("size (%s) exceeds maximum value", str);
+  size = human_size_parse (str, &error, &pstr);
+  if (size == -1) {
+    nbdkit_error ("%s: %s", error, pstr);
     return -1;
   }
 
-  switch (*end) {
-    /* No suffix */
-  case '\0':
-    end--; /* Safe, since we already filtered out empty string */
-    break;
-
-    /* Powers of 1024 */
-  case 'e': case 'E':
-    scale *= 1024;
-    /* fallthru */
-  case 'p': case 'P':
-    scale *= 1024;
-    /* fallthru */
-  case 't': case 'T':
-    scale *= 1024;
-    /* fallthru */
-  case 'g': case 'G':
-    scale *= 1024;
-    /* fallthru */
-  case 'm': case 'M':
-    scale *= 1024;
-    /* fallthru */
-  case 'k': case 'K':
-    scale *= 1024;
-    /* fallthru */
-  case 'b': case 'B':
-    break;
-
-    /* "sectors", ie. units of 512 bytes, even if that's not the real
-     * sector size */
-  case 's': case 'S':
-    scale = 512;
-    break;
-
-  default:
-    nbdkit_error ("could not parse size: unknown suffix '%s'", end);
-    return -1;
-  }
-
-  /* XXX Maybe we should support 'MiB' as a synonym for 'M'; and 'MB'
-   * for powers of 1000, for similarity to GNU tools. But for now,
-   * anything beyond 'M' is dropped.  */
-  if (end[1]) {
-    nbdkit_error ("could not parse size: unknown suffix '%s'", end);
-    return -1;
-  }
-
-  if (INT64_MAX / scale < size) {
-    nbdkit_error ("overflow computing size (%s)", str);
-    return -1;
-  }
-
-  return size * scale;
+  return size;
 }
 
 NBDKIT_DLL_PUBLIC int
