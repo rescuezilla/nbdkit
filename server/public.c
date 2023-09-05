@@ -344,7 +344,7 @@ nbdkit_parse_uint64_t (const char *what, const char *str, uint64_t *rp)
 NBDKIT_DLL_PUBLIC int64_t
 nbdkit_parse_size (const char *str)
 {
-  const char *error, *pstr;
+  const char *error = NULL, *pstr = NULL;
   int64_t size;
 
   size = human_size_parse (str, &error, &pstr);
