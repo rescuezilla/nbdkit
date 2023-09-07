@@ -4,13 +4,12 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM docker.io/library/almalinux:8
-
-RUN dnf update -y && \
-    dnf install 'dnf-command(config-manager)' -y && \
-    dnf config-manager --set-enabled -y powertools && \
-    dnf install -y centos-release-advanced-virtualization && \
-    dnf install -y epel-release && \
+function install_buildenv() {
+    dnf distro-sync -y
+    dnf install 'dnf-command(config-manager)' -y
+    dnf config-manager --set-enabled -y crb
+    dnf install -y epel-release
+    dnf install -y epel-next-release
     dnf install -y \
         autoconf \
         automake \
@@ -26,7 +25,6 @@ RUN dnf update -y && \
         gawk \
         gcc \
         gcc-c++ \
-        genisoimage \
         git \
         glibc-langpack-en \
         gnutls-devel \
@@ -46,9 +44,9 @@ RUN dnf update -y && \
         lua-devel \
         make \
         ocaml \
-        perl \
         perl-ExtUtils-Embed \
         perl-Pod-Simple \
+        perl-base \
         perl-devel \
         perl-podlators \
         pkgconfig \
@@ -65,18 +63,17 @@ RUN dnf update -y && \
         xorriso \
         xz \
         xz-devel \
-        zlib-devel && \
-    dnf autoremove -y && \
-    dnf clean all -y && \
-    rpm -qa | sort > /packages.txt && \
-    mkdir -p /usr/libexec/ccache-wrappers && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++ && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/cc && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/clang && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/g++ && \
+        zlib-devel
+    rpm -qa | sort > /packages.txt
+    mkdir -p /usr/libexec/ccache-wrappers
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/cc
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/clang
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/g++
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/gcc
+}
 
-ENV CCACHE_WRAPPERSDIR "/usr/libexec/ccache-wrappers"
-ENV LANG "en_US.UTF-8"
-ENV MAKE "/usr/bin/make"
-ENV PYTHON "/usr/bin/python3"
+export CCACHE_WRAPPERSDIR="/usr/libexec/ccache-wrappers"
+export LANG="en_US.UTF-8"
+export MAKE="/usr/bin/make"
+export PYTHON="/usr/bin/python3"

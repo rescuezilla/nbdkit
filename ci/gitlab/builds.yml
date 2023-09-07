@@ -105,6 +105,24 @@ x86_64-centos-stream-8-local-env:
     NAME: centos-stream-8
 
 
+x86_64-centos-stream-9-prebuilt-env:
+  extends: .native_build_job_prebuilt_env
+  needs:
+    - job: x86_64-centos-stream-9-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: centos-stream-9
+
+x86_64-centos-stream-9-local-env:
+  extends: .native_build_job_local_env
+  needs: []
+  allow_failure: false
+  variables:
+    IMAGE: quay.io/centos/centos:stream9
+    NAME: centos-stream-9
+
+
 x86_64-debian-11-prebuilt-env:
   extends: .native_build_job_prebuilt_env
   needs:
@@ -369,7 +387,7 @@ x86_64-freebsd-13:
   needs: []
   allow_failure: false
   variables:
-    CIRRUS_VM_IMAGE_NAME: freebsd-13-1
+    CIRRUS_VM_IMAGE_NAME: freebsd-13-2
     CIRRUS_VM_IMAGE_SELECTOR: image_family
     CIRRUS_VM_INSTANCE_TYPE: freebsd_instance
     GOLANG: skip
@@ -385,7 +403,7 @@ x86_64-freebsd-current:
   needs: []
   allow_failure: false
   variables:
-    CIRRUS_VM_IMAGE_NAME: freebsd-13-0-snap
+    CIRRUS_VM_IMAGE_NAME: freebsd-14-0-snap
     CIRRUS_VM_IMAGE_SELECTOR: image_family
     CIRRUS_VM_INSTANCE_TYPE: freebsd_instance
     GOLANG: skip

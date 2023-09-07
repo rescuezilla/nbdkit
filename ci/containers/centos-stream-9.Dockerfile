@@ -4,13 +4,13 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM docker.io/library/almalinux:8
+FROM quay.io/centos/centos:stream9
 
-RUN dnf update -y && \
+RUN dnf distro-sync -y && \
     dnf install 'dnf-command(config-manager)' -y && \
-    dnf config-manager --set-enabled -y powertools && \
-    dnf install -y centos-release-advanced-virtualization && \
+    dnf config-manager --set-enabled -y crb && \
     dnf install -y epel-release && \
+    dnf install -y epel-next-release && \
     dnf install -y \
         autoconf \
         automake \
@@ -26,7 +26,6 @@ RUN dnf update -y && \
         gawk \
         gcc \
         gcc-c++ \
-        genisoimage \
         git \
         glibc-langpack-en \
         gnutls-devel \
@@ -46,9 +45,9 @@ RUN dnf update -y && \
         lua-devel \
         make \
         ocaml \
-        perl \
         perl-ExtUtils-Embed \
         perl-Pod-Simple \
+        perl-base \
         perl-devel \
         perl-podlators \
         pkgconfig \
