@@ -45,6 +45,7 @@
 #include <sys/wait.h>
 #endif
 
+#include "open_memstream.h"
 #include "utils.h"
 
 #include "internal.h"
