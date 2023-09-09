@@ -108,6 +108,17 @@ enum log_to {
   LOG_TO_NULL,           /* --log=null forced on the command line */
 };
 
+enum service_mode {
+  /* These two modes cannot form an NBD URI: */
+  SERVICE_MODE_SOCKET_ACTIVATION, /* socket activation. */
+  SERVICE_MODE_LISTEN_STDIN,      /* -s */
+
+  SERVICE_MODE_UNIXSOCKET,        /* -U */
+  SERVICE_MODE_VSOCK,             /* --vsock */
+  SERVICE_MODE_TCPIP,             /* --port */
+};
+extern const char *service_mode_string (enum service_mode);
+
 extern int tcpip_sock_af;
 extern struct debug_flag *debug_flags;
 extern const char *export_name;
@@ -131,6 +142,7 @@ extern char *unixsocket;
 extern const char *user, *group;
 extern bool verbose;
 extern bool vsock;
+extern enum service_mode service_mode;
 extern bool configured;
 extern int saved_stdin;
 extern int saved_stdout;

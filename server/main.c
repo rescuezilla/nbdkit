@@ -117,6 +117,7 @@ const char *user, *group;       /* -u & -g */
 bool verbose;                   /* -v */
 bool vsock;                     /* --vsock */
 unsigned int socket_activation; /* $LISTEN_FDS and $LISTEN_PID set */
+enum service_mode service_mode; /* serving over TCP, Unix, etc */
 bool configured;                /* .config_complete done */
 int saved_stdin = -1;           /* dup'd stdin during -s/--run */
 int saved_stdout = -1;          /* dup'd stdout during -s/--run */
@@ -617,6 +618,19 @@ main (int argc, char *argv[])
     exit (EXIT_FAILURE);
   }
 
+  /* By the point we have enough information to calculate the service mode. */
+  if (socket_activation)
+    service_mode = SERVICE_MODE_SOCKET_ACTIVATION;
+  else if (listen_stdin)
+    service_mode = SERVICE_MODE_LISTEN_STDIN;
+  else if (unixsocket)
+    service_mode = SERVICE_MODE_UNIXSOCKET;
+  else if (vsock)
+    service_mode = SERVICE_MODE_VSOCK;
+  else
+    service_mode = SERVICE_MODE_TCPIP;
+  debug ("service mode: %s", service_mode_string (service_mode));
+
   /* The remaining command line arguments are the plugin name and
    * parameters.  If --help, --version or --dump-plugin were specified
    * then we open the plugin so that we can display the per-plugin
@@ -843,6 +857,19 @@ make_random_fifo (void)
   return NULL;
 }
 
+const char *
+service_mode_string (enum service_mode sm)
+{
+  switch (sm) {
+  case SERVICE_MODE_SOCKET_ACTIVATION: return "socket activation";
+  case SERVICE_MODE_LISTEN_STDIN:      return "listen stdin";
+  case SERVICE_MODE_UNIXSOCKET:        return "unix socket";
+  case SERVICE_MODE_VSOCK:             return "vsock";
+  case SERVICE_MODE_TCPIP:             return "TCP/IP";
+  default: abort ();
+  }
+}
+
 static struct backend *
 open_plugin_so (size_t i, const char *name, int short_name)
 {
@@ -970,15 +997,16 @@ start_serving (void)
 #endif
   }
 
-  /* Socket activation: the ‘socket_activation’ variable (> 0) is the
-   * number of file descriptors from FIRST_SOCKET_ACTIVATION_FD to
-   * FIRST_SOCKET_ACTIVATION_FD+socket_activation-1.
-   */
-  if (socket_activation) {
-      if (sockets_reserve (&socks, socket_activation) == -1) {
-        perror ("realloc");
-        exit (EXIT_FAILURE);
-      }
+  switch (service_mode) {
+  case SERVICE_MODE_SOCKET_ACTIVATION:
+    /* Socket activation: the ‘socket_activation’ variable (> 0) is
+     * the number of file descriptors from FIRST_SOCKET_ACTIVATION_FD
+     * to FIRST_SOCKET_ACTIVATION_FD+socket_activation-1.
+     */
+    if (sockets_reserve (&socks, socket_activation) == -1) {
+      perror ("realloc");
+      exit (EXIT_FAILURE);
+    }
     for (i = 0; i < socket_activation; ++i) {
       int s = FIRST_SOCKET_ACTIVATION_FD + i, r;
       /* This can't fail because of the reservation above. */
@@ -990,35 +1018,42 @@ start_serving (void)
     write_pidfile ();
     top->after_fork (top);
     accept_incoming_connections (&socks);
-    return;
-  }
+    break;
 
-  /* Handling a single connection on stdin/stdout. */
-  if (listen_stdin) {
+  case SERVICE_MODE_LISTEN_STDIN:
+    /* Handling a single connection on stdin/stdout. */
     change_user ();
     write_pidfile ();
     top->after_fork (top);
     threadlocal_new_server_thread ();
     handle_single_connection (saved_stdin, saved_stdout);
-    return;
-  }
+    break;
 
-  /* Handling multiple connections on TCP/IP, Unix domain socket or
-   * AF_VSOCK.
-   */
-  if (unixsocket)
+  case SERVICE_MODE_UNIXSOCKET:
     bind_unix_socket (&socks);
-  else if (vsock)
-    bind_vsock (&socks);
-  else
-    bind_tcpip_socket (&socks);
+    goto serve_socks;
 
-  run_command ();
-  change_user ();
-  fork_into_background ();
-  write_pidfile ();
-  top->after_fork (top);
-  accept_incoming_connections (&socks);
+  case SERVICE_MODE_VSOCK:
+    bind_vsock (&socks);
+    goto serve_socks;
+
+  case SERVICE_MODE_TCPIP:
+    bind_tcpip_socket (&socks);
+  serve_socks:
+    /* Common code for handling multiple connections on TCP/IP, Unix
+     * domain socket or AF_VSOCK.
+     */
+    run_command ();
+    change_user ();
+    fork_into_background ();
+    write_pidfile ();
+    top->after_fork (top);
+    accept_incoming_connections (&socks);
+    break;
+
+  default:
+    abort ();
+  }
 }
 
 static void
