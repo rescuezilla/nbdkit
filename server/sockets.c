@@ -171,26 +171,26 @@ bind_unix_socket (sockets *socks)
 void
 bind_tcpip_socket (sockets *socks)
 {
+  const char *ipport;
   struct addrinfo *ai = NULL;
   struct addrinfo hints;
   struct addrinfo *a;
   int err, opt;
   int saved_errno = 0;
 
-  if (port == NULL)
-    port = "10809";
+  ipport = port ? port : "10809";
 
   memset (&hints, 0, sizeof hints);
   hints.ai_flags = AI_PASSIVE;
   hints.ai_family = tcpip_sock_af;
   hints.ai_socktype = SOCK_STREAM;
 
-  err = getaddrinfo (ipaddr, port, &hints, &ai);
+  err = getaddrinfo (ipaddr, ipport, &hints, &ai);
   if (err != 0) {
     fprintf (stderr, "%s: getaddrinfo: %s: %s: %s\n",
              program_name,
              ipaddr ? ipaddr : "<any>",
-             port,
+             ipport,
              gai_strerror (err));
     exit (EXIT_FAILURE);
   }
@@ -272,7 +272,7 @@ bind_tcpip_socket (sockets *socks)
   }
 
   debug ("bound to IP address %s:%s (%zu socket(s))",
-         ipaddr ? ipaddr : "<any>", port, socks->len);
+         ipaddr ? ipaddr : "<any>", ipport, socks->len);
 }
 
 void
