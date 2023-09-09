@@ -621,6 +621,15 @@ main (int argc, char *argv[])
     exit (EXIT_FAILURE);
   }
 
+  /* Since nbdkit 1.36, --run implies -U -, unless --vsock or --port
+   * was set explicitly.
+   */
+  if (run && !unixsocket && !port && !vsock) {
+    unixsocket = make_random_fifo ();
+    if (!unixsocket)
+      exit (EXIT_FAILURE);
+  }
+
   /* By the point we have enough information to calculate the service mode. */
   if (socket_activation)
     service_mode = SERVICE_MODE_SOCKET_ACTIVATION;

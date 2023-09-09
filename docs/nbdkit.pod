@@ -382,6 +382,11 @@ like Debian this might not be a full-featured shell.
 
 This option implies I<--foreground>.
 
+In nbdkit E<le> 1.34 you normally had to add I<-U ->, otherwise nbdkit
+would use a TCP/IP port which was not what you wanted.  In nbdkit
+E<ge> 1.36, using I<--run> implies I<-U ->.  If you want the old
+behaviour of nbdkit then you must use the I<--port> option explicitly.
+
 =item B<--selinux-label=>SOCKET-LABEL
 
 Apply the SELinux label C<SOCKET-LABEL> to the nbdkit listening
@@ -481,7 +486,8 @@ should delete the socket file after use (else if you try to start
 nbdkit up again you will get an C<Address already in use> error).
 
 If the socket name is I<-> then nbdkit generates a randomly named
-private socket.  This is useful with L<nbdkit-captive(1)/CAPTIVE NBDKIT>.
+private socket.  This is implied by the I<--run> option.  See also
+L<nbdkit-captive(1)/CAPTIVE NBDKIT>.
 
 =item B<-u> USER
 
