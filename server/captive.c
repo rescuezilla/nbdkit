@@ -75,45 +75,8 @@ run_command (void)
 
   /* Construct $uri. */
   fprintf (fp, "uri=");
-  switch (service_mode) {
-  case SERVICE_MODE_SOCKET_ACTIVATION:
-  case SERVICE_MODE_LISTEN_STDIN:
-    break;                      /* can't form a URI, leave it blank */
-  case SERVICE_MODE_UNIXSOCKET:
-    fprintf (fp, "nbd%s+unix://", tls == 2 ? "s" : "");
-    if (export_name && strcmp (export_name, "") != 0) {
-      putc ('/', fp);
-      uri_quote (export_name, fp);
-    }
-    fprintf (fp, "\\?socket=");
-    uri_quote (unixsocket, fp);
-    break;
-  case SERVICE_MODE_VSOCK:
-    /* 1 = VMADDR_CID_LOCAL */
-    fprintf (fp, "nbd%s+vsock://1", tls == 2 ? "s" : "");
-    if (port) {
-      putc (':', fp);
-      shell_quote (port, fp);
-    }
-    if (export_name && strcmp (export_name, "") != 0) {
-      putc ('/', fp);
-      uri_quote (export_name, fp);
-    }
-    break;
-  case SERVICE_MODE_TCPIP:
-    fprintf (fp, "nbd%s://localhost", tls == 2 ? "s" : "");
-    if (port) {
-      putc (':', fp);
-      shell_quote (port, fp);
-    }
-    if (export_name && strcmp (export_name, "") != 0) {
-      putc ('/', fp);
-      uri_quote (export_name, fp);
-    }
-    break;
-  default:
-    abort ();
-  }
+  if (uri)
+    shell_quote (uri, fp);
   putc ('\n', fp);
 
   /* Since nbdkit 1.24, $nbd is a synonym for $uri. */

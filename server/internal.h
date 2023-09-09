@@ -143,6 +143,7 @@ extern const char *user, *group;
 extern bool verbose;
 extern bool vsock;
 extern enum service_mode service_mode;
+extern char *uri;
 extern bool configured;
 extern int saved_stdin;
 extern int saved_stdout;
