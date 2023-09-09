@@ -121,7 +121,6 @@ extern const char *port;
 extern bool read_only;
 extern const char *run;
 extern bool listen_stdin;
-extern bool configured;
 extern const char *selinux_label;
 extern unsigned threads;
 extern int tls;
@@ -132,6 +131,7 @@ extern char *unixsocket;
 extern const char *user, *group;
 extern bool verbose;
 extern bool vsock;
+extern bool configured;
 extern int saved_stdin;
 extern int saved_stdout;
 
