@@ -67,9 +67,6 @@ run_command (void)
   if (!run)
     return;
 
-  if (!export_name)
-    export_name = "";
-
   fp = open_memstream (&cmd, &len);
   if (fp == NULL) {
     perror ("open_memstream");
@@ -84,7 +81,7 @@ run_command (void)
     break;                      /* can't form a URI, leave it blank */
   case SERVICE_MODE_UNIXSOCKET:
     fprintf (fp, "nbd%s+unix://", tls == 2 ? "s" : "");
-    if (strcmp (export_name, "") != 0) {
+    if (export_name && strcmp (export_name, "") != 0) {
       putc ('/', fp);
       uri_quote (export_name, fp);
     }
@@ -98,7 +95,7 @@ run_command (void)
       putc (':', fp);
       shell_quote (port, fp);
     }
-    if (strcmp (export_name, "") != 0) {
+    if (export_name && strcmp (export_name, "") != 0) {
       putc ('/', fp);
       uri_quote (export_name, fp);
     }
@@ -109,7 +106,7 @@ run_command (void)
       putc (':', fp);
       shell_quote (port, fp);
     }
-    if (strcmp (export_name, "") != 0) {
+    if (export_name && strcmp (export_name, "") != 0) {
       putc ('/', fp);
       uri_quote (export_name, fp);
     }
@@ -124,7 +121,8 @@ run_command (void)
 
   /* Expose $exportname. */
   fprintf (fp, "exportname=");
-  shell_quote (export_name, fp);
+  if (export_name)
+    shell_quote (export_name, fp);
   putc ('\n', fp);
 
   /* Construct $tls, $port and $unixsocket. */
