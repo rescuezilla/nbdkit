@@ -33,6 +33,7 @@
 source ./functions.sh
 set -xe
 
+requires_run
 requires_nbdsh_uri
 
 plugin=.libs/test-stdio-plugin.$SOEXT

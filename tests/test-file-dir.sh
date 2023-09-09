@@ -43,6 +43,7 @@ if is_windows; then
     exit 77
 fi
 
+requires_run
 requires_nbdinfo
 requires_nbdsh_uri
 requires nbdsh -c 'print(h.set_full_info)'

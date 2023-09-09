@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin eval
 requires_nbdinfo
 requires dd iflag=count_bytes </dev/null

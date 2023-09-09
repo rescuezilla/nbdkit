@@ -37,6 +37,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires guestfish --version
 requires test -f disk
 requires dd iflag=count_bytes </dev/null

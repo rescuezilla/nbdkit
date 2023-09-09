@@ -42,6 +42,7 @@
 source ./functions.sh
 set -e
 
+requires_run
 requires_plugin sh
 requires qemu-nbd --version
 

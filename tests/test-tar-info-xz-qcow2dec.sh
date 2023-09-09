@@ -37,6 +37,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires test -f disk
 requires tar --version
 requires qemu-img --version

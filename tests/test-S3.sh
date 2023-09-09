@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires hexdump --version
 requires $PYTHON --version
 requires_nbdcopy

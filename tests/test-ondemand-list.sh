@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin ondemand
 requires qemu-nbd --version
 requires bash -c 'qemu-nbd --help | grep -- --list'

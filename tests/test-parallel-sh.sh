@@ -32,6 +32,7 @@
 
 source ./functions.sh
 
+requires_run
 requires test -f file-data
 requires qemu-io --version
 requires timeout 60s true

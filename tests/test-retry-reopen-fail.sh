@@ -39,6 +39,7 @@ set -x
 
 fail=0
 
+requires_run
 requires_plugin sh
 requires qemu-io --version
 requires dd iflag=count_bytes </dev/null

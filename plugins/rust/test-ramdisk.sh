@@ -44,6 +44,8 @@ if is_windows; then
     exit 77
 fi
 
+requires_run
+
 ramdisk=target/release/examples/libramdisk.so
 
 requires test -x $ramdisk

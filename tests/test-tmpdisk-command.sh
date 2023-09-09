@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin tmpdisk
 requires_nbdsh_uri
 

@@ -39,6 +39,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin blkio
 requires_nbdsh_uri
 requires test -f disk

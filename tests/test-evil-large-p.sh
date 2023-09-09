@@ -36,6 +36,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin null
 requires_filter evil
 requires_filter noextents

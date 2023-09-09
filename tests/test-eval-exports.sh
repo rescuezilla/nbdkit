@@ -37,6 +37,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin eval
 requires_nbdinfo
 requires_nbdsh_uri

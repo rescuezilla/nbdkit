@@ -41,6 +41,7 @@ set -e
 set -x
 
 skip_if_valgrind "because setting LD_LIBRARY_PATH breaks valgrind"
+requires_run
 requires_nbdinfo
 requires expect -v
 
