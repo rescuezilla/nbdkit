@@ -27,7 +27,7 @@ same offset (if not, it returns EIO error).  You can use this to test
 copying programs by making the source and destination NBD URIs be the
 same:
 
- nbdkit -U - random size=100M --run 'nbdcopy "$uri" "$uri"'
+ nbdkit random size=100M --run 'nbdcopy "$uri" "$uri"'
 
 C<qemu-img convert> could be used in place of nbdcopy.
 See also L<nbdkit-checkwrite-filter(1)>.

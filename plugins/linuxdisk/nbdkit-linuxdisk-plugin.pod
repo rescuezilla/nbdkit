@@ -57,7 +57,7 @@ Instead of serving a partitioned disk image, serve just the "naked"
 filesystem (ie. the first partition, see
 L<nbdkit-partition-filter(1)>).
 
-=item nbdkit -U - linuxdisk /path/to/directory
+=item nbdkit linuxdisk /path/to/directory
 --run 'nbdcopy "$uri" ext2fs.img'
 
 This serves nothing.  Instead it turns a directory into a disk image,
@@ -77,7 +77,7 @@ have that.
  ln root/sbin/busybox root/sbin/init
  ln root/sbin/busybox root/bin/ls
  ln root/sbin/busybox root/bin/sh
- nbdkit -U - linuxdisk root --run '
+ nbdkit linuxdisk root --run '
    qemu-kvm -display none -kernel /boot/vmlinuz -drive file=nbd:unix:$unixsocket,snapshot=on -append "console=ttyS0 root=/dev/sda1 rw" -serial stdio
  '
 

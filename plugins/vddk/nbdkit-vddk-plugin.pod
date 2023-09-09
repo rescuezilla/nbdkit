@@ -53,7 +53,7 @@ of a disk image.  Note the C<create-size> parameter is the virtual
 size of the final VMDK disk image and must be at least as large as the
 input disk:
 
- nbdkit -U - vddk \
+ nbdkit vddk \
         /absolute/path/to/output.vmdk \
         create=true create-size=100M \
         --run 'qemu-img convert input.qcow2 $uri'
@@ -456,7 +456,7 @@ using this command:
 Another way to get the thumbprint of a server is to connect to the
 server using a bogus thumbprint with debugging enabled:
 
- nbdkit -U - -fv vddk server=esxi.example.com [...] thumbprint=12 \
+ nbdkit -fv vddk server=esxi.example.com [...] thumbprint=12 \
         --run 'qemu-img info "$uri"'
 
 The nbdkit process will try to connect (and fail because the

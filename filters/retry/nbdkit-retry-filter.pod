@@ -50,7 +50,7 @@ waiting in total about 1 minute before we give up.
 In this example we copy and convert a large file using
 L<nbdkit-ssh-plugin(1)>, L<qemu-img(1)> and L<nbdkit-captive(1)>.
 
- nbdkit -U - \
+ nbdkit \
    ssh host=remote.example.com /var/tmp/test.iso \
    --filter=retry \
    --run 'qemu-img convert -p -f raw $nbd -O qcow2 test.qcow2'

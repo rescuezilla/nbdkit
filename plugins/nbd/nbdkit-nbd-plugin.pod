@@ -298,7 +298,7 @@ style.  Use I<--run> to clean up nbdkit at the time the client exits.
 In general, note that it is best to keep the plaintext connection
 limited to a Unix socket on the local machine.
 
- nbdkit -U - -o --tls=off nbd hostname=example.com export=foo tls=require \
+ nbdkit -o --tls=off nbd hostname=example.com export=foo tls=require \
   --run '/path/to/oldclient --socket=$unixsocket'
 
 =for paragraph

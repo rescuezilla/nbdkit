@@ -39,7 +39,7 @@ Any unknown commands are ignored.  The filter responds with C<'X'>.
 Pick a large file, disk image or ISO, serve it over NBD, and start
 copying it:
 
- nbdkit -U - --filter=pause --filter=rate \
+ nbdkit --filter=pause --filter=rate \
    file BIG_FILE.ISO rate=10M pause-control=sock \
         --run 'qemu-img convert -p $nbd /var/tmp/out'
 
