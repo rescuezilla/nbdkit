@@ -37,6 +37,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin linuxdisk
 requires guestfish --version
 requires_nbdcopy

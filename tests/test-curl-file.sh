@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires test -f disk
 requires test -r /dev/null
 requires_nbdinfo

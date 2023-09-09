@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires $STAT --version
 
 sock2=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)

@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin eval
 requires nbdsh -c 'print(h.get_block_size)'
 requires_nbdsh_uri

@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires test -f disk
 requires_nbdcopy
 requires $STAT --version

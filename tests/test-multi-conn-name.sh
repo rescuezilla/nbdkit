@@ -36,6 +36,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_plugin sh
 requires_nbdsh_uri
 requires nbdsh -c 'print(h.set_opt_mode)'

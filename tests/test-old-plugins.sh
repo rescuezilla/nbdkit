@@ -36,6 +36,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires guestfish --version
 requires $CUT --version
 requires test -f disk

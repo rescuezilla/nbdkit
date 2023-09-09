@@ -35,6 +35,7 @@ set -e
 set -x
 
 skip_if_valgrind "because setting LD_LIBRARY_PATH breaks valgrind"
+requires_run
 
 # We ensure that LD_LIBRARY_PATH in the child is not further modified,
 # even if nbdkit had to re-exec.  It's tricky, though: when running

@@ -43,6 +43,7 @@ if test ! -f "$script"; then
     exit 1
 fi
 
+requires_run
 requires_plugin cc
 requires $OCAMLOPT -version
 requires_nbdsh_uri

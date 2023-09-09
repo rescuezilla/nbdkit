@@ -36,6 +36,7 @@ set -x
 
 fail=0
 
+requires_run
 requires_plugin sh
 requires_nbdsh_uri
 requires dd iflag=count_bytes </dev/null
