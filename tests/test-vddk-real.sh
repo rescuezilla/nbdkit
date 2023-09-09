@@ -71,7 +71,7 @@ qemu-img create -f vmdk $vmdk 10M
 # Check first that the VDDK library can be fully loaded.  We have to
 # check the log file for missing modules since they may not show up as
 # errors.
-nbdkit -fv -U - vddk libdir="$vddkdir" $vmdk --run 'nbdinfo "$uri"' 2>&1 |
+nbdkit -fv vddk libdir="$vddkdir" $vmdk --run 'nbdinfo "$uri"' 2>&1 |
     tee $log
 
 # Check the log for missing modules

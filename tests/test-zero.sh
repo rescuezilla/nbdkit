@@ -41,7 +41,7 @@ files="test-zero.out"
 rm -f $files
 cleanup_fn rm -f $files
 
-nbdkit -U - zero --run 'nbdcopy "$uri" test-zero.out'
+nbdkit zero --run 'nbdcopy "$uri" test-zero.out'
 
 # Resulting file should be zero-sized.
 test -f test-zero.out

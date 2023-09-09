@@ -71,7 +71,7 @@ assert hb.pread(1024 * 1024 + 1, 1) == b"\0" * (1024 * 1024 + 1)
 ha.shutdown()
 hb.shutdown()
 '
-nbdkit -v -U - --filter=blocksize eval \
+nbdkit -v --filter=blocksize eval \
     open='echo $3' \
     get_size="echo $((2 * 1024 * 1024 - 1))" \
     block_size='case $2 in

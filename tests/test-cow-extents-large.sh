@@ -48,5 +48,5 @@ if ! nbdinfo --help | grep -- --map ; then
 fi
 
 for size in 0 3G 4G 5G 8G; do
-    nbdkit -U - sparse-random $size --filter=cow --run 'nbdinfo --map $uri'
+    nbdkit sparse-random $size --filter=cow --run 'nbdinfo --map $uri'
 done

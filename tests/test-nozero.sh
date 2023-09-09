@@ -87,7 +87,7 @@ for f in {1..5}; do
 done
 
 # Check that zero with trim results in a sparse image.
-requires nbdkit -U - --filter=log file logfile=nozero1.log nozero1.img \
+requires nbdkit --filter=log file logfile=nozero1.log nozero1.img \
     --run 'nbdsh -u "$uri" -c "h.zero(1024*1024, 0)"'
 if test "$($STAT -c %b nozero1.img)" = "${sizes[1]}"; then
     echo "$0: can't trim file by writing zeroes"

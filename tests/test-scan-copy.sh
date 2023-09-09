@@ -39,5 +39,5 @@ requires_run
 requires_plugin sparse-random
 requires_filter scan
 
-nbdkit -fv -U - sparse-random 1M --filter=scan --run 'nbdcopy "$uri" "$uri"'
-nbdkit -fv -U - sparse-random 1G --filter=scan --run 'nbdcopy "$uri" "$uri"'
+nbdkit -fv sparse-random 1M --filter=scan --run 'nbdcopy "$uri" "$uri"'
+nbdkit -fv sparse-random 1G --filter=scan --run 'nbdcopy "$uri" "$uri"'

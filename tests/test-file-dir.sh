@@ -63,7 +63,7 @@ do_nbdkit_list ()
 	sort=
 	shift
     fi
-    nbdkit -U - -v file directory=file-dir \
+    nbdkit -v file directory=file-dir \
         --run 'nbdinfo --list --json "$uri"' >file-dir.out
     cat file-dir.out
     diff -u <(jq -c '[.exports[]."export-name"]'"$sort" file-dir.out) \
@@ -83,7 +83,7 @@ except nbd.Error:
 # Check that attempting to connect to export NAME fails
 do_nbdkit_fail ()
 {
-    nbdkit -U - -v -e "$1" file dir=file-dir \
+    nbdkit -v -e "$1" file dir=file-dir \
         --run 'export uri; nbdsh -c "$nbdsh_connect_fail_script"' || fail=1
 }
 
@@ -91,7 +91,7 @@ do_nbdkit_fail ()
 # Check that export NAME serves DATA as its first byte
 do_nbdkit_pass ()
 {
-    out=$(nbdkit -U - -v -e "$1" file dir=file-dir \
+    out=$(nbdkit -v -e "$1" file dir=file-dir \
         --run 'nbdsh -u "$uri" -c "print(h.pread(1, 0).decode(\"utf-8\"))"')
     test "$out" = "$2" || fail=1
 }

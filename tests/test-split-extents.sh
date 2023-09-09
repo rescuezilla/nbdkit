@@ -57,7 +57,7 @@ printf %$((512*1024))d 1 >> test-split-extents.2
 $TRUNCATE -s 1M test-split-extents.2
 
 # Test the split plugin
-nbdkit -v -U - split test-split-extents.1 test-split-extents.2 \
+nbdkit -v split test-split-extents.1 test-split-extents.2 \
        --run 'nbdsh --base-allocation --uri "$uri" -c "
 entries = []
 def f(metacontext, offset, e, err):

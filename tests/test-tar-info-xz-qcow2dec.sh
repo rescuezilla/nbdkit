@@ -62,7 +62,7 @@ tar cf $tar $disk
 xz --best --block-size=32768 $tar
 
 # Run nbdkit.
-nbdkit -U - file $tar_xz \
+nbdkit file $tar_xz \
        --filter=qcow2dec \
        --filter=tar tar-entry=$disk \
        --filter=xz \
@@ -79,7 +79,7 @@ test "$( jq -r -c '.["format"]' $out )" = "raw"
 # Use nbdcopy to copy the output to a new file, and compare it to the
 # original disk.
 export raw
-nbdkit -U - file $tar_xz \
+nbdkit file $tar_xz \
        --filter=qcow2dec \
        --filter=tar tar-entry=$disk \
        --filter=xz \

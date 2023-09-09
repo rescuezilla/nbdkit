@@ -52,7 +52,7 @@ cleanup_fn rm -f $files
 do_test ()
 {
     # We use jq to normalize the output and convert it to plain text.
-    nbdkit -U - \
+    nbdkit \
            --filter=offset \
            data "$1" size="$2" \
            offset=1024 range=65536 \

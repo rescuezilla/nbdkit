@@ -44,4 +44,4 @@ requires_run
 requires_nbdinfo
 
 # Using --run causes nbdkit to fork.
-nbdkit -U - $plugin a=1 b=2 c=3 d=4 --run 'nbdinfo "$uri"'
+nbdkit $plugin a=1 b=2 c=3 d=4 --run 'nbdinfo "$uri"'

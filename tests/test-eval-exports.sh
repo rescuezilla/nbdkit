@@ -52,7 +52,7 @@ fail=0
 
 # Control case: no .list_exports, which defaults to advertising ""
 rm -f eval-exports.list
-nbdkit -U - -v eval \
+nbdkit -v eval \
     open='[ "$3" = "" ] || { echo EINVAL wrong export >&2; exit 1; }' \
     get_size='echo 0' --run 'nbdinfo --list --json "$uri"' > eval-exports.out
 cat eval-exports.out
@@ -95,12 +95,12 @@ except nbd.Error:
 nbdsh -u nbd+unix:///name\?socket=$sock -c 'quit()'
 
 # Setting .default_export but not .list_exports advertises the canonical name
-nbdkit -U - eval default_export='echo hello' get_size='echo 0' \
+nbdkit eval default_export='echo hello' get_size='echo 0' \
        --run 'nbdinfo --list "$uri"' >eval-exports.out
 diff -u <(grep '^export=' eval-exports.out) <(echo 'export="hello":')
 
 # Failing .default_export without .list_exports results in an empty list
-nbdkit -U - eval default_export='echo ENOENT >&2; exit 1' get_size='echo 0' \
+nbdkit eval default_export='echo ENOENT >&2; exit 1' get_size='echo 0' \
        --run 'nbdinfo --list "$uri"' >eval-exports.out
 diff -u <(grep '^export=' eval-exports.out) /dev/null
 
@@ -151,7 +151,7 @@ echo $long >>eval-exports.list
 do_nbdkit $long "[[\"$long\",\"$long\",4097]]"
 
 # Invalid name (too long) causes an error response to NBD_OPT_LIST
-nbdkit -U - -v eval list_exports="echo 2$long" \
+nbdkit -v eval list_exports="echo 2$long" \
        get_size='echo 0' --run 'nbdinfo --list --json "$uri"' && fail=1
 
 exit $fail

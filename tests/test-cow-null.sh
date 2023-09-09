@@ -40,4 +40,4 @@ set -x
 requires_run
 requires_nbdinfo
 
-nbdkit -fv -U - --filter=cow null --run 'nbdinfo $nbd'
+nbdkit -fv --filter=cow null --run 'nbdinfo $nbd'

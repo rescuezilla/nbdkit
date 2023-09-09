@@ -60,7 +60,7 @@ nbdinfo --map -- [ qemu-nbd -r -f qcow2 $qcow2 ] > $map_expected
 cat $map_expected
 
 # Get the actual map from nbdkit qcow2dec filter.
-nbdkit -U - file --filter=qcow2dec $qcow2 \
+nbdkit file --filter=qcow2dec $qcow2 \
        --run 'nbdinfo --map "$uri"' > $map_actual
 cat $map_actual
 

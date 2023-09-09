@@ -43,16 +43,16 @@ requires_filter noextents
 requires_nbdcopy_null_output
 
 # Check absence of divide by zero errors.
-nbdkit -U - -fv null 1M \
+nbdkit -fv null 1M \
        --filter=evil --filter=noextents evil-probability=0 \
        --run 'nbdcopy "$uri" null:'
 
 # Smallest valid probability.
-nbdkit -U - -fv null 1M \
+nbdkit -fv null 1M \
        --filter=evil --filter=noextents evil-probability=1e-12 \
        --run 'nbdcopy "$uri" null:'
 
 # Should be treated same as P = 0.
-nbdkit -U - -fv null 1M \
+nbdkit -fv null 1M \
        --filter=evil --filter=noextents evil-probability=1e-13 \
        --run 'nbdcopy "$uri" null:'

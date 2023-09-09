@@ -42,11 +42,11 @@ requires_nbdsh_uri
 
 # Create an nbdkit eval plugin which presents block size constraints.
 # Check the advertised block size constraints can be read.
-nbdkit -U - eval \
+nbdkit eval \
        block_size="echo 64K 128K 32M" \
        get_size="echo 0" \
        --run '
-    nbdkit -U - nbd $uri --run "
+    nbdkit nbd $uri --run "
         nbdsh \
            -u \$uri \
            -c \"assert h.get_block_size(nbd.SIZE_MINIMUM) == 64 * 1024\" \

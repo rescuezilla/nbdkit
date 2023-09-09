@@ -55,7 +55,7 @@ do_test ()
     else
         cmd='qemu-io -r -f raw -c "r 0 1" $nbd'
     fi
-    nbdkit -v -U - sh - --run "$cmd"' &&
+    nbdkit -v sh - --run "$cmd"' &&
       echo qemu-io unexpectedly passed >> '$out'; :' >> $out
     if grep "qemu-io unexpectedly passed" $out ||
        ! egrep "$1" $out; then

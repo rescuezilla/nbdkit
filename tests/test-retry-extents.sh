@@ -47,7 +47,7 @@ touch retry-extents-count retry-extents-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying.
-nbdkit -v -U - \
+nbdkit -v \
        sh - \
        --filter=retry retry-delay=1 \
        --run 'nbdsh --base-allocation --uri "$uri" -c "

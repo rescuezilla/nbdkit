@@ -61,7 +61,7 @@ qemu-img map -f raw --output=json disk > test-file-extents.tmp
 cat test-file-extents.tmp
 jq -c '.[] | {start:.start, length:.length, data:.data, zero:.zero}' \
   < test-file-extents.tmp > test-file-extents.local
-nbdkit -U - file disk --run 'qemu-img map -f raw --output=json $nbd' \
+nbdkit file disk --run 'qemu-img map -f raw --output=json $nbd' \
   > test-file-extents.tmp
 cat test-file-extents.tmp
 jq -c '.[] | {start:.start, length:.length, data:.data, zero:.zero}' \

@@ -47,7 +47,7 @@ cleanup_fn rm -f $files
 # method really runs.  Otherwise there is a race where the connection
 # is dropped by nbdinfo, the --run command exits, a signal is sent to
 # nbdkit, and nbdkit shuts down before the .close callback is called.
-nbdkit -U - eval \
+nbdkit eval \
        get_size='echo 64M' \
        pread='dd if=/dev/zero count=$3 iflag=count_bytes' \
        missing='echo "in missing: $@" >> eval.missing; exit 2' \

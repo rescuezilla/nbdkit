@@ -48,7 +48,7 @@ cleanup_fn rm -f $files
 do_test ()
 {
     # We use jq to normalize the output and convert it to plain text.
-    nbdkit -U - \
+    nbdkit \
            null "$1" \
            --run 'qemu-img map -f raw --output=json $nbd' |
         jq -c '.[] | {start:.start, length:.length, data:.data, zero:.zero}' \

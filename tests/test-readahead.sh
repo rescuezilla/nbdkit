@@ -43,7 +43,7 @@ files="readahead.out"
 rm -f $files
 cleanup_fn rm -f $files
 
-nbdkit -fv -U - sh - \
+nbdkit -fv sh - \
        --filter=readahead \
        --run 'nbdsh --uri "$uri" -c "
 import time

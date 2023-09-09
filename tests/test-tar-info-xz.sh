@@ -59,7 +59,7 @@ tar cf $tar $disk
 xz --best --block-size=32768 $tar
 
 # Run nbdkit.
-nbdkit -U - file $tar_xz \
+nbdkit file $tar_xz \
        --filter=tar tar-entry=$disk \
        --filter=xz \
        --run 'qemu-img info --output=json $nbd' > $out

@@ -72,54 +72,54 @@ EOF
 chmod +x exportname.sh
 
 # Establish a baseline
-nbdkit -U - sh exportname.sh \
+nbdkit sh exportname.sh \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = \
      '[["a","x",1],["b","y",2],["c","z",3]]'
 
 # Set the default export
-nbdkit -U - --filter=exportname sh exportname.sh default-export= \
+nbdkit --filter=exportname sh exportname.sh default-export= \
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = '[["","1",1]]'
 
-nbdkit -U - --filter=exportname sh exportname.sh default-export=b \
+nbdkit --filter=exportname sh exportname.sh default-export=b \
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = '[["b","2",2]]'
 
 # Test export list policies
-nbdkit -U - --filter=exportname sh exportname.sh exportname-list=keep \
+nbdkit --filter=exportname sh exportname.sh exportname-list=keep \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = \
      '[["a","x",1],["b","y",2],["c","z",3]]'
 
-nbdkit -U - --filter=exportname sh exportname.sh exportname-list=error \
+nbdkit --filter=exportname sh exportname.sh exportname-list=error \
        --run 'nbdinfo --json --list "$uri"' > exportname.out && fail=1 || :
 test ! -s exportname.out
 
-nbdkit -U - --filter=exportname sh exportname.sh exportname-list=empty \
+nbdkit --filter=exportname sh exportname.sh exportname-list=empty \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = '[]'
 
-nbdkit -U - --filter=exportname sh exportname.sh exportname-list=defaultonly \
+nbdkit --filter=exportname sh exportname.sh exportname-list=defaultonly \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 got="$(jq -c "$query" exportname.out)"
 # libnbd 1.4.0 and 1.4.1 differ on whether --list grabs description
 test "$got" = '[["a",null,1]]' || test "$got" = '[["a","1",1]]' || fail=1
 
-nbdkit -U - --filter=exportname sh exportname.sh default-export=b \
+nbdkit --filter=exportname sh exportname.sh default-export=b \
        exportname-list=defaultonly exportname=a exportname=b \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 got="$(jq -c "$query" exportname.out)"
 test "$got" = '[["b",null,2]]' || test "$got" = '[["b","2",2]]' || fail=1
 
-nbdkit -U - --filter=exportname sh exportname.sh \
+nbdkit --filter=exportname sh exportname.sh \
        exportname-list=explicit exportname=b exportname=a \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
@@ -127,31 +127,31 @@ got="$(jq -c "$query" exportname.out)"
 test "$got" = '[["a",null,1],["b",null,2]]' ||
     test "$got" = '[["a","1",1],["b","2",2]]' || fail=1
 
-nbdkit -U - --filter=exportname sh exportname.sh exportname-list=explicit \
+nbdkit --filter=exportname sh exportname.sh exportname-list=explicit \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = '[]'
 
 # Test description modes with lists
-nbdkit -U - --filter=exportname sh exportname.sh exportdesc=keep \
+nbdkit --filter=exportname sh exportname.sh exportdesc=keep \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = \
      '[["a","x",1],["b","y",2],["c","z",3]]'
 
-nbdkit -U - --filter=exportname sh exportname.sh exportdesc=none \
+nbdkit --filter=exportname sh exportname.sh exportdesc=none \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = \
      '[["a",null,1],["b",null,2],["c",null,3]]'
 
-nbdkit -U - --filter=exportname sh exportname.sh exportdesc=fixed:hi \
+nbdkit --filter=exportname sh exportname.sh exportdesc=fixed:hi \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = \
      '[["a","hi",1],["b","hi",2],["c","hi",3]]'
 
-nbdkit -U - --filter=exportname sh exportname.sh \
+nbdkit --filter=exportname sh exportname.sh \
        exportdesc=script:'echo $name$name' \
        --run 'nbdinfo --json --list "$uri"' > exportname.out
 cat exportname.out
@@ -159,12 +159,12 @@ test "$(jq -c "$query" exportname.out)" = \
      '[["a","aa",1],["b","bb",2],["c","cc",3]]'
 
 # Test description modes with connections
-nbdkit -U - -e c --filter=exportname sh exportname.sh exportdesc=fixed:hi \
+nbdkit -e c --filter=exportname sh exportname.sh exportdesc=fixed:hi \
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = '[["c","hi",3]]'
 
-nbdkit -U - -e c --filter=exportname sh exportname.sh \
+nbdkit -e c --filter=exportname sh exportname.sh \
        exportdesc=script:'echo $name$name' \
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out
 cat exportname.out
@@ -172,7 +172,7 @@ test "$(jq -c "$query" exportname.out)" = '[["c","cc",3]]'
 
 # Test strict mode. Tolerate nbdinfo 1.6.2 which gave invalid JSON but 0 status
 st=0
-nbdkit -U - --filter=exportname sh exportname.sh exportname-strict=true \
+nbdkit --filter=exportname sh exportname.sh exportname-strict=true \
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out || st=$?
 cat exportname.out
 if test $? = 0; then
@@ -180,7 +180,7 @@ if test $? = 0; then
 fi
 
 st=0
-nbdkit -U - --filter=exportname sh exportname.sh exportname-strict=true \
+nbdkit --filter=exportname sh exportname.sh exportname-strict=true \
        exportname=a exportname=b exportname=c \
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out || st=$?
 cat exportname.out
@@ -188,13 +188,13 @@ if test $? = 0; then
     test -s exportname.out && jq -c "$query" exportname.out && fail=1
 fi
 
-nbdkit -U - --filter=exportname sh exportname.sh exportname-strict=true \
+nbdkit --filter=exportname sh exportname.sh exportname-strict=true \
        exportname=a exportname=b exportname= default-export=a\
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out
 cat exportname.out
 test "$(jq -c "$query" exportname.out)" = '[["a","1",1]]'
 
-nbdkit -U - -e a --filter=exportname sh exportname.sh exportname-strict=true \
+nbdkit -e a --filter=exportname sh exportname.sh exportname-strict=true \
        exportname=a exportname=b exportname=c \
        --run 'nbdinfo --no-content --json "$uri"' > exportname.out
 cat exportname.out

@@ -43,7 +43,7 @@ rm -f $files
 cleanup_fn rm -f $files
 
 # Select partition 3 from a 2 partition disk.
-nbdkit -U - -r -f -v --filter=partition \
+nbdkit -r -f -v --filter=partition \
          partitioning disk disk partition-type=mbr partition=3 \
          --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
 
@@ -55,7 +55,7 @@ grep "MBR partition 3 not found" partition2.log
 # the extended partition so it is skipped.  This test is slightly
 # different from above as it invokes the code supporting logical
 # partitions.
-nbdkit -U - -r -f -v --filter=partition \
+nbdkit -r -f -v --filter=partition \
          partitioning disk disk disk disk disk disk disk disk disk \
          partition-type=mbr partition=11 \
          --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
@@ -65,7 +65,7 @@ cat partition2.log
 grep "MBR partition 11 not found" partition2.log
 
 # It should be impossible to select an extended partition.
-nbdkit -U - -r -f -v --filter=partition \
+nbdkit -r -f -v --filter=partition \
          partitioning disk disk disk disk disk partition-type=mbr partition=4 \
          --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
 
@@ -75,7 +75,7 @@ grep "MBR partition 4 not found" partition2.log
 
 # Selecting a logical partition on a disk without an extended
 # partition gives a different error.
-nbdkit -U - -r -f -v --filter=partition \
+nbdkit -r -f -v --filter=partition \
          partitioning disk disk partition-type=mbr partition=5 \
          --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
 

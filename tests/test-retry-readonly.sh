@@ -46,7 +46,7 @@ touch retry-readonly-count retry-readonly-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying.
-nbdkit -v -U - \
+nbdkit -v \
        sh - \
        --filter=retry retry-delay=1 retry-readonly=yes \
        --run 'qemu-io -f raw -c "w 0 512" -c "w 0 512" $nbd || :' <<'EOF'

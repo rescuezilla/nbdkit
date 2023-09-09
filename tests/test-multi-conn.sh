@@ -63,7 +63,7 @@ print(h[0].can_multi_conn())
 
 # Demonstrate the caching present without use of filter
 for filter in '' '--filter=multi-conn multi-conn-mode=plugin'; do
-  nbdkit -vf -U - sh test-multi-conn-plugin.sh $filter \
+  nbdkit -vf sh test-multi-conn-plugin.sh $filter \
     --run 'handles=4 nbdsh -c "$preamble" -c "
 # Without flush, reads cache, and writes do not affect persistent data
 print(bytes(h[0].pread(4, 0)))
@@ -109,7 +109,7 @@ done
 
 # Demonstrate specifics of FUA flag
 for filter in '' '--filter=multi-conn multi-conn-mode=plugin'; do
-  nbdkit -vf -U - sh test-multi-conn-plugin.sh $filter \
+  nbdkit -vf sh test-multi-conn-plugin.sh $filter \
     --run 'nbdsh -c "$preamble" -c "
 # Some servers let FUA flush all outstanding requests
 h[0].pwrite(b'\''hello '\'', 0)
@@ -123,7 +123,7 @@ EOF
            ) test-multi-conn.out || fail=1
 done
 for filter in '' '--filter=multi-conn multi-conn-mode=plugin'; do
-  nbdkit -vf -U - sh test-multi-conn-plugin.sh strictfua=1 $filter \
+  nbdkit -vf sh test-multi-conn-plugin.sh strictfua=1 $filter \
     --run 'nbdsh -c "$preamble" -c "
 # But it is also compliant for a server that only flushes the exact request
 h[0].pwrite(b'\''hello '\'', 0)
@@ -155,7 +155,7 @@ done
 # mode is also able to supply multi-conn by a different technique.
 for filter in '--filter=multi-conn' 'strictfua=1 --filter=multi-conn' \
               '--filter=multi-conn multi-conn-mode=plugin --filter=cache' ; do
-  nbdkit -vf -U - sh test-multi-conn-plugin.sh $filter \
+  nbdkit -vf sh test-multi-conn-plugin.sh $filter \
     --run 'nbdsh -c "$preamble" -c "
 # FUA writes are immediately visible on all connections
 h[0].cache(12, 0)
@@ -175,7 +175,7 @@ EOF
 done
 
 # unsafe mode intentionally lacks consistency, use at your own risk
-nbdkit -vf -U - sh test-multi-conn-plugin.sh \
+nbdkit -vf sh test-multi-conn-plugin.sh \
   --filter=multi-conn multi-conn-mode=unsafe \
   --run 'nbdsh -c "$preamble" -c "
 h[0].cache(12, 0)
@@ -193,7 +193,7 @@ EOF
          ) test-multi-conn.out || fail=1
 
 # auto mode devolves to multi-conn disable when connections are serialized
-nbdkit -vf -U - sh test-multi-conn-plugin.sh --filter=noparallel \
+nbdkit -vf sh test-multi-conn-plugin.sh --filter=noparallel \
   serialize=connections --filter=multi-conn --filter=cache \
   --run 'handles=1 nbdsh -c "$preamble"
 ' > test-multi-conn.out || fail=1
@@ -208,7 +208,7 @@ for level in off connection fast; do
               plugin 'plugin --filter=cache'; do
     echo "setup: $level $mode" >> test-multi-conn.stat
     # Flush with no activity
-    nbdkit -vf -U - sh test-multi-conn-plugin.sh --filter=multi-conn \
+    nbdkit -vf sh test-multi-conn-plugin.sh --filter=multi-conn \
       --filter=stats statsfile=test-multi-conn.stat statsappend=true \
       multi-conn-track-dirty=$level multi-conn-mode=$mode \
       --run 'nbdsh -c "$preamble" -c "
@@ -217,7 +217,7 @@ h[0].pread(1, 0)
 h[0].flush()
 "' > test-multi-conn.out || fail=1
     # Client that flushes assuming multi-conn semantics
-    nbdkit -vf -U - sh test-multi-conn-plugin.sh --filter=multi-conn \
+    nbdkit -vf sh test-multi-conn-plugin.sh --filter=multi-conn \
       --filter=stats statsfile=test-multi-conn.stat statsappend=true \
       multi-conn-track-dirty=$level multi-conn-mode=$mode \
       --run 'handles=4 nbdsh -c "$preamble" -c "
@@ -230,7 +230,7 @@ h[3].flush()
 h[3].flush()
 "' > test-multi-conn.out || fail=1
     # Client that flushes assuming inconsistent semantics
-    nbdkit -vf -U - sh test-multi-conn-plugin.sh --filter=multi-conn \
+    nbdkit -vf sh test-multi-conn-plugin.sh --filter=multi-conn \
       --filter=stats statsfile=test-multi-conn.stat statsappend=true \
       multi-conn-track-dirty=$level multi-conn-mode=$mode \
       --run 'nbdsh -c "$preamble" -c "

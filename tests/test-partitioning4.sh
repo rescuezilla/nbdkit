@@ -72,7 +72,7 @@ done
 $TRUNCATE -s 6144 $d/part.0250
 
 # Run nbdkit.
-nbdkit -f -v -D partitioning.regions=1 -U - \
+nbdkit -f -v -D partitioning.regions=1 \
              --filter=partition \
              partitioning \
              $d/part.* \

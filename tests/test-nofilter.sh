@@ -41,5 +41,5 @@ files="nofilter.img"
 rm -f $files
 cleanup_fn rm -f $files
 
-nbdkit -U - -v --filter=nofilter memory 10M \
+nbdkit -v --filter=nofilter memory 10M \
        --run 'nbdcopy "$uri" nofilter.img'

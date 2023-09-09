@@ -52,8 +52,8 @@ requires test -x $ramdisk
 requires_nbdinfo
 requires_nbdsh_uri
 
-nbdkit -fv -U - $ramdisk size=10M --run 'nbdinfo "$uri"'
-nbdkit -fv -U - $ramdisk size=10M \
+nbdkit -fv $ramdisk size=10M --run 'nbdinfo "$uri"'
+nbdkit -fv $ramdisk size=10M \
        --run '
     nbdsh -u "$uri" \
           -c "buf = b\"1234\"*1024" \

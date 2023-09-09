@@ -60,7 +60,7 @@ grep "input=string1" test-stdio.out
 grep "rest=string2" test-stdio.out
 
 # Test with --run.
-nbdkit -U - -v $plugin one=1 --run 'printf cmd=; cat' \
+nbdkit -v $plugin one=1 --run 'printf cmd=; cat' \
     < test-stdio.in > test-stdio.out
 cat test-stdio.out
 grep "one=string1" test-stdio.out

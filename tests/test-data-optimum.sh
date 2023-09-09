@@ -52,7 +52,7 @@ do_test ()
     data="$1"
     expected_AST="$2"
 
-    nbdkit -U - -fv -D data.AST=1 data "$data" --run true >$log 2>&1
+    nbdkit -fv -D data.AST=1 data "$data" --run true >$log 2>&1
 
     # Collect up all lines of debug output containing the AST
     # and concatenate them into a single string.

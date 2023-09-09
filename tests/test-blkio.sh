@@ -45,7 +45,7 @@ requires_nbdsh_uri
 requires test -f disk
 requires_linux_kernel_version 6.0
 
-nbdkit -U - -r blkio io_uring path=disk \
+nbdkit -r blkio io_uring path=disk \
        --run '
     nbdsh -u "$uri" \
           -c "import os" \

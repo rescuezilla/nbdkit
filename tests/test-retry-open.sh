@@ -48,7 +48,7 @@ echo 0 > retry-open2-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying open.
-nbdkit -v -U - \
+nbdkit -v \
        sh - \
        --filter=retry retry-delay=1 \
        --run 'qemu-io -f raw -c "r -P0 0 512" $nbd || :' <<'EOF'

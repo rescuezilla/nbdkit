@@ -65,7 +65,7 @@ cleanup_fn rm -f $out
 rm -f $out
 
 LANG=C \
-nbdkit -U - --tls=require --tls-certificates="$pkidir" \
+nbdkit --tls=require --tls-certificates="$pkidir" \
        -D nbdkit.tls.session=1 \
        null \
        --run '[ "x$tls" = "x2" ] && nbdinfo "$uri"' > $out

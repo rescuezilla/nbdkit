@@ -56,7 +56,7 @@ do_test ()
     shift 2
 
     for allocator in $allocators; do
-        nbdkit -U - -v -D data.AST=1 \
+        nbdkit -v -D data.AST=1 \
                data "$data" \
                allocator=$allocator "$@" \
                --run '
@@ -290,7 +290,7 @@ unset b
 unset c
 
 # Unknown variable should fail.
-if nbdkit -U - data ' $a $b $c ' --run 'exit 0'; then
+if nbdkit data ' $a $b $c ' --run 'exit 0'; then
     echo "$0: expected unknown variables to fail"
     exit 1
 fi
@@ -323,13 +323,13 @@ do_test ' $a $b $c ' 'b"\1\2\3\4\5\5\5\5\5"' \
         a=' 1 2 ' b=' 3 4 ' c=' $d*5 ' d=' 5 '
 
 # Badly formatted variable should fail.
-if nbdkit -U - data ' $a ' a='NONSENSE' --run 'exit 0'; then
+if nbdkit data ' $a ' a='NONSENSE' --run 'exit 0'; then
     echo "$0: expected unknown variables to fail"
     exit 1
 fi
 
 # Using an extra parameter without data= should fail.
-if nbdkit -U - data raw='' a='NONSENSE' --run 'exit 0'; then
+if nbdkit data raw='' a='NONSENSE' --run 'exit 0'; then
     echo "$0: expected extra params to fail with !data"
     exit 1
 fi

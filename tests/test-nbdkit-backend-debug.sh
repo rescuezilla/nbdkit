@@ -43,7 +43,7 @@ files="$out $debug"
 rm -f $files
 cleanup_fn rm -f $files
 
-nbdkit -U - \
+nbdkit \
        -v \
        --filter=noextents \
        memory 10M \
@@ -55,7 +55,7 @@ grep '^nbdkit:.*debug: memory: open' $debug
 grep '^nbdkit:.*debug: noextents: pread' $debug
 grep '^nbdkit:.*debug: memory: pread' $debug
 
-nbdkit -U - \
+nbdkit \
        -v -D nbdkit.backend.controlpath=0 \
        --filter=noextents \
        memory 10M \
@@ -67,7 +67,7 @@ grep -v '^nbdkit:.*debug: memory: open' $debug
 grep '^nbdkit:.*debug: noextents: pread' $debug
 grep '^nbdkit:.*debug: memory: pread' $debug
 
-nbdkit -U - \
+nbdkit \
        -v -D nbdkit.backend.datapath=0 \
        --filter=noextents \
        memory 10M \

@@ -54,7 +54,7 @@ export DUMMY_VDDK_PRINT_PASSWORD=1
 export out
 expect -f - <<'EOF'
   spawn sh -c "
-    nbdkit -fv -U - \
+    nbdkit -fv \
            vddk \
            libdir=.libs \
            server=noserver.example.com thumbprint=ab \

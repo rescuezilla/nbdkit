@@ -43,14 +43,14 @@ requires_filter noextents
 requires_nbdcopy_null_output
 
 # This is the largest probability we support.
-nbdkit -U - -fv null 1M \
+nbdkit -fv null 1M \
        --filter=evil --filter=noextents evil-probability=1/8 \
        --run 'nbdcopy "$uri" null:'
 
 # Anything larger is treated as 100%.
-nbdkit -U - -fv null 1M \
+nbdkit -fv null 1M \
        --filter=evil --filter=noextents evil-probability=0.5 \
        --run 'nbdcopy "$uri" null:'
-nbdkit -U - -fv null 1M \
+nbdkit -fv null 1M \
        --filter=evil --filter=noextents evil-probability=1.0 \
        --run 'nbdcopy "$uri" null:'

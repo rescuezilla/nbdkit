@@ -50,7 +50,7 @@ cleanup_fn rm -f $files
 rm -rf cow.d
 mkdir cow.d
 cleanup_fn rm -rf cow.d
-nbdkit -fv -U - linuxdisk cow.d size=100M \
+nbdkit -fv linuxdisk cow.d size=100M \
        --run 'nbdcopy "$uri" cow-base.img'
 lastmod="$($STAT -c "%y" cow-base.img)"
 

@@ -78,7 +78,7 @@ for opt in \
     user=alice \
     user-agent="Mozilla/1"
 do
-    nbdkit -fv -D curl.verbose=1 -U - \
+    nbdkit -fv -D curl.verbose=1 \
            curl file:$PWD/disk protocols=file "$opt" \
            --run 'nbdinfo $nbd'
 done

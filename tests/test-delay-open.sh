@@ -40,7 +40,7 @@ requires_filter delay
 requires_nbdinfo
 
 start_t=$SECONDS
-nbdkit -U - null --filter=delay delay-open=3 --run 'nbdinfo "$uri"'
+nbdkit null --filter=delay delay-open=3 --run 'nbdinfo "$uri"'
 end_t=$SECONDS
 
 if [ $((end_t - start_t)) -lt 3 ]; then

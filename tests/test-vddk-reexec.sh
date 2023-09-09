@@ -42,10 +42,10 @@ requires_run
 # uninstalled, our wrapper nbdkit also modifies LD_LIBRARY_PATH, so we
 # need to capture an expected value from what leaks through an
 # innocuous plugin.
-expect_LD_LIBRARY_PATH=$(nbdkit -U - zero --run 'echo "$LD_LIBRARY_PATH"')
+expect_LD_LIBRARY_PATH=$(nbdkit zero --run 'echo "$LD_LIBRARY_PATH"')
 export expect_LD_LIBRARY_PATH
 
-nbdkit -U - vddk libdir=.libs /dev/null \
+nbdkit vddk libdir=.libs /dev/null \
    --run 'echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
           echo "expect_LD_LIBRARY_PATH=$expect_LD_LIBRARY_PATH"
           test "$LD_LIBRARY_PATH" = "$expect_LD_LIBRARY_PATH"'

@@ -41,12 +41,12 @@ requires_run
 requires_plugin sh
 
 unset tmpdir
-nbdkit -U - sh - --run 'if test -n "$tmpdir"; then exit 1; fi' </dev/null
+nbdkit sh - --run 'if test -n "$tmpdir"; then exit 1; fi' </dev/null
 
 # Meanwhile, the user CAN export $tmpdir for the sake of --run, but
 # the script still gets its own distinct location.
 
-tmpdir=/nowhere nbdkit -U - -v sh - \
+tmpdir=/nowhere nbdkit -v sh - \
     --run 'if test "$tmpdir" != /nowhere; then exit 1; fi' <<EOF
 if test "$tmpdir" = /nowhere; then
   echo "$0: unexpected tmpdir" 2>&1

@@ -41,7 +41,7 @@ requires_nbdsh_uri
 
 # Test delay-close with a well-behaved client.
 
-nbdkit -U - null --filter=delay delay-close=3 \
+nbdkit null --filter=delay delay-close=3 \
        --run '
 start_t=$(date +%s)
 nbdsh -u "$uri" -c "h.shutdown()"

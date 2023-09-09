@@ -52,7 +52,7 @@ out=test-cc.out
 cleanup_fn rm -f $out
 rm -f $out
 
-nbdkit -U - cc $script \
+nbdkit cc $script \
        EXTRA_CFLAGS="-I$abs_top_srcdir/include" \
        --run 'nbdinfo --size $uri' > $out
 test "$(cat $out)" -eq $((100 * 1024 * 1024))

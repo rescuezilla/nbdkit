@@ -45,7 +45,7 @@ requires_run
 requires_plugin cc
 requires guestfish --version
 
-$script -fv -U - \
+$script -fv \
         EXTRA_CFLAGS="-I$abs_top_srcdir/include" \
         --run '
     guestfish \

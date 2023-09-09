@@ -53,7 +53,7 @@ qemu-img create -f luks \
          -o key-secret=sec0 \
          $disk 1M
 
-nbdkit -U - file $disk --filter=luks passphrase=123456 \
+nbdkit file $disk --filter=luks passphrase=123456 \
        --run 'nbdinfo $uri' > $info
 cat $info
 

@@ -43,13 +43,13 @@ requires_nbdsh_uri
 
 function do_test_info ()
 {
-    nbdkit -U - --filter=offset --filter=truncate pattern size=1024 \
+    nbdkit --filter=offset --filter=truncate pattern size=1024 \
            "$@" --run 'nbdinfo $nbd'
 }
 
 function do_test_read512 ()
 {
-    nbdkit -U - --filter=offset --filter=truncate pattern size=1024 \
+    nbdkit --filter=offset --filter=truncate pattern size=1024 \
            "$@" --run 'nbdsh -u "$uri" -c "
 try:
   h.pread(512, 0)
@@ -60,7 +60,7 @@ except nbd.Error:
 
 function do_test_zero512 ()
 {
-    nbdkit -U - --filter=offset --filter=truncate memory size=1024 \
+    nbdkit --filter=offset --filter=truncate memory size=1024 \
            "$@" --run 'nbdsh -u "$uri" -c "
 try:
   h.zero(512, 0)

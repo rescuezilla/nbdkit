@@ -43,7 +43,7 @@ requires nbdsh --version
 requires_nbdsh_uri
 requires dd iflag=count_bytes </dev/null
 
-nbdkit -U - sh - --filter=checkwrite <<'EOF' \
+nbdkit sh - --filter=checkwrite <<'EOF' \
        --run 'nbdsh -u "$uri" -c "h.zero (655360, 262144, 0)"'
 case "$1" in
   get_size) echo 1048576 ;;

@@ -45,11 +45,11 @@ if is_windows; then
     exit 77
 fi
 
-nbdkit -U - -v -D ip.rules=1 --filter=ip null allow=uid:`id -u` deny=all \
+nbdkit -v -D ip.rules=1 --filter=ip null allow=uid:`id -u` deny=all \
        --run 'nbdinfo $nbd'
 
 # This is expected to fail.
-if nbdkit -U - -v -D ip.rules=1 --filter=ip null deny=uid:`id -u` \
+if nbdkit -v -D ip.rules=1 --filter=ip null deny=uid:`id -u` \
           --run 'nbdinfo $nbd'; then
     echo "$0: expected test to fail"
     exit 1

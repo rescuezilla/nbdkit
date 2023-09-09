@@ -56,7 +56,7 @@ qemu-img convert -f raw disk -O qcow2 $disk
 tar cf $tar $disk
 
 # Run nbdkit.
-nbdkit -U - file $tar \
+nbdkit file $tar \
        --filter=tar tar-entry=$disk \
        --run 'qemu-img info --output=json $nbd' > $out
 cat $out

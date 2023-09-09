@@ -81,7 +81,7 @@ do_nbdkit ()
             else
                 touch $tmpdir/seen_$1
             fi
-            '; cat; } | nbdkit -v -U - "$@" sh - $late_args \
+            '; cat; } | nbdkit -v "$@" sh - $late_args \
         --run 'qemu-nbd --list -k $unixsocket' |
         grep -E "flags: 0x" | grep -Eoi '0x[a-f0-9]+' >eflags.out 2>eflags.err
     printf eflags=; cat eflags.out

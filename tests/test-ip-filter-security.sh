@@ -43,12 +43,12 @@ requires_run
 requires selinuxenabled
 
 # This is expected to succeed.
-nbdkit -U - -v -D ip.rules=1 --filter=ip null \
+nbdkit -v -D ip.rules=1 --filter=ip null \
        deny=security:notalabel \
        --run 'nbdinfo $nbd'
 
 # This is expected to fail.
-if nbdkit -U - -v -D ip.rules=1 --filter=ip null \
+if nbdkit -v -D ip.rules=1 --filter=ip null \
           allow=security:notalabel deny=all \
           --run 'nbdinfo $nbd'; then
     echo "$0: expected test to fail"

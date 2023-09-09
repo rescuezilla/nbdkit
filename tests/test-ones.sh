@@ -40,15 +40,15 @@ requires_nbdinfo
 requires_run
 
 # Check the disk contains 0xff by default.
-nbdkit -U - ones 1024 --run '
+nbdkit ones 1024 --run '
 nbdsh -u "$uri" -c "assert (h.pread(1024,0) == b\"\\xff\"*1024)"
 '
 
 # Change the byte.
-nbdkit -U - ones 1024 byte=0x5a --run '
+nbdkit ones 1024 byte=0x5a --run '
 nbdsh -u "$uri" -c "assert (h.pread(1024,0) == b\"\\x5a\"*1024)"
 '
 
 # Check the disk is fully allocated.
-nbdkit -U - ones 1G --run 'nbdinfo --map "$uri"' | \
+nbdkit ones 1G --run 'nbdinfo --map "$uri"' | \
     grep -E '0[[:space:]]+1073741824[[:space:]]+0[[:space:]]+(data|allocated)'

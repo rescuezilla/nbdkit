@@ -55,7 +55,7 @@ cleanup_fn rm -f $f
 # might be biased.
 
 export f
-nbdkit -U - null 10000000 \
+nbdkit null 10000000 \
        --filter=evil --filter=noextents \
        evil=cosmic-rays evil-probability=1/800000 \
        --run 'nbdcopy "$uri" $f'

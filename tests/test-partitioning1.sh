@@ -55,7 +55,7 @@ $TRUNCATE -s 1 partitioning1-p5
 $TRUNCATE -s 511 partitioning1-p6
 
 # Run nbdkit with partitioning plugin and partition filter.
-nbdkit -f -v -D partitioning.regions=1 -U - \
+nbdkit -f -v -D partitioning.regions=1 \
        --filter=partition \
        partitioning \
        mbr-id=0x83 alignment=512 \
@@ -75,7 +75,7 @@ cmp file-data partitioning1.out
 
 # Same test with > 4 MBR partitions.
 # Note we select partition 6 because partition 4 is the extended partition.
-nbdkit -f -v -D partitioning.regions=1 -U - \
+nbdkit -f -v -D partitioning.regions=1 \
        --filter=partition \
        partitioning \
        partitioning1-p1 \
@@ -92,7 +92,7 @@ nbdkit -f -v -D partitioning.regions=1 -U - \
 cmp file-data partitioning1.out
 
 # Same test with GPT.
-nbdkit -f -v -D partitioning.regions=1 -U - \
+nbdkit -f -v -D partitioning.regions=1 \
        --filter=partition \
        partitioning \
        partitioning1-p1 \

@@ -43,4 +43,4 @@ requires_nbdcopy
 requires_libnbd_version 1.5.9
 
 # Copy from self to self which is what this plugin is intended for.
-nbdkit -U - sparse-random size=10G --run 'nbdcopy "$uri" "$uri"'
+nbdkit sparse-random size=10G --run 'nbdcopy "$uri" "$uri"'

@@ -41,7 +41,7 @@ requires_filter scan
 # We're just testing that there are no problematic races with the
 # background thread.
 
-nbdkit -fv -U - memory 1 --filter=scan --run 'nbdinfo $uri'
-nbdkit -fv -U - memory 1M --filter=scan --run 'nbdinfo $uri'
-nbdkit -fv -U - memory 1G --filter=scan --run 'nbdinfo $uri'
-nbdkit -fv -U - memory 1G --filter=scan -e test --run 'nbdinfo $uri'
+nbdkit -fv memory 1 --filter=scan --run 'nbdinfo $uri'
+nbdkit -fv memory 1M --filter=scan --run 'nbdinfo $uri'
+nbdkit -fv memory 1G --filter=scan --run 'nbdinfo $uri'
+nbdkit -fv memory 1G --filter=scan -e test --run 'nbdinfo $uri'

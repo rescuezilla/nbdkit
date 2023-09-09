@@ -70,7 +70,7 @@ cleanup_fn rm -f $files
 
 cp disk $disk
 
-nbdkit -fv -U - $f file=$disk \
+nbdkit -fv $f file=$disk \
        --run '
     guestfish \
         add "" protocol:nbd server:unix:$unixsocket : \

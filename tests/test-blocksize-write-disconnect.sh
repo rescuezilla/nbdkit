@@ -49,7 +49,7 @@ requires dd iflag=count_bytes </dev/null
 # 32M+1 to 64M kill the connection (ENOTCONN visible to client), and
 # 64M+1 and above fails with ERANGE in libnbd.
 
-nbdkit -v -U - eval \
+nbdkit -v eval \
        block_size="echo 2 4096 16M" \
        get_size="echo 64M" \
        pread=' dd if=/dev/zero count=$3 iflag=count_bytes ' \

@@ -47,7 +47,7 @@ cleanup_fn rm -f $file
 $TRUNCATE -s 512 $file
 
 # Write to the file through the filter.
-nbdkit -U - --filter=swab file $file swab-bits=32 --run '
+nbdkit --filter=swab file $file swab-bits=32 --run '
     nbdsh --uri "$uri" -c "h.pwrite(b\"abcdefghijklmnop\", 256)"
 '
 

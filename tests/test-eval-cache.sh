@@ -74,7 +74,7 @@ buf = h.pread(64 * 1024 * 1024, 64 * 1024 * 1024)
 if hasattr(buf, "is_zero"):
     assert buf.is_zero()
 '
-nbdkit -U - -v eval \
+nbdkit -v eval \
     get_size='echo 128M' can_cache='echo emulate' open='touch "$cache"' \
     pread='
       if test -f "$witness"; then
@@ -86,7 +86,7 @@ nbdkit -U - -v eval \
     ' --run 'nbdsh -u "$uri" -c "$script"'
 
 # This plugin provides .cache but not .can_cache; eval should synthesize one.
-nbdkit -U - -v eval \
+nbdkit -v eval \
     get_size='echo 1M' cache='exit 0' pread='echo EIO >&2; exit 1' \
     --run 'nbdsh -u "$uri" -c "assert h.can_cache()" \
       -c "h.cache(1024*1024, 0)"'

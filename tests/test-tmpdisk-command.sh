@@ -41,7 +41,7 @@ requires_nbdsh_uri
 # - If multiple parameters appear, last one is used.
 # - Test quoting.
 # - size=0 because we ignore it in the command itself.
-nbdkit -f -v -U - tmpdisk 0 a=2 a=1 b=1024 c="a ' b ' c" \
+nbdkit -f -v tmpdisk 0 a=2 a=1 b=1024 c="a ' b ' c" \
        TRUNCATE="$TRUNCATE" \
        command='
 set -x

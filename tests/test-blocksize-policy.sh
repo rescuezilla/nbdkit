@@ -43,7 +43,7 @@ requires_nbdsh_uri
 # using some nbdsh.
 
 # No parameters.
-nbdkit -U - eval \
+nbdkit eval \
        block_size="echo 64K 128K 32M" \
        get_size="echo 0" \
        --filter=blocksize-policy \
@@ -55,7 +55,7 @@ nbdkit -U - eval \
       '
 
 # Adjust single values.
-nbdkit -U - eval \
+nbdkit eval \
        block_size="echo 64K 128K 32M" \
        get_size="echo 0" \
        --filter=blocksize-policy \
@@ -66,7 +66,7 @@ nbdkit -U - eval \
            -c "assert h.get_block_size(nbd.SIZE_PREFERRED) == 128 * 1024" \
            -c "assert h.get_block_size(nbd.SIZE_MAXIMUM) == 32 * 1024 * 1024" \
       '
-nbdkit -U - eval \
+nbdkit eval \
        block_size="echo 64K 128K 32M" \
        get_size="echo 0" \
        --filter=blocksize-policy \
@@ -77,7 +77,7 @@ nbdkit -U - eval \
            -c "assert h.get_block_size(nbd.SIZE_PREFERRED) == 64 * 1024" \
            -c "assert h.get_block_size(nbd.SIZE_MAXIMUM) == 32 * 1024 * 1024" \
       '
-nbdkit -U - eval \
+nbdkit eval \
        block_size="echo 64K 128K 32M" \
        get_size="echo 0" \
        --filter=blocksize-policy \
@@ -90,7 +90,7 @@ nbdkit -U - eval \
       '
 
 # Adjust all values for a plugin which is advertising.
-nbdkit -U - eval \
+nbdkit eval \
        block_size="echo 64K 128K 32M" \
        get_size="echo 0" \
        --filter=blocksize-policy \
@@ -105,7 +105,7 @@ nbdkit -U - eval \
       '
 
 # Set all values for a plugin which is not advertising.
-nbdkit -U - eval \
+nbdkit eval \
        get_size="echo 0" \
        --filter=blocksize-policy \
        blocksize-minimum=1 \

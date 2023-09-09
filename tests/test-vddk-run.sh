@@ -44,7 +44,7 @@ out=test-vddk-run.out
 rm -f $out
 cleanup_fn rm -f $out
 
-nbdkit -U - vddk libdir=.libs /dev/null --run 'nbdinfo $nbd' > $out
+nbdkit vddk libdir=.libs /dev/null --run 'nbdinfo $nbd' > $out
 cat $out
 
 grep -E 'export-size: 524288\b' $out

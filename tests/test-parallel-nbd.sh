@@ -63,7 +63,7 @@ start_nbdkit -P test-parallel-nbd.pid \
              file test-parallel-nbd.data wdelay=2 rdelay=1
 
 # With --threads=1, the write should complete first because it was issued first
-nbdkit -v -t 1 -U - nbd socket=$sock --run '
+nbdkit -v -t 1 nbd socket=$sock --run '
   timeout 60s </dev/null qemu-io -f raw \
   -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" \
   -c aio_flush $nbd' | tee test-parallel-nbd.out
@@ -74,7 +74,7 @@ read 512/512 bytes at offset 0"; then
 fi
 
 # With default --threads, the faster read should complete first
-nbdkit -v -U - nbd socket=$sock --run '
+nbdkit -v nbd socket=$sock --run '
   timeout 60s </dev/null qemu-io -f raw \
   -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" \
   -c aio_flush $nbd' | tee test-parallel-nbd.out

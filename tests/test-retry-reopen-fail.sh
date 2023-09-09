@@ -63,7 +63,7 @@ do_test ()
     start_t=$SECONDS
 
     # Create a custom plugin which will test retrying.
-    nbdkit -v -U - \
+    nbdkit -v \
            sh - \
            --filter=retry retry-delay=1 retries=$retries \
            --run 'qemu-io -r -f raw $nbd -c "r 0 512" -c "r 0 512"

@@ -30,7 +30,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test nbdkit -U - + captive nbdkit.
+# Test nbdkit + captive nbdkit.
 
 source ./functions.sh
 set -e
@@ -38,4 +38,4 @@ set -x
 
 requires_run
 
-nbdkit -U - example1 --run 'sleep 5'
+nbdkit example1 --run 'sleep 5'

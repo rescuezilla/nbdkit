@@ -47,7 +47,7 @@ touch retry-request-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying requests.
-nbdkit -v -U - \
+nbdkit -v \
        sh - \
        --filter=retry-request retry-request-retries=3 retry-request-delay=1 \
        --run 'nbdcopy --synchronous "$uri" retry-request-open.img' <<'EOF'

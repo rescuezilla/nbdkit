@@ -55,7 +55,7 @@ rm -f $files
 cleanup_fn rm -f $files
 
 # Copy 'disk' from the "remote" ssh server to local file 'ssh.img'
-nbdkit -v -D ssh.log=2 -U - \
+nbdkit -v -D ssh.log=2 \
        ssh host=localhost $PWD/disk \
        --run 'nbdcopy "$uri" ssh.img'
 
@@ -64,7 +64,7 @@ cmp disk ssh.img
 
 # Copy local file 'ssh.img' to newly created "remote" 'ssh2.img'
 size="$($STAT -c %s disk)"
-nbdkit -v -D ssh.log=2 -U - \
+nbdkit -v -D ssh.log=2 \
        ssh host=localhost $PWD/ssh2.img \
        create=true create-size=$size \
        --run 'nbdcopy ssh.img "$uri"'

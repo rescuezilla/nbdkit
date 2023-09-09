@@ -48,7 +48,7 @@ size ()
     expected_size="$2"
 
     size="$(
-      nbdkit -U - -fv -D data.AST=1 data "$data" --run 'nbdinfo --size "$uri"'
+      nbdkit -fv -D data.AST=1 data "$data" --run 'nbdinfo --size "$uri"'
     )"
     if [ "$size" -ne "$expected_size" ]; then
         echo "$0: data has unexpected size: $data"

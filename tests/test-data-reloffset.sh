@@ -46,11 +46,11 @@ cleanup_fn rm -f $out
 
 # A series of relative offset moves should result in a
 # final disk size we can check.
-nbdkit -v -U - data '@+10 @-5 @-4 @+20' --run 'nbdinfo --size "$uri"' > $out
+nbdkit -v data '@+10 @-5 @-4 @+20' --run 'nbdinfo --size "$uri"' > $out
 test "$(cat $out)" -eq 21
 
 # Trying to move negative should be an error.
-if nbdkit -v -U - data '@+10 @-11' --run 'exit 0' ; then
+if nbdkit -v data '@+10 @-11' --run 'exit 0' ; then
     echo "$0: expected error"
     exit 1
 fi

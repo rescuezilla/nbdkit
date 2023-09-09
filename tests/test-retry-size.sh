@@ -50,7 +50,7 @@ start_t=$SECONDS
 
 # Create a custom plugin which will test retrying.
 st=0
-nbdkit -v -U - \
+nbdkit -v \
        sh - \
        --filter=retry retry-delay=1 \
        --run 'nbdsh -u "$uri" \

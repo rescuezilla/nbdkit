@@ -44,14 +44,14 @@ requires_linux_kernel_version 2.6
 
 # This is expected to fail because the shell ($$) is not connecting to
 # the server.
-if nbdkit -U - -v -D ip.rules=1 --filter=ip null allow=pid:$$ deny=all \
+if nbdkit -v -D ip.rules=1 --filter=ip null allow=pid:$$ deny=all \
           --run 'nbdinfo --size "$uri"'; then
     echo "$0: expected test to fail"
     exit 1
 fi
 
 # This is expected to work because we can deny the shell.
-nbdkit -U - -v -D ip.rules=1 --filter=ip null deny=pid:$$ \
+nbdkit -v -D ip.rules=1 --filter=ip null deny=pid:$$ \
        --run 'nbdinfo --size "$uri"'
 
 # This is a better test using nbdsh and passing the PID of nbdsh

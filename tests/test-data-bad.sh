@@ -46,7 +46,7 @@ bad ()
     data="$1"
 
     # This command is expected to fail.
-    if nbdkit -U - -fv -D data.AST=1 data "$data" --run true; then
+    if nbdkit -fv -D data.AST=1 data "$data" --run true; then
         echo "$0: data plugin was expected to fail on bad input: $data"
         exit 1
     fi

@@ -52,7 +52,7 @@ cleanup_fn rm -f $files
 do_test ()
 {
     # We use jq to normalize the output and convert it to plain text.
-    nbdkit -U - \
+    nbdkit \
            --filter=truncate \
            data "$1" size="$2" \
            truncate="$3" \

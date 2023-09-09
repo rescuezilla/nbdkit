@@ -43,9 +43,9 @@ files="swab-8.expected swab-8.actual"
 rm -f $files
 cleanup_fn rm -f $files
 
-nbdkit -U - pattern size=$((128*1024)) \
+nbdkit pattern size=$((128*1024)) \
        --run 'nbdcopy "$uri" swab-8.expected'
-nbdkit -U - --filter=swab pattern size=$((128*1024)) swab-bits=8 \
+nbdkit --filter=swab pattern size=$((128*1024)) swab-bits=8 \
        --run 'nbdcopy "$uri" swab-8.actual'
 
 cmp swab-8.expected swab-8.actual

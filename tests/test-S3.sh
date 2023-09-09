@@ -51,7 +51,7 @@ rm -f $file
 cleanup_fn rm -f $file
 
 # The fake module checks the parameters have these particular values.
-nbdkit -U - S3 \
+nbdkit S3 \
        access-key=TEST_ACCESS_KEY \
        secret-key=TEST_SECRET_KEY \
        session-token=TEST_SESSION_TOKEN \

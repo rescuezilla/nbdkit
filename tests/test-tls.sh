@@ -49,7 +49,7 @@ if ! nbdkit --dump-config | grep -sq tls=yes; then
 fi
 
 # RHEL 7 GnuTLS did not support --tls-verify-peer.
-requires nbdkit --tls-verify-peer -U - null --run 'exit 0'
+requires nbdkit --tls-verify-peer null --run 'exit 0'
 
 # Did we create the PKI files?
 # Probably 'certtool' is missing.

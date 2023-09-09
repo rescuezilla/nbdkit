@@ -53,7 +53,7 @@ out=test-cc-cpp.out
 cleanup_fn rm -f $out
 rm -f $out
 
-nbdkit -U - cc $script \
+nbdkit cc $script \
        CC="$CXX" \
        EXTRA_CFLAGS="-I$abs_top_srcdir/include" \
        --run 'nbdinfo --size $uri' > $out

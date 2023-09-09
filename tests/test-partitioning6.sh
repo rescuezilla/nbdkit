@@ -75,7 +75,7 @@ $TRUNCATE -s 6144 $d/part.0250
 #
 # Note we select partition 251 (not 250) because partition 4 is the
 # extended partition and everything partition following moves up by 1.
-nbdkit -f -v -D partitioning.regions=1 -U - \
+nbdkit -f -v -D partitioning.regions=1 \
              --filter=partition \
              partitioning \
              $d/part.* \

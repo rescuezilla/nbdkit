@@ -50,7 +50,7 @@ cleanup_fn rm -f $files
 cp disk eval-file.img
 
 export STAT
-nbdkit -fv -U - eval \
+nbdkit -fv eval \
        config='ln -sf "$(realpath "$3")" $tmpdir/file' \
        get_size='$STAT -Lc %s $tmpdir/file' \
        pread='dd if=$tmpdir/file skip=$4 count=$3 iflag=count_bytes,skip_bytes' \

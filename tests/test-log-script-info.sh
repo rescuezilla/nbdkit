@@ -47,7 +47,7 @@ log=log-script-info.log
 cleanup_fn rm -f $log
 rm -f $log
 
-nbdkit -U - --filter=log data "@32768 1" size=64K \
+nbdkit --filter=log data "@32768 1" size=64K \
        logscript='
            if [ "$act" = "Extents" -a "$type" = "LEAVE" ]; then
                echo $act $type >>log-script-info.log

@@ -44,7 +44,7 @@ out=test-data-raw-copy.out
 cleanup_fn rm -f $out
 rm -f $out
 
-nbdkit -U - data raw='Hello, world!' --run \
+nbdkit data raw='Hello, world!' --run \
        'nbdcopy "$uri" -' > $out
 
 if [ "$(cat $out)" != 'Hello, world!' ]; then

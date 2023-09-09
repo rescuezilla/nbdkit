@@ -67,7 +67,7 @@ do_test ()
     # Run nbdkit on each partition, copying data in and out.
     for ((part=1; part <= $nrparts; ++part)); do
         if [ "$part" != "$ignored" ]; then
-            nbdkit -f -v -U - \
+            nbdkit -f -v \
                    --filter=partition file $d/disk partition=$part \
                    --run "nbdcopy -C 1 $d/rand \$uri && nbdcopy -C 1 \$uri $d/out"
             truncate -s 512 $d/out

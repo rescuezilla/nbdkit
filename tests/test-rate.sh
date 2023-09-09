@@ -52,7 +52,7 @@ cleanup_fn rm -f $files
 # data requests up.
 
 start_t=$SECONDS
-nbdkit -U - \
+nbdkit \
        --filter=blocksize --filter=rate \
        pattern 25M \
        maxdata=65536 \

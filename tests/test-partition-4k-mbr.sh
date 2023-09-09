@@ -65,7 +65,7 @@ w
 EOF
 
 # Run nbdkit with the partition filter.
-nbdkit -f -v -U - \
+nbdkit -f -v \
        --filter=partition file $disk partition-sectorsize=4k partition=1 \
        --run "nbdcopy \$uri $out"
 

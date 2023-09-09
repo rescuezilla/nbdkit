@@ -41,7 +41,7 @@ requires nbdsh -c 'print(h.get_strict_mode)'
 requires_nbdsh_uri
 requires dd iflag=count_bytes </dev/null
 
-nbdkit -v -U - eval \
+nbdkit -v eval \
        block_size="echo 512 4096 1M" \
        get_size="echo 64M" \
        pread=" dd if=/dev/zero count=\$3 iflag=count_bytes " \

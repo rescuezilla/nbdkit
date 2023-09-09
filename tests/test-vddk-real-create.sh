@@ -56,7 +56,7 @@ cleanup_fn rm -f $files
 
 size="$($STAT -c %s disk)"
 
-nbdkit -fv -U - vddk libdir="$vddkdir" $vmdk \
+nbdkit -fv vddk libdir="$vddkdir" $vmdk \
        create=true create-size=$size \
        --run 'nbdcopy disk $uri'
 

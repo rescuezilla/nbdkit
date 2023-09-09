@@ -54,7 +54,7 @@ export DUMMY_VDDK_PRINT_PASSWORD=1
 # Password -FD.
 echo 123 > $f
 exec 3< $f
-nbdkit -fv -U - vddk \
+nbdkit -fv vddk \
        libdir=.libs \
        server=noserver.example.com thumbprint=ab \
        vm=novm /nofile \
@@ -69,7 +69,7 @@ grep "password=123$" $out
 # Password -FD, zero length.
 : > $f
 exec 3< $f
-nbdkit -fv -U - vddk \
+nbdkit -fv vddk \
        libdir=.libs \
        server=noserver.example.com thumbprint=ab \
        vm=novm /nofile \

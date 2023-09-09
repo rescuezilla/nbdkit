@@ -51,7 +51,7 @@ cleanup_fn rm -f $out
 
 # Uses test_ocaml_plugin.ml.  Note the parameters are required as they
 # are checked for another test.
-nbdkit -U - $plugin a=1 b=2 c=3 d=4 \
+nbdkit $plugin a=1 b=2 c=3 d=4 \
        --run 'nbdinfo --list --json "$uri"' > $out
 cat $out
 

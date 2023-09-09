@@ -42,7 +42,7 @@ requires qemu-img --version
 requires cmp --version
 
 # Check nbdinfo supports the --is flag (not RHEL 8).
-requires nbdkit -r -U - null --run 'nbdinfo --is readonly "$uri"'
+requires nbdkit -r null --run 'nbdinfo --is readonly "$uri"'
 
 qcow2=qcow2dec-disk.qcow2
 raw=qcow2dec-disk.raw

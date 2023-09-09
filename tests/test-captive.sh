@@ -60,7 +60,7 @@ fi
 
 # Check that a failed --run process affects exit status
 status=0
-nbdkit -U - example1 --run 'exit 2' > captive.out || status=$?
+nbdkit example1 --run 'exit 2' > captive.out || status=$?
 if test $status != 2; then
     echo "$0: unexpected exit status $status"
     fail=1
@@ -73,7 +73,7 @@ fi
 
 # Check that nbdkit death from unhandled signal affects exit status.
 status=0
-nbdkit -U - -P captive.pid example1 --run '
+nbdkit -P captive.pid example1 --run '
     for i in {1..60}; do
         if test -s captive.pid; then break; fi
         sleep 1

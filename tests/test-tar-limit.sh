@@ -55,7 +55,7 @@ tar cf $tar_good disk
 tar cf $tar_bad $tar_filler disk
 
 # Check we can read the good disk and reject the bad disk.
-cmd="nbdkit -U - file --filter=tar tar-entry=disk tar-limit=131072"
+cmd="nbdkit file --filter=tar tar-entry=disk tar-limit=131072"
 
 $cmd $tar_good --run 'nbdinfo "$uri"'
 

@@ -51,12 +51,12 @@ name4k=$name1k$name1k$name1k$name1k
 almost4k=${name4k%8$name16}
 
 # Test that $exportname and $uri reflect the name
-out=$(nbdkit -U - -e $name4k null --run 'echo $exportname')
+out=$(nbdkit -e $name4k null --run 'echo $exportname')
 if test "$name4k" != "$out"; then
     echo "$0: \$exportname contains wrong contents" >&2
     fail=1
 fi
-out=$(nbdkit -U - -e $name4k null --run 'echo "$uri"')
+out=$(nbdkit -e $name4k null --run 'echo "$uri"')
 case $out in
     nbd+unix:///$name4k\?socket=*) ;;
     *) echo "$0: \$uri contains wrong contents" >&2
@@ -71,24 +71,24 @@ case $out in
 esac
 
 # Use largest possible export name, then oversize, with NBD_OPT_EXPORT_NAME.
-nbdkit -U - --mask-handshake=0 null --run 'qemu-io -r -f raw -c quit \
+nbdkit --mask-handshake=0 null --run 'qemu-io -r -f raw -c quit \
   nbd+unix:///'$name4k'\?socket=$unixsocket' || fail=1
 # qemu 4.1 did not length check, letting it send an invalid NBD client
 # request which nbdkit must filter out. Later qemu might refuse to
 # send the request (like libnbd does), at which point this is no longer
 # testing nbdkit proper, so we may remove it later:
-nbdkit -U - --mask-handshake=0 null --run 'qemu-io -r -f raw -c quit \
+nbdkit --mask-handshake=0 null --run 'qemu-io -r -f raw -c quit \
   nbd+unix:///'a$name4k'\?socket=$unixsocket' && fail=1
 
 # Repeat with NBD_OPT_GO.
-nbdkit -U - null --run 'qemu-io -r -f raw -c quit \
+nbdkit null --run 'qemu-io -r -f raw -c quit \
   nbd+unix:///'$name4k'\?socket=$unixsocket' || fail=1
 # See above comment about whether this is testing nbdkit or qemu:
-nbdkit -U - null --run 'qemu-io -r -f raw -c quit \
+nbdkit null --run 'qemu-io -r -f raw -c quit \
   nbd+unix:///'a$name4k'\?socket=$unixsocket' && fail=1
 
 # Use nbdsh to provoke an extremely large NBD_OPT_SET_META_CONTEXT.
-nbdkit -U - -e $almost4k null --run 'export exportname uri
+nbdkit -e $almost4k null --run 'export exportname uri
 nbdsh -c - <<\EOF
 import os
 long = os.environ["exportname"]

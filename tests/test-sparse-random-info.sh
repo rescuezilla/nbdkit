@@ -43,4 +43,4 @@ if ! nbdinfo --help | grep -- --map ; then
     exit 77
 fi
 
-nbdkit -U - sparse-random size=10G --run 'nbdinfo --map "$uri"'
+nbdkit sparse-random size=10G --run 'nbdinfo --map "$uri"'

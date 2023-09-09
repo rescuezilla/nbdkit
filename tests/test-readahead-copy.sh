@@ -54,9 +54,9 @@ data="            1
       @0x87050300 8
      @0x100000000 9 "
 
-nbdkit -v -U - --filter=readahead data "$data"  \
+nbdkit -v --filter=readahead data "$data"  \
        --run 'nbdcopy "$uri" readahead-copy1.img'
-nbdkit -v -U -                    data "$data" \
+nbdkit -v                    data "$data" \
        --run 'nbdcopy "$uri" readahead-copy2.img'
 
 # Check the output.

@@ -57,7 +57,7 @@ touch $dir/export2
 touch $dir/export3
 
 export LANG=C
-nbdkit -U - ondemand dir=$dir size=1M \
+nbdkit ondemand dir=$dir size=1M \
        --run 'qemu-nbd -k $unixsocket -L' > $out
 cat $out
 

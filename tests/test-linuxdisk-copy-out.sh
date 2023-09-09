@@ -48,7 +48,7 @@ files="linuxdisk-copy-out.img
 rm -f $files
 cleanup_fn rm -f $files
 
-nbdkit -f -v -U - \
+nbdkit -f -v \
        --filter=partition \
        linuxdisk $srcdir/../plugins/linuxdisk partition=1 label=ROOT \
        --run 'nbdcopy "$uri" linuxdisk-copy-out.img'

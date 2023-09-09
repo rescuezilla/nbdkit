@@ -45,7 +45,7 @@ out=data-partition.out
 rm -f $out
 cleanup_fn rm -f $out
 
-nbdkit -U - --filter=partition data partition=1 size=1M '
+nbdkit --filter=partition data partition=1 size=1M '
   @0x1be    # MBR first partition entry
     0           # Partition status
     0 2 0       # CHS start
