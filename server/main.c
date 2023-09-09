@@ -638,6 +638,11 @@ main (int argc, char *argv[])
    * Note this may be NULL.
    */
   uri = make_uri ();
+  if (uri)
+    debug ("NBD URI: %s", uri);
+  else
+    debug ("no NBD URI because service mode is %s",
+           service_mode_string (service_mode));
 
   /* The remaining command line arguments are the plugin name and
    * parameters.  If --help, --version or --dump-plugin were specified
