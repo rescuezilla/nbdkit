@@ -185,9 +185,17 @@ endif HAVE_VDDK
 # Syntax checking.
 TESTS += \
 	pycodestyle.sh \
+	test-tests-requires-nbdcopy.sh \
+	test-tests-requires-nbdinfo.sh \
+	test-tests-requires-nbdsh.sh \
+	test-tests-requires-run.sh \
 	$(NULL)
 EXTRA_DIST += \
 	pycodestyle.sh \
+	test-tests-requires-nbdcopy.sh \
+	test-tests-requires-nbdinfo.sh \
+	test-tests-requires-nbdsh.sh \
+	test-tests-requires-run.sh \
 	$(NULL)
 
 #----------------------------------------------------------------------
