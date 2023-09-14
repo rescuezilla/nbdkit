@@ -40,7 +40,7 @@ requires_run
 requires_plugin null
 requires_filter evil
 requires_filter noextents
-requires nbdcopy --version
+requires_nbdcopy
 requires $PYTHON --version
 
 f="test-evil-cosmic.out"
