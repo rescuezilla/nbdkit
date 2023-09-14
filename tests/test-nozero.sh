@@ -35,6 +35,7 @@ set -e
 set -x
 
 requires_run
+requires_nbdsh_uri
 requires $STAT --version
 
 sock2=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
