@@ -55,6 +55,7 @@ EXTRA_DIST = \
 	nbdkit-release-notes-1.30.pod \
 	nbdkit-release-notes-1.32.pod \
 	nbdkit-release-notes-1.34.pod \
+	nbdkit-release-notes-1.36.pod \
 	nbdkit-security.pod \
 	nbdkit-service.pod \
 	nbdkit-tls.pod \
@@ -88,6 +89,7 @@ man_MANS = \
 	nbdkit-release-notes-1.30.1 \
 	nbdkit-release-notes-1.32.1 \
 	nbdkit-release-notes-1.34.1 \
+	nbdkit-release-notes-1.36.1 \
 	nbdkit-security.1 \
 	nbdkit-service.1 \
 	nbdkit-tls.1 \
