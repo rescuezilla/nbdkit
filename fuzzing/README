@@ -31,7 +31,6 @@ Master:
 
   mkdir -p fuzzing/sync_dir
   export AFL_PRELOAD=./plugins/memory/.libs/nbdkit-memory-plugin.so
-  export ASAN_OPTIONS="allocator_may_return_null=1 detect_leaks=false abort_on_error=1 symbolize=0"
   afl-fuzz -i fuzzing/testcase_dir -o fuzzing/sync_dir -M fuzz01 \
       ./server/nbdkit -s -t 1 ./plugins/memory/.libs/nbdkit-memory-plugin.so 1M
 
@@ -39,7 +38,6 @@ Slaves:
 
   # replace fuzzNN with fuzz02, fuzz03, etc.
   export AFL_PRELOAD=./plugins/memory/.libs/nbdkit-memory-plugin.so
-  export ASAN_OPTIONS="allocator_may_return_null=1 detect_leaks=false abort_on_error=1 symbolize=0"
   afl-fuzz -i fuzzing/testcase_dir -o fuzzing/sync_dir -S fuzzNN \
       ./server/nbdkit -s -t 1 ./plugins/memory/.libs/nbdkit-memory-plugin.so 1M
 
