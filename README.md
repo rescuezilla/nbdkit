@@ -328,7 +328,7 @@ You can compile nbdkit with clang and ASAN with:
             --disable-golang
 make clean
 make
-ASAN_OPTIONS="allocator_may_return_null=1 detect_leaks=false" make check
+ASAN_OPTIONS="allocator_may_return_null=1:detect_leaks=0" make check
 ```
 
 ## Test coverage
