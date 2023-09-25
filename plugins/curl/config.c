@@ -546,6 +546,12 @@ allocate_handle (void)
     goto err;
   }
 
+  /* Set the private data pointer of the easy handle to point to our
+   * containing struct curl_handle.  This can be retrieved at any time
+   * using 'curl_easy_getinfo (c, CURLINFO_PRIVATE, &ch)'.
+   */
+  curl_easy_setopt (ch->c, CURLOPT_PRIVATE, ch);
+
   if (curl_debug_verbose) {
     /* NB: Constants must be explicitly long because the parameter is
      * varargs.

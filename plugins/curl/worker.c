@@ -324,20 +324,22 @@ check_for_finished_handles (void)
   int msgs_in_queue;
 
   while ((msg = curl_multi_info_read (multi, &msgs_in_queue)) != NULL) {
-    size_t i;
-    struct curl_handle *ch = NULL;
-
     if (msg->msg == CURLMSG_DONE) {
       /* Find this curl_handle. */
+      size_t i;
+      CURL *c = msg->easy_handle;
+      struct curl_handle *ch;
+
+      curl_easy_getinfo (c, CURLINFO_PRIVATE, &ch);
+      assert (c == ch->c);
+
       for (i = 0; i < curl_handles.len; ++i) {
-        if (curl_handles.ptr[i]->c == msg->easy_handle) {
-          ch = curl_handles.ptr[i];
+        if (curl_handles.ptr[i]->c == c) {
           curl_handle_list_remove (&curl_handles, i);
           break;
         }
       }
-      if (ch == NULL) abort ();
-      curl_multi_remove_handle (multi, ch->c);
+      curl_multi_remove_handle (multi, c);
 
       retire_command (ch->cmd, msg->data.result);
     }
