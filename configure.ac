@@ -1239,6 +1239,14 @@ AS_IF([test "$with_curl" != "no"],[
             AC_DEFINE([HAVE_CURL_SSLVERSION_MAX_TLSv1_3],[1],
                       [CURL_SSLVERSION_MAX_TLSv1_3 found at compile time.])
             ], [], [#include <curl/curl.h>])
+        dnl curl_multi_get_handles was added as a semi-experimental
+        dnl feature in curl 8.3.1.
+        dnl https://github.com/curl/curl/pull/11750
+        dnl https://github.com/curl/curl/commit/9ffd4117357
+        old_LIBS="$LIBS"
+        LIBS="$CURL_LIBS $LIBS"
+        AC_CHECK_FUNCS([curl_multi_get_handles])
+        LIBS="$old_LIBS"
     ],
     [AC_MSG_WARN([curl not found, curl plugin will be disabled])])
 ])

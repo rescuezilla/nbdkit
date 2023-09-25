@@ -66,10 +66,14 @@ static int self_pipe[2] = { -1, -1 };
 static CURLM *multi;
 
 /* List of running easy handles.  We only need to maintain this so we
- * can remove them from the multi handle when cleaning up.
+ * can remove them from the multi handle when cleaning up.  Curl 8.3.1
+ * added a semi-experimental feature to allow us to read the handles
+ * out of the multi which we can use instead if available.
  */
+#ifndef HAVE_CURL_MULTI_GET_HANDLES
 DEFINE_VECTOR_TYPE (curl_handle_list, struct curl_handle *);
 static curl_handle_list curl_handles = empty_vector;
+#endif
 
 static const char *
 command_type_to_string (enum command_type type)
@@ -145,14 +149,24 @@ worker_unload (void)
     self_pipe[1] = -1;
   }
 
+  /* Remove and free any easy handles in the multi. */
   if (multi) {
     size_t i;
 
-    /* Remove and free any easy handles in the multi. */
+#ifndef HAVE_CURL_MULTI_GET_HANDLES
     for (i = 0; i < curl_handles.len; ++i) {
       curl_multi_remove_handle (multi, curl_handles.ptr[i]->c);
       free_handle (curl_handles.ptr[i]);
     }
+#else
+    CURL **list = curl_multi_get_handles (multi);
+
+    for (i = 0; list[i] != NULL; ++i) {
+      curl_multi_remove_handle (multi, list[i]);
+      free_handle (list[i]);
+    }
+    curl_free (list);
+#endif
 
     curl_multi_cleanup (multi);
     multi = NULL;
@@ -325,20 +339,24 @@ check_for_finished_handles (void)
 
   while ((msg = curl_multi_info_read (multi, &msgs_in_queue)) != NULL) {
     if (msg->msg == CURLMSG_DONE) {
-      /* Find this curl_handle. */
-      size_t i;
       CURL *c = msg->easy_handle;
       struct curl_handle *ch;
 
       curl_easy_getinfo (c, CURLINFO_PRIVATE, &ch);
       assert (c == ch->c);
 
+#ifndef HAVE_CURL_MULTI_GET_HANDLES
+      size_t i;
+
+      /* Find this curl_handle and remove it from curl_handles. */
       for (i = 0; i < curl_handles.len; ++i) {
         if (curl_handles.ptr[i]->c == c) {
           curl_handle_list_remove (&curl_handles, i);
           break;
         }
       }
+#endif
+
       curl_multi_remove_handle (multi, c);
 
       retire_command (ch->cmd, msg->data.result);
@@ -373,8 +391,10 @@ do_easy_handle (struct command *cmd)
     goto err;
   }
 
+#ifndef HAVE_CURL_MULTI_GET_HANDLES
   if (curl_handle_list_append (&curl_handles, cmd->ch) == -1)
     goto err;
+#endif
   return;
 
  err:
