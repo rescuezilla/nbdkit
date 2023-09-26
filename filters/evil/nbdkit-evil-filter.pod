@@ -50,7 +50,7 @@ data, it simulates stuck wires along the data path (eg. in a
 register).  The difference is that when reading, the stuck bit always
 happens at the same position in the packet of data being read,
 regardless of where on the underlying disk it is being read from.
-C<evil-probability> and controls the probability of a stuck wire,
+C<evil-probability> controls the probability of a stuck wire,
 defaulting in this mode to 1e-6 (1 in 1 million).
 C<evil-stuck-probability> controls the probability that a stuck bit is
 read as its stuck value or its correct value, defaulting to 100%
