@@ -657,11 +657,11 @@ if HAVE_MKE2FS_WITH_D
 if HAVE_CURL
 if !IS_WINDOWS
 TESTS += \
-	test-curl-file.sh \
+	test-curl-options.sh \
 	test-curl-header-script-fail.sh \
 	$(NULL)
 EXTRA_DIST += \
-	test-curl-file.sh \
+	test-curl-options.sh \
 	test-curl-header-script-fail.script \
 	test-curl-header-script-fail.sh \
 	$(NULL)

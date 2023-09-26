@@ -30,6 +30,18 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
+# Test as many of the plugin options as possible.  We use a 'file:'
+# protocol URL so curl won't use these settings, but this still
+# exercises the paths inside the plugin.
+#
+# Notes:
+# - cookie-script & header-script are tested separately
+#
+# - only some http-version & ssl-version options are supported in
+#   all builds (should there be a way to detect?)
+#
+# - how to test tls13-ciphers?
+
 source ./functions.sh
 set -e
 set -x
@@ -52,12 +64,10 @@ cat > $cookiejar <<EOF
 .libguestfs.org	TRUE	/	FALSE	2145916800	foo bar
 EOF
 
-# Although curl won't use these settings because we're using the file:
-# protocol, this still exercises the paths inside the plugin.
-
 for opt in \
     cainfo=/dev/null \
     capath=/dev/null \
+    connections=1 \
     cookie=foo=bar \
     cookiefile= \
     cookiefile=$cookiejar \
@@ -66,11 +76,26 @@ for opt in \
     header="X-My-Name: John Doe" \
     header="User-Agent:" \
     header="X-Empty;" \
+    http-version=none \
+    http-version=1.0 \
+    http-version=1.1 \
+    ipresolve=any \
+    ipresolve=v4 \
+    ipresolve=v6 \
     password=secret \
     protocols=file,http,https \
     proxy-password=secret \
     proxy-user=eve \
+    resolve=example.com:443:127.0.0.1 \
     sslverify=false \
+    ssl-version=default \
+    ssl-version=tlsv1 \
+    ssl-version=sslv2 \
+    ssl-version=sslv3 \
+    ssl-version=tlsv1.0 \
+    ssl-version=tlsv1.1 \
+    ssl-version=tlsv1.2 \
+    ssl-version=tlsv1.3 \
     tcp-keepalive=true \
     tcp-nodelay=false \
     timeout=120 \
