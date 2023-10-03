@@ -144,6 +144,8 @@ parse_probability (PyObject *self, PyObject *args)
 static PyMethodDef NbdkitMethods[] = {
   { "debug", debug, METH_VARARGS,
     "Print a debug message" },
+  { "disconnect", do_disconnect, METH_VARARGS,
+    "Request disconnection from current client" },
   { "export_name", export_name, METH_NOARGS,
     "Return the optional export name negotiated with the client" },
   { "parse_probability", parse_probability, METH_VARARGS,
@@ -154,8 +156,6 @@ static PyMethodDef NbdkitMethods[] = {
     "Store an errno value prior to throwing an exception" },
   { "shutdown", do_shutdown, METH_NOARGS,
     "Request asynchronous shutdown" },
-  { "disconnect", do_disconnect, METH_VARARGS,
-    "Request disconnection from current client" },
   { NULL }
 };
 
