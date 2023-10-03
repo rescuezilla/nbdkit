@@ -119,6 +119,11 @@ methods in the C<nbdkit> module:
 Send a debug message to stderr or syslog if verbose messages are
 enabled.
 
+=head3 C<nbdkit.disconnect(force)>
+
+Disconnect from the client.  If C<force> is C<True> then nbdkit will
+disconnect the client immediately.
+
 =head3 C<nbdkit.export_name()>
 
 Return the export name negotiated with the client as a Unicode string.
