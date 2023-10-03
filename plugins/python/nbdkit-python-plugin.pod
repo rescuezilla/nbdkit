@@ -307,8 +307,9 @@ There are no arguments or return value.
  def open(readonly):
    # return handle
 
-You can return any non-NULL Python value as the handle.  It is passed
-back in subsequent calls.
+You can return any Python value (even C<None>) as the handle.  It is
+passed back as the first arg C<'h'> in subsequent calls.  To return an
+error from this method you must throw an exception.
 
 =item C<close>
 

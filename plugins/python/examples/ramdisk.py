@@ -49,9 +49,10 @@ def config(key, value):
 def open(readonly):
     nbdkit.debug("open: readonly=%d" % readonly)
 
-    # You can return any non-NULL Python object from open, and the
-    # same object will be passed as the first arg to the other
-    # callbacks [in the client connected phase].
+    # You can return any Python object from open (even None), and the
+    # same object will be passed as the first arg 'h' to the other
+    # callbacks below.  To return an error from this method you must
+    # throw an exception.
     return 1
 
 
