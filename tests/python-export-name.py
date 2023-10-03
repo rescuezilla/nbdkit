@@ -29,8 +29,8 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Create an nbdkit sh plugin which reflects the export name back to
-# the caller in the virtual device data and size.
+# Create an nbdkit python plugin which reflects the export name back
+# to the caller in the virtual device data and size.
 
 import nbdkit
 
