@@ -141,6 +141,38 @@ parse_probability (PyObject *self, PyObject *args)
   return PyFloat_FromDouble (d);
 }
 
+/* nbdkit.stdio_safe */
+static PyObject *
+do_stdio_safe (PyObject *self, PyObject *args)
+{
+  int b = nbdkit_stdio_safe ();
+  if (b) Py_RETURN_TRUE; else Py_RETURN_FALSE;
+}
+
+/* nbdkit.is_tls */
+static PyObject *
+do_is_tls (PyObject *self, PyObject *args)
+{
+  int b = nbdkit_is_tls ();
+  if (b) Py_RETURN_TRUE; else Py_RETURN_FALSE;
+}
+
+/* nbdkit.nanosleep */
+static PyObject *
+do_nanosleep (PyObject *self, PyObject *args)
+{
+  unsigned secs, nsecs;
+
+  if (!PyArg_ParseTuple (args, "II:nanosleep", &secs, &nsecs))
+    return NULL;
+  /* This can return an error but in this case it is probably best to
+   * ignore it since it most probably indicates that the plugin is
+   * exiting.
+   */
+  nbdkit_nanosleep (secs, nsecs);
+  Py_RETURN_NONE;
+}
+
 static PyMethodDef NbdkitMethods[] = {
   { "debug", debug, METH_VARARGS,
     "Print a debug message" },
@@ -148,6 +180,10 @@ static PyMethodDef NbdkitMethods[] = {
     "Request disconnection from current client" },
   { "export_name", export_name, METH_NOARGS,
     "Return the optional export name negotiated with the client" },
+  { "is_tls", do_is_tls, METH_NOARGS,
+    "Return True if the client completed TLS authentication" },
+  { "nanosleep", do_nanosleep, METH_VARARGS,
+    "Sleep for seconds and nanoseconds" },
   { "parse_probability", parse_probability, METH_VARARGS,
     "Parse probability strings into floating point number" },
   { "parse_size", parse_size, METH_VARARGS,
@@ -156,6 +192,8 @@ static PyMethodDef NbdkitMethods[] = {
     "Store an errno value prior to throwing an exception" },
   { "shutdown", do_shutdown, METH_NOARGS,
     "Request asynchronous shutdown" },
+  { "stdio_safe", do_stdio_safe, METH_NOARGS,
+    "Return True if it is safe to interact with stdin and stdout" },
   { NULL }
 };
 

@@ -47,7 +47,7 @@ def config(key, value):
 
 
 def open(readonly):
-    nbdkit.debug("open: readonly=%d" % readonly)
+    nbdkit.debug("open: readonly=%d, tls=%r" % (readonly, nbdkit.is_tls()))
 
     # You can return any Python object from open (even None), and the
     # same object will be passed as the first arg 'h' to the other
