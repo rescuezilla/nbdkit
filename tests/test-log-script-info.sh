@@ -38,6 +38,10 @@ requires_run
 requires_nbdinfo
 requires_filter log
 
+# This test implicitly assumes /bin/sh is bash, see:
+# https://listman.redhat.com/archives/libguestfs/2023-October/032767.html
+requires_bin_sh_is_bash
+
 if ! nbdinfo --help | grep -- --map ; then
     echo "$0: nbdinfo --map option required to run this test"
     exit 77

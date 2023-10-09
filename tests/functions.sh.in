@@ -229,6 +229,19 @@ requires_ipv6_loopback ()
     fi
 }
 
+# Test that /bin/sh is really bash.
+#
+# While we run test-*.sh scripts with explicit bash, nbdkit itself
+# doesn't depend on bash.  When nbdkit runs a script (eg. --run
+# parameter, or nbdkit-sh-plugin), it uses system(3) which uses
+# /bin/sh.  However sometimes we would like to use /bin/bash in
+# scripts that are run from nbdkit, in the test suite.  That's the
+# only place you need to use this test.
+requires_bin_sh_is_bash ()
+{
+    BASH_VERSION=no requires /bin/sh -c 'test "x$BASH_VERSION" != "xno"'
+}
+
 # Test host kernel is Linux and minimum version.
 #
 # It's usually better to test features rather than using this, but
