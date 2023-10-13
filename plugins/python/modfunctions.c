@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "plugin.h"
 
@@ -173,6 +174,64 @@ do_nanosleep (PyObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
+/* nbdkit.peer_name is not easy to implement.  We would need to create
+ * a Python socket family structure
+ * (https://docs.python.org/3/library/socket.html#socket-families).
+ * CPython has a function called makesockaddr which does this, but it
+ * is not exported.
+ */
+
+static PyObject *
+peer_id_common (int64_t id, const char *which)
+{
+  if (id == -1) {
+    PyErr_Format (PyExc_ValueError, "Unable to get client %s", which);
+    return NULL;
+  }
+  return PyLong_FromLongLong (id);
+}
+
+/* nbdkit.peer_pid */
+static PyObject *
+do_peer_pid (PyObject *self, PyObject *args)
+{
+  int64_t id = nbdkit_peer_pid ();
+  return peer_id_common (id, "pid");
+}
+
+/* nbdkit.peer_uid */
+static PyObject *
+do_peer_uid (PyObject *self, PyObject *args)
+{
+  int64_t id = nbdkit_peer_uid ();
+  return peer_id_common (id, "uid");
+}
+
+/* nbdkit.peer_gid */
+static PyObject *
+do_peer_gid (PyObject *self, PyObject *args)
+{
+  int64_t id = nbdkit_peer_gid ();
+  return peer_id_common (id, "gid");
+}
+
+/* nbdkit.peer_security_context */
+static PyObject *
+do_peer_security_context (PyObject *self, PyObject *args)
+{
+  char *s;
+  PyObject *r;
+
+  s = nbdkit_peer_security_context ();
+  if (s == NULL) {
+    PyErr_SetString (PyExc_ValueError, "Unable to get client security context");
+    return NULL;
+  }
+  r = PyUnicode_FromString (s);
+  free (s);
+  return r;
+}
+
 static PyMethodDef NbdkitMethods[] = {
   { "debug", debug, METH_VARARGS,
     "Print a debug message" },
@@ -188,6 +247,14 @@ static PyMethodDef NbdkitMethods[] = {
     "Parse probability strings into floating point number" },
   { "parse_size", parse_size, METH_VARARGS,
     "Parse human-readable size strings into bytes" },
+  { "peer_pid", do_peer_pid, METH_NOARGS,
+    "Return the client process ID for Unix domain sockets" },
+  { "peer_uid", do_peer_uid, METH_NOARGS,
+    "Return the client user ID for Unix domain sockets" },
+  { "peer_gid", do_peer_gid, METH_NOARGS,
+    "Return the client group ID for Unix domain sockets" },
+  { "peer_security_context", do_peer_security_context, METH_NOARGS,
+    "Return the client security context" },
   { "set_error", set_error, METH_VARARGS,
     "Store an errno value prior to throwing an exception" },
   { "shutdown", do_shutdown, METH_NOARGS,

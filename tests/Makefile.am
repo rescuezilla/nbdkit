@@ -1265,6 +1265,7 @@ TESTS += \
 	test-python-export-name.sh \
 	test-python-export-list.sh \
 	test-python-is-tls.sh \
+	test-python-peer.sh \
 	test-python-thread-model.sh \
 	test-shebang-python.sh \
 	$(NULL)
@@ -1273,12 +1274,14 @@ EXTRA_DIST += \
 	python-export-name.py \
 	python-export-list.py \
 	python-is-tls.py \
+	python-peer.py \
 	python-thread-model.py \
 	shebang.py \
 	test-python-exception.sh \
 	test-python-export-name.sh \
 	test-python-export-list.sh \
 	test-python-is-tls.sh \
+	test-python-peer.sh \
 	test-python-plugin.py \
 	test-python-thread-model.sh \
 	test-python.sh \
