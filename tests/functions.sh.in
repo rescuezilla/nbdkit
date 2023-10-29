@@ -439,6 +439,18 @@ skip_if_valgrind ()
     fi
 }
 
+# Some tests assume that common/allocators/sparse.c: SPARSE_PAGE is
+# defined as 32768.  If we ever changed that definition the test would
+# break.  Fail noisily instead.  Note this is *not* a skip.
+error_if_sparse_page_not_32768 ()
+{
+    requires nbdsh -c 'print(h.get_block_size)'
+    nbdkit memory 0 allocator=sparse --run '
+        nbdsh -c "h.connect_unix(\"$unixsocket\")" \
+              -c "assert h.get_block_size(nbd.SIZE_PREFERRED) == 32768"
+    '
+}
+
 #----------------------------------------------------------------------
 # Miscellaneous functions.
 

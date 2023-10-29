@@ -30,10 +30,6 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Unfortunately the output of this test depends on the SPARSE_PAGE
-# defined in common/allocators/sparse.c and would change (breaking the
-# test) if we ever changed that definition.
-
 source ./functions.sh
 set -e
 set -x
@@ -42,6 +38,7 @@ requires_run
 requires jq --version
 requires qemu-img --version
 requires qemu-img map --help
+error_if_sparse_page_not_32768
 
 out="test-data-extents.out"
 expected="test-data-extents.expected"
