@@ -53,6 +53,9 @@ struct allocator_functions {
    */
   const char *type;
 
+  /* Preferred block size. */
+  uint32_t preferred;
+
   /* Private function called to create an allocator.  It should return
    * a new struct which is at least as large as struct allocator.  It
    * may have extra fields for the specific allocator to use.

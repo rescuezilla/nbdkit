@@ -597,6 +597,7 @@ sparse_array_create (const void *paramsv)
 
 static struct allocator_functions functions = {
   .type = "sparse",
+  .preferred = SPARSE_PAGE,
   .create = sparse_array_create,
   .free = sparse_array_free,
   .set_size_hint = sparse_array_set_size_hint,

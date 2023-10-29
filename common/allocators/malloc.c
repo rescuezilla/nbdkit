@@ -304,6 +304,7 @@ m_alloc_create (const void *paramsv)
 
 static struct allocator_functions functions = {
   .type = "malloc",
+  .preferred = 512, /* Not really any, so return a general default. */
   .create = m_alloc_create,
   .free = m_alloc_free,
   .set_size_hint = m_alloc_set_size_hint,

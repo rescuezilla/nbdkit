@@ -634,6 +634,7 @@ zstd_array_create (const void *paramsv)
 
 static struct allocator_functions functions = {
   .type = "zstd",
+  .preferred = ZSTD_PAGE,
   .create = zstd_array_create,
   .free = zstd_array_free,
   .set_size_hint = zstd_array_set_size_hint,
