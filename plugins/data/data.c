@@ -273,6 +273,16 @@ data_get_size (void *handle)
   return size;
 }
 
+static int
+data_block_size (void *handle,
+                 uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
+{
+  *minimum = 1;
+  *preferred = a->f->preferred;
+  *maximum = 0xffffffff;
+  return 0;
+}
+
 /* Flush is a no-op, so advertise native FUA support */
 static int
 data_can_fua (void *handle)
@@ -370,6 +380,7 @@ static struct nbdkit_plugin plugin = {
   .get_ready         = data_get_ready,
   .open              = data_open,
   .get_size          = data_get_size,
+  .block_size        = data_block_size,
   .can_multi_conn    = data_can_multi_conn,
   .can_fua           = data_can_fua,
   .can_cache         = data_can_cache,
