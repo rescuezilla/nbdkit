@@ -506,6 +506,27 @@ torrent_get_size (void *hv)
   return size;
 }
 
+/* Return the size of blocks (pieces) as the natural size for
+ * requests, if that size is reasonable for an NBD client.
+ */
+static int
+torrent_block_size (void *hv,
+                    uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
+{
+  auto ti = handle.torrent_file();
+  int len = ti->piece_length();
+
+  if (len >= 512 && len <= 1024*1024) {
+    *minimum = 1;
+    *preferred = len;
+    *maximum = 0xffffffff;
+  }
+  else {
+    *minimum = *preferred = *maximum = 0;
+  }
+  return 0;
+}
+
 /* Read data from the file. */
 static int
 torrent_pread (void *hv, void *buf, uint32_t count, uint64_t offset,
@@ -563,6 +584,7 @@ namespace {
     plugin.open              = torrent_open;
     plugin.close             = torrent_close;
     plugin.get_size          = torrent_get_size;
+    plugin.block_size        = torrent_block_size;
     plugin.pread             = torrent_pread;
     return plugin;
   }

@@ -215,6 +215,17 @@ iso_get_size (void *handle)
   return statbuf.st_size;
 }
 
+/* Make this look more like a real CD. */
+static int
+iso_block_size (void *handle,
+                uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
+{
+  *minimum = 1;
+  *preferred = 2048;
+  *maximum = 0xffffffff;
+  return 0;
+}
+
 /* Serves the same data over multiple connections. */
 static int
 iso_can_multi_conn (void *handle)
@@ -264,6 +275,7 @@ static struct nbdkit_plugin plugin = {
   .get_ready         = iso_get_ready,
   .open              = iso_open,
   .get_size          = iso_get_size,
+  .block_size        = iso_block_size,
   .can_multi_conn    = iso_can_multi_conn,
   .can_cache         = iso_can_cache,
   .pread             = iso_pread,

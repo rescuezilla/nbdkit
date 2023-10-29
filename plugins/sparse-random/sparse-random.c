@@ -262,6 +262,17 @@ sparse_random_get_size (void *handle)
   return size;
 }
 
+static int
+sparse_random_block_size (void *handle,
+                          uint32_t *minimum, uint32_t *preferred,
+                          uint32_t *maximum)
+{
+  *minimum = 1;
+  *preferred = BLOCKSIZE;
+  *maximum = 0xffffffff;
+  return 0;
+}
+
 /* Serves the same data over multiple connections. */
 static int
 sparse_random_can_multi_conn (void *handle)
@@ -554,6 +565,7 @@ static struct nbdkit_plugin plugin = {
   .magic_config_key  = "size",
   .open              = sparse_random_open,
   .get_size          = sparse_random_get_size,
+  .block_size        = sparse_random_block_size,
   .can_multi_conn    = sparse_random_can_multi_conn,
   .can_cache         = sparse_random_can_cache,
   .pread             = sparse_random_pread,

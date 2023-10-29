@@ -139,6 +139,17 @@ floppy_get_size (void *handle)
   return virtual_size (&floppy.regions);
 }
 
+/* Make this look more like a real floppy with 512 byte sectors. */
+static int
+floppy_block_size (void *handle,
+                   uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
+{
+  *minimum = 1;
+  *preferred = SECTOR_SIZE;
+  *maximum = 0xffffffff;
+  return 0;
+}
+
 /* Serves the same data over multiple connections. */
 static int
 floppy_can_multi_conn (void *handle)
@@ -223,6 +234,7 @@ static struct nbdkit_plugin plugin = {
   .config_help       = floppy_config_help,
   .magic_config_key  = "dir",
   .get_ready         = floppy_get_ready,
+  .block_size        = floppy_block_size,
   .open              = floppy_open,
   .get_size          = floppy_get_size,
   .can_multi_conn    = floppy_can_multi_conn,
