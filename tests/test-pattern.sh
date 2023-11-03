@@ -40,7 +40,7 @@ requires_nbdsh_uri
 
 # Run nbdkit-pattern-plugin.  Use a disk > 4G so we can test 2G and 4G
 # boundaries.
-nbdkit pattern 5G --run 'nbdsh -u "$uri" -c -' <<EOF
+nbdkit pattern 5G --run 'nbdsh -u "$uri" -c -' <<'EOF'
 
 # Generate the expected pattern in the given range.
 # This only works for 8-byte aligned ranges.
@@ -109,4 +109,4 @@ expected = generated_expected(offset, offset+64)
 actual = h.pread(64, offset)
 check_same(actual, expected)
 
-'EOF'
+EOF
