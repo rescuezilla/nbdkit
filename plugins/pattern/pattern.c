@@ -119,8 +119,8 @@ pattern_pread (void *handle, void *buf, uint32_t count, uint64_t offset,
     o = offset & 7;
     n = MIN (count, 8-o);
     memcpy (b, (char *)&d + o, n);
-    b += 8-o;
-    offset += 8-o;
+    b += n;
+    offset += n;
     count -= n;
   }
 

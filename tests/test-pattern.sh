@@ -31,61 +31,82 @@
 # SUCH DAMAGE.
 
 # Test the pattern plugin.
-#
-# Note we don't have any client which can issue misaligned NBD
-# requests.  qemu-io will issue 512-byte aligned requests no matter
-# what read parameters we give it.  Hence these tests are rather
-# limited. (XXX)
 
 source ./functions.sh
 set -e
 
-requires qemu-io --version
+requires_run
+requires_nbdsh_uri
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="pattern.out pattern.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
+# Run nbdkit-pattern-plugin.  Use a disk > 4G so we can test 2G and 4G
+# boundaries.
+nbdkit pattern 5G --run 'nbdsh -u "$uri" -c -' <<EOF
 
-# Run nbdkit with pattern plugin.
-start_nbdkit -P pattern.pid -U $sock pattern 1G
+# Generate the expected pattern in the given range.
+# This only works for 8-byte aligned ranges.
+def generated_expected(start, end):
+    assert start % 8 == 0
+    assert end % 8 == 0
+    expected = bytearray()
+    for i in range(start, end, 8):
+        expected = expected + i.to_bytes(8, 'big')
+    return expected
 
-qemu-io -r -f raw "nbd+unix://?socket=$sock" \
-        -c 'r -v 0 512' | grep -E '^[[:xdigit:]]+:' > pattern.out
-if [ "$(cat pattern.out)" != "00000000:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08  ................
-00000010:  00 00 00 00 00 00 00 10 00 00 00 00 00 00 00 18  ................
-00000020:  00 00 00 00 00 00 00 20 00 00 00 00 00 00 00 28  ................
-00000030:  00 00 00 00 00 00 00 30 00 00 00 00 00 00 00 38  .......0.......8
-00000040:  00 00 00 00 00 00 00 40 00 00 00 00 00 00 00 48  ...............H
-00000050:  00 00 00 00 00 00 00 50 00 00 00 00 00 00 00 58  .......P.......X
-00000060:  00 00 00 00 00 00 00 60 00 00 00 00 00 00 00 68  ...............h
-00000070:  00 00 00 00 00 00 00 70 00 00 00 00 00 00 00 78  .......p.......x
-00000080:  00 00 00 00 00 00 00 80 00 00 00 00 00 00 00 88  ................
-00000090:  00 00 00 00 00 00 00 90 00 00 00 00 00 00 00 98  ................
-000000a0:  00 00 00 00 00 00 00 a0 00 00 00 00 00 00 00 a8  ................
-000000b0:  00 00 00 00 00 00 00 b0 00 00 00 00 00 00 00 b8  ................
-000000c0:  00 00 00 00 00 00 00 c0 00 00 00 00 00 00 00 c8  ................
-000000d0:  00 00 00 00 00 00 00 d0 00 00 00 00 00 00 00 d8  ................
-000000e0:  00 00 00 00 00 00 00 e0 00 00 00 00 00 00 00 e8  ................
-000000f0:  00 00 00 00 00 00 00 f0 00 00 00 00 00 00 00 f8  ................
-00000100:  00 00 00 00 00 00 01 00 00 00 00 00 00 00 01 08  ................
-00000110:  00 00 00 00 00 00 01 10 00 00 00 00 00 00 01 18  ................
-00000120:  00 00 00 00 00 00 01 20 00 00 00 00 00 00 01 28  ................
-00000130:  00 00 00 00 00 00 01 30 00 00 00 00 00 00 01 38  .......0.......8
-00000140:  00 00 00 00 00 00 01 40 00 00 00 00 00 00 01 48  ...............H
-00000150:  00 00 00 00 00 00 01 50 00 00 00 00 00 00 01 58  .......P.......X
-00000160:  00 00 00 00 00 00 01 60 00 00 00 00 00 00 01 68  ...............h
-00000170:  00 00 00 00 00 00 01 70 00 00 00 00 00 00 01 78  .......p.......x
-00000180:  00 00 00 00 00 00 01 80 00 00 00 00 00 00 01 88  ................
-00000190:  00 00 00 00 00 00 01 90 00 00 00 00 00 00 01 98  ................
-000001a0:  00 00 00 00 00 00 01 a0 00 00 00 00 00 00 01 a8  ................
-000001b0:  00 00 00 00 00 00 01 b0 00 00 00 00 00 00 01 b8  ................
-000001c0:  00 00 00 00 00 00 01 c0 00 00 00 00 00 00 01 c8  ................
-000001d0:  00 00 00 00 00 00 01 d0 00 00 00 00 00 00 01 d8  ................
-000001e0:  00 00 00 00 00 00 01 e0 00 00 00 00 00 00 01 e8  ................
-000001f0:  00 00 00 00 00 00 01 f0 00 00 00 00 00 00 01 f8  ................" ]
-then
-    echo "$0: unexpected pattern:"
-    cat pattern.out
-    exit 1
-fi
+# Check actual == expected, with printing
+def check_same(actual, expected):
+    if actual == expected:
+        print("check_same: passed", flush=True)
+    else:
+        print("actual   = %r" % actual, flush=True)
+        print("expected = %r" % expected, flush=True)
+        assert False
+
+# Read an aligned range at the beginning of the disk.
+expected = generated_expected(0, 64)
+actual = h.pread(64, 0)
+check_same(actual, expected)
+
+# Read starting from an unaligned offset.
+actual = h.pread(60, 4)
+check_same(actual, expected[4:])
+
+# Read ending at an unaligned offset.
+actual = h.pread(60, 0)
+check_same(actual, expected[:60])
+
+# Same as above, but around offset 1,000,000.
+expected = generated_expected(1000000, 1000000+64)
+actual = h.pread(64, 1000000)
+check_same(actual, expected)
+actual = h.pread(61, 1000003)
+check_same(actual, expected[3:])
+actual = h.pread(60, 1000000)
+check_same(actual, expected[:60])
+
+# Same as above, but around offset 2G.
+offset = 2*1024*1024*1024 - 32
+expected = generated_expected(offset, offset+64)
+actual = h.pread(64, offset)
+check_same(actual, expected)
+actual = h.pread(59, offset+5)
+check_same(actual, expected[5:])
+actual = h.pread(60, offset)
+check_same(actual, expected[:60])
+
+# Same as above, but around offset 4G.
+offset = 4*1024*1024*1024 - 32
+expected = generated_expected(offset, offset+64)
+actual = h.pread(64, offset)
+check_same(actual, expected)
+actual = h.pread(59, offset+5)
+check_same(actual, expected[5:])
+actual = h.pread(63, offset)
+check_same(actual, expected[:63])
+
+# Finish at the end of the disk.
+offset = 5*1024*1024*1024 - 64
+expected = generated_expected(offset, offset+64)
+actual = h.pread(64, offset)
+check_same(actual, expected)
+
+'EOF'
