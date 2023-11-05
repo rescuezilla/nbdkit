@@ -144,6 +144,7 @@ filters="\
         qcow2dec \
         rate \
         readahead \
+        readonly \
         retry \
         retry-request \
         scan \
@@ -1634,6 +1635,7 @@ AC_CONFIG_FILES([Makefile
                  filters/qcow2dec/Makefile
                  filters/rate/Makefile
                  filters/readahead/Makefile
+                 filters/readonly/Makefile
                  filters/retry/Makefile
                  filters/retry-request/Makefile
                  filters/scan/Makefile

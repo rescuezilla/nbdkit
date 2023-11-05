@@ -36,6 +36,9 @@ from the parent process.  This can be useful where special permissions
 or capabilities are needed to open the file descriptor, or you want to
 run nbdkit in a sandboxed environment.
 
+The file is writable unless either the I<-r> command line option, or
+L<nbdkit-readonly-filter(1)> is used.
+
 =head1 PARAMETERS
 
 Exactly one of B<file>, B<dir>, B<fd> or B<dirfd> must be given.  This
@@ -262,7 +265,8 @@ L<nbdkit-tmpdisk-plugin(1)>,
 L<nbdkit-exportname-filter(1)>,
 L<nbdkit-fua-filter(1)>,
 L<nbdkit-luks-filter(1)>,
-L<nbdkit-noextents-filter(1)>.
+L<nbdkit-noextents-filter(1)>,
+L<nbdkit-readonly-filter(1)>.
 
 =head1 AUTHORS
 

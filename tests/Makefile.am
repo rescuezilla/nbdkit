@@ -1909,6 +1909,10 @@ EXTRA_DIST += \
 	test-readahead-copy.sh \
 	$(NULL)
 
+# readonly filter test.
+TESTS += test-readonly.sh
+EXTRA_DIST += test-readonly.sh
+
 # retry filter test.
 TESTS += \
 	test-retry.sh \

@@ -26,7 +26,9 @@ C<error-rate> or C<error-*-rate> parameters,
 B<otherwise this filter will do nothing>.
 
 L<nbdkit-evil-filter(1)> is a related filter that injects data
-corruption instead of errors.
+corruption instead of errors.  L<nbdkit-readonly-filter(1)> is another
+filter which can change a plugin from read-write to read-only (and
+vice versa).
 
 =head1 EXAMPLES
 
@@ -42,6 +44,8 @@ device":
                             error=ENOSPC \
                             error-pwrite-rate=100% \
                             error-zero-rate=100%
+
+(see also L<nbdkit-readonly-filter(1)>).
 
 To make all connections fail hard 60 seconds after the server is
 started, use:
@@ -168,6 +172,7 @@ L<nbdkit(1)>,
 L<nbdkit-evil-filter(1)>,
 L<nbdkit-file-plugin(1)>,
 L<nbdkit-full-plugin(1)>,
+L<nbdkit-readonly-filter(1)>,
 L<nbdkit-retry-filter(1)>,
 L<nbdkit-retry-request-filter(1)>,
 L<nbdkit-filter(3)>.
