@@ -40,6 +40,9 @@ requires_run
 requires_nbdinfo
 requires_nbdsh_uri
 
+# Check nbdinfo supports the --is flag (not RHEL 8).
+requires nbdkit -r null --run 'nbdinfo --is readonly "$uri"'
+
 # When used in unconditional mode, we advertise r/o to the client.
 nbdkit null 1M --filter=readonly \
        --run 'nbdinfo --is readonly "$uri"'
