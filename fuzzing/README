@@ -30,16 +30,20 @@ and as many slaves (-S) as you can.
 Master:
 
   mkdir -p fuzzing/sync_dir
-  export AFL_PRELOAD=./plugins/memory/.libs/nbdkit-memory-plugin.so
+  export AFL_PRELOAD=./plugins/pattern/.libs/nbdkit-pattern-plugin.so
   afl-fuzz -i fuzzing/testcase_dir -o fuzzing/sync_dir -M fuzz01 \
-      ./server/nbdkit -s -t 1 ./plugins/memory/.libs/nbdkit-memory-plugin.so 1M
+      ./server/nbdkit -s -t 1 \
+          --filter=./filters/cow/.libs/nbdkit-cow-filter.so \
+          ./plugins/pattern/.libs/nbdkit-pattern-plugin.so 1M
 
 Slaves:
 
   # replace fuzzNN with fuzz02, fuzz03, etc.
-  export AFL_PRELOAD=./plugins/memory/.libs/nbdkit-memory-plugin.so
+  export AFL_PRELOAD=./plugins/pattern/.libs/nbdkit-pattern-plugin.so
   afl-fuzz -i fuzzing/testcase_dir -o fuzzing/sync_dir -S fuzzNN \
-      ./server/nbdkit -s -t 1 ./plugins/memory/.libs/nbdkit-memory-plugin.so 1M
+      ./server/nbdkit -s -t 1 \
+          --filter=./filters/cow/.libs/nbdkit-cow-filter.so \
+          ./plugins/pattern/.libs/nbdkit-pattern-plugin.so 1M
 
 Test Coverage
 -------------
@@ -61,7 +65,10 @@ command below.  You can run this even while afl-fuzz is running.
 
   afl-cov -d ../nbdkit-afl/fuzzing/sync_dir \
       --code-dir . \
-      --coverage-cmd "cat AFL_FILE | ./server/nbdkit -s -t 1 ./plugins/memory/.libs/nbdkit-memory-plugin.so 1M"
+      --coverage-cmd "cat AFL_FILE | <<NBDKIT COMMAND>>"
+
+(replace <<NBDKIT COMMAND>> with the './server/nbdkit -s -t 1 ...'
+command that you are fuzzing).
 
 This will create an HTML test coverage report in
 ../nbdkit-afl/fuzzing/sync_dir/cov/web/
@@ -74,10 +81,9 @@ people report that they are exposing the oldstyle protocol to the
 internet / untrusted clients then we could extend the testing for
 that.
 
-We have only fuzzed the memory plugin, which is convenient because it
-stores everything in memory and throws it away when nbdkit exits.
-Since plugins can have bugs as well as the core server, it may be
-productive to test other plugins and filters.
+We have only fuzzed a handful of plugins.  Since plugins can have bugs
+as well as the core server, it may be productive to test other plugins
+and filters.
 
 
 Fuzzing nbdkit using honggfuzz
