@@ -258,6 +258,7 @@ new_connection (int sockin, int sockout, int nworkers)
     perror ("malloc");
     return NULL;
   }
+  conn->magic = CONN_MAGIC;
   conn->status_pipe[0] = conn->status_pipe[1] = -1;
 
   pthread_mutex_init (&conn->request_lock, NULL);

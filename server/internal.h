@@ -226,6 +226,9 @@ enum {
 struct context {
   struct nbdkit_next_ops next;  /* Must be first member, for ABI reasons */
 
+  uint64_t magic;               /* Magic number used to validate struct. */
+#define CONTEXT_MAGIC 0xc011c011c011
+
   void *handle;         /* Plugin or filter handle. */
   struct backend *b;    /* Backend that provided handle. */
   struct context *c_next; /* Underlying context, only when b->next != NULL. */
@@ -257,6 +260,9 @@ typedef enum {
 } conn_status;
 
 struct connection {
+  uint64_t magic;               /* Magic number used to validate struct. */
+#define CONN_MAGIC 0xc055c055c055
+
   /* Listed in precedence order: do not grab earlier locks in this list
    * while holding a later lock.
    */
@@ -354,6 +360,9 @@ struct backend {
    * plugins and never NULL for filters.
    */
   struct backend *next;
+
+  uint64_t magic;               /* Magic number used to validate struct. */
+#define BACKEND_MAGIC 0xbacbacbacbac
 
   /* A unique index used to fetch the handle from the connections
    * object.  The plugin (last in the chain) has index 0, and the
