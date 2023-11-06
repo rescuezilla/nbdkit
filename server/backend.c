@@ -67,6 +67,7 @@ void
 backend_init (struct backend *b, struct backend *next, size_t index,
               const char *filename, void *dl, const char *type)
 {
+  b->magic = BACKEND_MAGIC;
   b->next = next;
   b->i = index;
   b->type = type;
@@ -254,6 +255,7 @@ backend_open (struct backend *b, int readonly, const char *exportname,
     nbdkit_error ("malloc: %m");
     return NULL;
   }
+  c->magic = CONTEXT_MAGIC;
   PUSH_CONTEXT_FOR_SCOPE (c);
 
   controlpath_debug ("%s: open readonly=%d exportname=\"%s\" tls=%d",
@@ -311,6 +313,7 @@ backend_prepare (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle);
   assert (c->state & HANDLE_OPEN);
 
@@ -337,6 +340,8 @@ backend_finalize (struct context *c)
 {
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
+
+  assert (b->magic == BACKEND_MAGIC);
 
   /* Call these in reverse order to .prepare above, starting from the
    * filter furthest away from the plugin, and matching .close order.
@@ -368,6 +373,7 @@ backend_close (struct context *c)
   struct context *c_next = c->c_next;
 
   /* outer-to-inner order, opposite .open */
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle);
   assert (c->state & HANDLE_OPEN);
   controlpath_debug ("%s: close", b->name);
@@ -394,6 +400,7 @@ backend_export_description (struct context *c)
   struct backend *b = c->b;
   const char *s;
 
+  assert (b->magic == BACKEND_MAGIC);
   controlpath_debug ("%s: export_description", b->name);
 
   assert (c->handle && (c->state & HANDLE_CONNECTED));
@@ -415,6 +422,7 @@ backend_get_size (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->exportsize == -1) {
     controlpath_debug ("%s: get_size", b->name);
@@ -431,6 +439,7 @@ backend_block_size (struct context *c,
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->minimum_block_size != -1) {
     *minimum = c->minimum_block_size;
@@ -456,6 +465,7 @@ backend_can_write (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_write == -1) {
     controlpath_debug ("%s: can_write", b->name);
@@ -470,6 +480,7 @@ backend_can_flush (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_flush == -1) {
     controlpath_debug ("%s: can_flush", b->name);
@@ -484,6 +495,7 @@ backend_is_rotational (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->is_rotational == -1) {
     controlpath_debug ("%s: is_rotational", b->name);
@@ -499,6 +511,7 @@ backend_can_trim (struct context *c)
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_trim == -1) {
     controlpath_debug ("%s: can_trim", b->name);
@@ -519,6 +532,7 @@ backend_can_zero (struct context *c)
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_zero == -1) {
     controlpath_debug ("%s: can_zero", b->name);
@@ -539,6 +553,7 @@ backend_can_fast_zero (struct context *c)
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_fast_zero == -1) {
     controlpath_debug ("%s: can_fast_zero", b->name);
@@ -558,6 +573,7 @@ backend_can_extents (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_extents == -1) {
     controlpath_debug ("%s: can_extents", b->name);
@@ -573,6 +589,7 @@ backend_can_fua (struct context *c)
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_fua == -1) {
     controlpath_debug ("%s: can_fua", b->name);
@@ -592,6 +609,7 @@ backend_can_multi_conn (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_multi_conn == -1) {
     controlpath_debug ("%s: can_multi_conn", b->name);
@@ -606,6 +624,7 @@ backend_can_cache (struct context *c)
   PUSH_CONTEXT_FOR_SCOPE (c);
   struct backend *b = c->b;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   if (c->can_cache == -1) {
     controlpath_debug ("%s: can_cache", b->name);
@@ -623,6 +642,7 @@ backend_pread (struct context *c,
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (backend_valid_range (c, offset, count));
   assert (flags == 0);
@@ -645,6 +665,7 @@ backend_pwrite (struct context *c,
   bool fua = !!(flags & NBDKIT_FLAG_FUA);
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (c->can_write == 1);
   assert (backend_valid_range (c, offset, count));
@@ -668,6 +689,7 @@ backend_flush (struct context *c,
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (c->can_flush == 1);
   assert (flags == 0);
@@ -689,6 +711,7 @@ backend_trim (struct context *c,
   bool fua = !!(flags & NBDKIT_FLAG_FUA);
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (c->can_write == 1);
   assert (c->can_trim == 1);
@@ -716,6 +739,7 @@ backend_zero (struct context *c,
   bool fast = !!(flags & NBDKIT_FLAG_FAST_ZERO);
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (c->can_write == 1);
   assert (c->can_zero > NBDKIT_ZERO_NONE);
@@ -784,6 +808,7 @@ backend_extents (struct context *c,
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (c->can_extents >= 0);
   assert (backend_valid_range (c, offset, count));
@@ -815,6 +840,7 @@ backend_cache (struct context *c,
   struct backend *b = c->b;
   int r;
 
+  assert (b->magic == BACKEND_MAGIC);
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (c->can_cache > NBDKIT_CACHE_NONE);
   assert (backend_valid_range (c, offset, count));

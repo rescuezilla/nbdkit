@@ -225,8 +225,12 @@ struct connection *
 threadlocal_get_conn (void)
 {
   struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);
+  struct connection *conn;
 
-  return threadlocal ? threadlocal->conn : NULL;
+  conn = threadlocal ? threadlocal->conn : NULL;
+  if (conn)
+    assert (conn->magic == CONN_MAGIC);
+  return conn;
 }
 
 /* Get the current context associated with this thread, if available */
@@ -234,8 +238,12 @@ struct context *
 threadlocal_get_context (void)
 {
   struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);
+  struct context *ctx;
 
-  return threadlocal ? threadlocal->ctx : NULL;
+  ctx = threadlocal ? threadlocal->ctx : NULL;
+  if (ctx)
+    assert (ctx->magic == CONTEXT_MAGIC);
+  return ctx;
 }
 
 /* Set (or clear) the context using the current thread.  This function
@@ -248,10 +256,22 @@ threadlocal_push_context (struct context *ctx)
   struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);
   struct context *ret = NULL;
 
+  if (ctx)
+    assert (ctx->magic == CONTEXT_MAGIC);
   if (threadlocal) {
     ret = threadlocal->ctx;
     threadlocal->ctx = ctx;
   }
+  /* Note about validation of ret->magic:
+   *
+   * 'ret' here may be a freed pointer, so ret->magic can be invalid.
+   *
+   * 'ret' is only returned here so that PUSH_CONTEXT_FOR_SCOPE can
+   * save it on the caller stack and restore it when the function
+   * returns.  Since the function using PUSH_CONTEXT_FOR_SCOPE can
+   * never touch this we don't have to validate it, and validation
+   * might fail anyway.
+   */
   return ret;
 }
 
