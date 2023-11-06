@@ -249,7 +249,7 @@ backend_open (struct backend *b, int readonly, const char *exportname,
     using_tls = conn->using_tls;
   }
 
-  c = malloc (sizeof *c);
+  c = calloc (1, sizeof *c);
   if (c == NULL) {
     nbdkit_error ("malloc: %m");
     return NULL;
