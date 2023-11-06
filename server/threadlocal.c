@@ -258,5 +258,8 @@ threadlocal_push_context (struct context *ctx)
 void
 threadlocal_pop_context (struct context **ctx)
 {
-  threadlocal_push_context (*ctx);
+  struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);
+
+  if (threadlocal)
+    threadlocal->ctx = *ctx;
 }
