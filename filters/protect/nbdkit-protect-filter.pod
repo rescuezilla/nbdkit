@@ -18,9 +18,9 @@ the data to make it look like a non-raw disk format (like adding a
 qcow2 header), since that can be used in some exploits.
 
 To make the whole plugin readonly, use the nbdkit I<-r> option on the
-command line, or L<nbdkit-readonly-filter(1)> To give selective access
-to the server, use L<nbdkit-ip-filter(1)>.  To serve only a subset of
-the plugin use L<nbdkit-offset-filter(1)> or
+command line, or L<nbdkit-readonly-filter(1)>.  To give selective
+access to the server, use L<nbdkit-ip-filter(1)>.  To serve only a
+subset of the plugin use L<nbdkit-offset-filter(1)> or
 L<nbdkit-partition-filter(1)>.
 
 =head1 EXAMPLES
