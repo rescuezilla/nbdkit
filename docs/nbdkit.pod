@@ -371,6 +371,8 @@ plugins the I<-r> option is added implicitly.
 L<nbdkit-cow-filter(1)> can be placed over read-only plugins to
 provide copy-on-write (or "snapshot") functionality.  If you are using
 qemu as a client then it also supports snapshots.
+L<nbdkit-readonly-filter(1)> or L<nbdkit-protect-filter(1)> can
+selectively add write-protection.
 
 =item B<--run> 'COMMAND ARGS ...'
 
