@@ -227,7 +227,7 @@ struct context {
   struct nbdkit_next_ops next;  /* Must be first member, for ABI reasons */
 
   uint64_t magic;               /* Magic number used to validate struct. */
-#define CONTEXT_MAGIC 0xc011c011c011
+#define CONTEXT_MAGIC 0xc011
 
   void *handle;         /* Plugin or filter handle. */
   struct backend *b;    /* Backend that provided handle. */
@@ -261,7 +261,7 @@ typedef enum {
 
 struct connection {
   uint64_t magic;               /* Magic number used to validate struct. */
-#define CONN_MAGIC 0xc055c055c055
+#define CONN_MAGIC 0xc05
 
   /* Listed in precedence order: do not grab earlier locks in this list
    * while holding a later lock.
@@ -356,13 +356,13 @@ extern int replace_vfprintf (FILE *f, const char *fmt, va_list args)
 
 /* backend.c */
 struct backend {
+  uint64_t magic;               /* Magic number used to validate struct. */
+#define BACKEND_MAGIC 0xbac
+
   /* Next filter or plugin in the chain.  This is always NULL for
    * plugins and never NULL for filters.
    */
   struct backend *next;
-
-  uint64_t magic;               /* Magic number used to validate struct. */
-#define BACKEND_MAGIC 0xbacbacbacbac
 
   /* A unique index used to fetch the handle from the connections
    * object.  The plugin (last in the chain) has index 0, and the
