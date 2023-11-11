@@ -34,7 +34,8 @@ package nbdkit
 
 /*
 #cgo pkg-config: nbdkit
-#cgo LDFLAGS: -Wl,--unresolved-symbols=ignore-in-object-files
+#cgo !darwin LDFLAGS: -Wl,--unresolved-symbols=ignore-in-object-files
+#cgo darwin LDFLAGS: -Wl,-undefined,dynamic_lookup
 
 #include <stdio.h>
 #include <stdlib.h>
