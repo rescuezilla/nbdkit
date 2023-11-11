@@ -197,6 +197,7 @@ dump_config (void)
   printf ("%s=%s\n", "host_os", host_os);
   printf ("%s=%s\n", "libdir", libdir);
   printf ("%s=%s\n", "mandir", mandir);
+  printf ("%s=%d\n", "max_api_version", MAX_API_VERSION);
   printf ("%s=%s\n", "name", PACKAGE_NAME);
   printf ("%s=%s\n", "plugindir", plugindir);
   printf ("%s=%s\n", "root_tls_certificates_dir", root_tls_certificates_dir);
