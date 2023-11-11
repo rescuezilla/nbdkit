@@ -142,22 +142,13 @@ extern char *unixsocket;
 extern const char *user, *group;
 extern bool verbose;
 extern bool vsock;
+
 extern enum service_mode service_mode;
 extern char *uri;
 extern bool configured;
 extern int saved_stdin;
 extern int saved_stdout;
 
-/* Linked list of backends.  Each backend struct is followed by either
- * a filter or plugin struct.  "top" points to the first one.  They
- * are linked through the backend->next field.
- *
- *         ┌──────────┐    ┌──────────┐    ┌──────────┐
- * top ───▶│ backend  │───▶│ backend  │───▶│ backend  │
- *         │ b->i = 2 │    │ b->i = 1 │    │ b->i = 0 │
- *         │ filter   │    │ filter   │    │ plugin   │
- *         └──────────┘    └──────────┘    └──────────┘
- */
 extern struct backend *top;
 #define for_each_backend(b) for (b = top; b != NULL; b = b->next)
 

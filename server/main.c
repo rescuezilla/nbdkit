@@ -118,18 +118,28 @@ char *unixsocket;               /* -U */
 const char *user, *group;       /* -u & -g */
 bool verbose;                   /* -v */
 bool vsock;                     /* --vsock */
-unsigned int socket_activation; /* $LISTEN_FDS and $LISTEN_PID set */
+
 enum service_mode service_mode; /* serving over TCP, Unix, etc */
 char *uri;                      /* NBD URI */
 bool configured;                /* .config_complete done */
 int saved_stdin = -1;           /* dup'd stdin during -s/--run */
 int saved_stdout = -1;          /* dup'd stdout during -s/--run */
 
-/* The linked list of zero or more filters, and one plugin. */
+/* Linked list of backends.  Each backend struct is followed by either
+ * a filter or plugin struct.  "top" points to the first one.  They
+ * are linked through the backend->next field.
+ *
+ *         ┌──────────┐    ┌──────────┐    ┌──────────┐
+ * top ───▶│ backend  │───▶│ backend  │───▶│ backend  │
+ *         │ b->i = 2 │    │ b->i = 1 │    │ b->i = 0 │
+ *         │ filter   │    │ filter   │    │ plugin   │
+ *         └──────────┘    └──────────┘    └──────────┘
+ */
 struct backend *top;
 
-static char *random_fifo_dir = NULL;
-static char *random_fifo = NULL;
+static unsigned int socket_activation; /* $LISTEN_FDS and $LISTEN_PID set */
+static char *random_fifo_dir = NULL;   /* Directory containing -U - */
+static char *random_fifo = NULL;       /* Path to -U - socket */
 
 static void
 usage (void)
