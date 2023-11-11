@@ -42,7 +42,10 @@
 #include <sys/socket.h>
 #endif
 
-#define NBDKIT_API_VERSION 2
+/* Server supports API versions between 1 and MAX_API_VERSION */
+#define MAX_API_VERSION 2
+
+#define NBDKIT_API_VERSION MAX_API_VERSION
 #define NBDKIT_INTERNAL
 #include "nbdkit-plugin.h"
 #include "nbdkit-filter.h"

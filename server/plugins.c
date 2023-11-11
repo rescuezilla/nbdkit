@@ -934,7 +934,7 @@ plugin_register (size_t index, const char *filename,
   }
 
   /* Check for incompatible future versions. */
-  if (plugin->_api_version < 0 || plugin->_api_version > 2) {
+  if (plugin->_api_version < 0 || plugin->_api_version > MAX_API_VERSION) {
     fprintf (stderr,
              "%s: %s: plugin is incompatible with this version of nbdkit "
              "(_api_version = %d)\n",
