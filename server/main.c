@@ -207,6 +207,7 @@ dump_config (void)
 #else
   printf ("selinux=no\n");
 #endif
+  printf ("%s=%s\n", "soext", SOEXT);
   printf ("%s=%s\n", "sysconfdir", sysconfdir);
 #ifdef HAVE_GNUTLS
   printf ("tls=yes\n");
