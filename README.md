@@ -311,7 +311,7 @@ The upstream git repository is:
 https://gitlab.com/nbdkit/nbdkit
 
 Please send patches to the libguestfs mailing list:
-https://www.redhat.com/mailman/listinfo/libguestfs
+https://lists.libguestfs.org
 
 For further information, see:
 https://libguestfs.org/
