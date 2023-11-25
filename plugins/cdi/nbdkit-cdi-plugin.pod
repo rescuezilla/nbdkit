@@ -27,13 +27,28 @@ The layer exported over NBD is a tar file:
  -: POSIX tar archive
 
 To export only the VM disk image in this layer, combine this plugin
-with L<nbdkit-tar-filter(1)>.  In this example when you run L<file(1)>
-on the tar entry within the layer it shows that it is a QCOW2 file:
+with L<nbdkit-tar-filter(1)>.  In the example below the file exposed
+inside the tar archive is a qcow2 image so you can turn it into a raw
+NBD export of the virtual machine using L<nbdkit-qcow2dec-filter(1)>:
 
- $ nbdkit cdi quay.io/kubevirt/fedora-cloud-container-disk-demo \
+ ┌──────────────────────────────────────────┐
+ │ fedora-cloud-container-disk-demo layer=0 │
+ │ (uncompressed tar file)                  │
+ │ ┌──────────────────────────────────────┐ │
+ │ │ ./disk/downloaded                    │ │
+ │ │ (qcow2 image)                        │ │
+ │ └──────────────────────────────────────┘ │
+ └──────────────────────────────────────────┘
+
+ $ nbdkit cdi \
+         --filter=qcow2dec \
          --filter=tar tar-entry=./disk/downloaded \
-         --run 'nbdcopy "$uri" - | file -'
- -: QEMU QCOW2 Image (v2), 4294967296 bytes
+         quay.io/kubevirt/fedora-cloud-container-disk-demo \
+         --run 'nbdinfo "$uri"'
+ export="":
+     export-size: 4294967296 (4G)
+     content: DOS/MBR boot sector
+ [...]
 
 =head1 PARAMETERS
 
@@ -84,6 +99,7 @@ C<nbdkit-cdi-plugin> first appeared in nbdkit 1.22.
 
 L<nbdkit(1)>,
 L<nbdkit-plugin(3)>,
+L<nbdkit-qcow2dec-filter(1)>,
 L<nbdkit-tar-filter(1)>,
 L<podman(1)>,
 L<podman-pull(1)>,
