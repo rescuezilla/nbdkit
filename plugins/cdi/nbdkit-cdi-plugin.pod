@@ -19,7 +19,7 @@ L<jq(1)> and requires both tools to be installed.
 Given a Containerized Data Importer (CDI) registry image containing a
 VM disk, you can export the whole layer using:
 
- $ nbdkit cdi docker://kubevirt/fedora-cloud-container-disk-demo
+ $ nbdkit cdi quay.io/kubevirt/fedora-cloud-container-disk-demo
 
 The layer exported over NBD is a tar file:
 
@@ -30,7 +30,7 @@ To export only the VM disk image in this layer, combine this plugin
 with L<nbdkit-tar-filter(1)>.  In this example when you run L<file(1)>
 on the tar entry within the layer it shows that it is a QCOW2 file:
 
- $ nbdkit cdi docker://kubevirt/fedora-cloud-container-disk-demo \
+ $ nbdkit cdi quay.io/kubevirt/fedora-cloud-container-disk-demo \
          --filter=tar tar-entry=./disk/downloaded \
          --run 'nbdcopy "$uri" - | file -'
  -: QEMU QCOW2 Image (v2), 4294967296 bytes
