@@ -60,7 +60,7 @@ static const char script[] =
   /* Create a temporary directory to extract the image to. */
   "d=\"$tmpfile.d\"\n"
   "podman pull \"$name\"\n"
-  "podman save --format oci-dir -o \"$d\" \"$name\"\n"
+  "podman save --format docker-dir -o \"$d\" \"$name\"\n"
   "f=\"$d/$( jq -r \".layers[$layer].digest\" < \"$d/manifest.json\" |\n"
   "          cut -d: -f2 )\"\n"
   "if ! test -f \"$f\"; then\n"
