@@ -336,7 +336,7 @@ AC_LANG_SOURCE([[
 static int
 test (void)
 {
-  const char **env = environ;
+  char **env = environ;
   return env ? 1 : 0; // this just forces env to be used
 }
 ]])
