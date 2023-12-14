@@ -67,12 +67,22 @@ symbolic links.  Other special files in the directory (such as
 subdirectories, pipes, or Unix sockets) are ignored.
 
 When this mode is used, the file to be served is chosen by the export
-name passed by the client, where the client can request a list of
-available exports using NBD_OPT_LIST.  A client that requests the
-default export (C<"">) will be rejected.  However, you can use
-L<nbdkit-exportname-filter(1)> to adjust what export names the client
-sees or uses as a default.  For security, when using directory mode,
+name passed by the client.  For security, when using directory mode,
 this plugin will not accept export names containing slash (C</>).
+
+To list exports, use L<nbdinfo(1)> I<--list> option, for example:
+
+ nbdinfo --list nbd://localhost
+
+An NBD client can request a list of available exports using
+C<NBD_OPT_LIST>.
+
+A client that requests the default export (C<"">) will be rejected.
+However, you can use L<nbdkit-exportname-filter(1)> to adjust what
+export names the client sees, and which one the client uses as a
+default.  For example to make F</dir/file> be the default export:
+
+ nbdkit file dir=/dir --filter=exportname default-export=file
 
 =item B<dirfd=>FILE_DESCRIPTOR
 
@@ -266,7 +276,8 @@ L<nbdkit-exportname-filter(1)>,
 L<nbdkit-fua-filter(1)>,
 L<nbdkit-luks-filter(1)>,
 L<nbdkit-noextents-filter(1)>,
-L<nbdkit-readonly-filter(1)>.
+L<nbdkit-readonly-filter(1)>,
+L<nbdinfo(1)>.
 
 =head1 AUTHORS
 
