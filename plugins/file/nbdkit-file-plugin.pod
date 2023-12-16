@@ -75,7 +75,7 @@ this plugin will not accept export names containing slash (C</>).
 
 (nbdkit E<ge> 1.34, not Windows)
 
-This is like the I<dir> option, but instead of specifying the
+This is like the C<dir=> option, but instead of specifying the
 directory by name, the parent process should open the directory and
 pass this file descriptor by inheritance to nbdkit.
 
