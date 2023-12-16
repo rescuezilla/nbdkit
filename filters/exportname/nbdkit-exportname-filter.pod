@@ -10,8 +10,8 @@ nbdkit-exportname-filter - adjust export names between client and plugin
 
 =head1 DESCRIPTION
 
-Some plugins (such as C<nbdkit-file-plugin(1)> and filters (such as
-C<nbdkit-ext2-filter(1)> are able to serve different content based on
+Some plugins (such as L<nbdkit-file-plugin(1)> and filters (such as
+L<nbdkit-ext2-filter(1)> are able to serve different content based on
 the export name requested by the client.  The NBD protocol allows a
 server to advertise the set of export names it is serving.  However,
 the list advertised (or absent) from the plugin may not always match
