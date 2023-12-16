@@ -66,23 +66,7 @@ directory named C<DIRECTORY>, including those found by following
 symbolic links.  Other special files in the directory (such as
 subdirectories, pipes, or Unix sockets) are ignored.
 
-When this mode is used, the file to be served is chosen by the export
-name passed by the client.  For security, when using directory mode,
-this plugin will not accept export names containing slash (C</>).
-
-To list exports, use L<nbdinfo(1)> I<--list> option, for example:
-
- nbdinfo --list nbd://localhost
-
-An NBD client can request a list of available exports using
-C<NBD_OPT_LIST>.
-
-A client that requests the default export (C<"">) will be rejected.
-However, you can use L<nbdkit-exportname-filter(1)> to adjust what
-export names the client sees, and which one the client uses as a
-default.  For example to make F</dir/file> be the default export:
-
- nbdkit file dir=/dir --filter=exportname default-export=file
+See L</Serving multiple files and block devices> below.
 
 =item B<dirfd=>FILE_DESCRIPTOR
 
@@ -91,6 +75,8 @@ default.  For example to make F</dir/file> be the default export:
 This is like the C<dir=> option, but instead of specifying the
 directory by name, the parent process should open the directory and
 pass this file descriptor by inheritance to nbdkit.
+
+See L</Serving multiple files and block devices> below.
 
 =item B<fadvise=normal>
 
@@ -142,6 +128,52 @@ L<https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-devi
 =back
 
 =head1 NOTES
+
+=head2 Serving multiple files and block devices
+
+Using C<dir=DIRECTORY> (or C<dirfd=DIRFD>) you can serve all regular
+files and block devices located directly inside the directory named
+C<DIRECTORY>, including those found by following symbolic links.
+Other special files in the directory (such as subdirectories, pipes,
+or Unix sockets) are ignored.
+
+When this mode is used, the file to be served is chosen by the export
+name passed by the client.  For security, when using directory mode,
+this plugin will not accept export names containing slash (C</>).
+
+For example:
+
+ $ ls -l /var/tmp/exports
+ total 0
+ -rw-r--r--. 1 rjones rjones 1048576 Dec 14 15:34 disk1
+ -rw-r--r--. 1 rjones rjones 2097152 Dec 14 15:34 disk2
+ lrwxrwxrwx. 1 rjones rjones       9 Dec 14 15:35 sda1 -> /dev/sda1
+ $ nbdkit file dir=/var/tmp/exports
+
+will serve three exports called C<"disk1">, C<"disk2"> and C<"sda1">.
+The first two are regular files and the last is a block device.  You
+can add or remove files or symbolic links from the directory while
+nbdkit is running.
+
+To list exports, use L<nbdinfo(1)> I<--list> option, for example:
+
+ $ nbdinfo --list nbd://localhost
+ protocol: newstyle-fixed without TLS, using structured packets
+ export="disk1":
+     export-size: 1048576 (1M)
+     uri: nbd://localhost:10809/disk1
+ [etc]
+
+An NBD client can request a list of available exports using
+C<NBD_OPT_LIST>.  For libnbd clients see nbd_opt_list(3).
+
+A client that requests the default export (C<"">) will be rejected.
+However, you can use L<nbdkit-exportname-filter(1)> to adjust the
+default export as well as other transformations of export names.  For
+example to make F</var/tmp/exports/disk1> be the default export:
+
+ nbdkit file dir=/var/tmp/exports \
+        --filter=exportname default-export=disk1
 
 =head2 Optimizing for random or sequential access
 
