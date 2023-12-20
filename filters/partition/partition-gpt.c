@@ -92,10 +92,8 @@ find_gpt_partition (nbdkit_next *next,
   int err;
 
   if (get_gpt_header (header_bytes,
-                      &nr_partition_entries, &size_partition_entry) == -1) {
-    nbdkit_error ("cannot support non-standard GPT header");
+                      &nr_partition_entries, &size_partition_entry) == -1)
     return -1;
-  }
 
   if (partnum > nr_partition_entries) {
     nbdkit_error ("GPT partition number out of range");
