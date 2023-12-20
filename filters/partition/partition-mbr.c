@@ -87,9 +87,16 @@ find_mbr_partition (nbdkit_next *next,
           !is_extended (partition.part_type_byte) &&
           partnum == i+1) {
         if (partition.part_type_byte == 0xEE) {
-          nbdkit_error ("rejecting GPT protective entry from MBR, "
-                        "if the underlying storage uses 4K sectors "
-                        "try using partition-sectorsize=4k");
+          if (sector_size == 512)
+            nbdkit_error ("rejecting GPT protective entry from MBR, "
+                          "if the underlying storage uses 4K sectors "
+                          "try using partition-sectorsize=4k");
+          else if (sector_size == 4096)
+            nbdkit_error ("rejecting GPT protective entry from MBR, "
+                          "if the underlying storage uses 512 byte sectors "
+                          "try using partition-sectorsize=512");
+          else
+            nbdkit_error ("rejecting GPT protective entry from MBR");
           return -1;
         }
         *offset_r = partition.start_sector * (int64_t) sector_size;
