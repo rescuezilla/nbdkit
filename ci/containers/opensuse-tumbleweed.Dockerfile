@@ -48,7 +48,7 @@ RUN zypper dist-upgrade -y && \
            python3-base \
            python3-boto3 \
            python3-devel \
-           python39-flake8 \
+           python3-flake8 \
            qemu-tools \
            rust \
            socat \
