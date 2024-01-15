@@ -407,7 +407,8 @@ open_or_create_path (ssh_session session, sftp_session sftp, int readonly)
 
   file = sftp_open (sftp, path, access_type, S_IRWXU);
   if (!file) {
-    nbdkit_error ("cannot %s file for %s: %s",
+    nbdkit_error ("%s: cannot %s file for %s: %s",
+                  path,
                   create ? "create" : "open",
                   readonly ? "reading" : "writing",
                   ssh_get_error (session));
