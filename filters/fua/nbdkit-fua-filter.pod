@@ -89,7 +89,7 @@ Serve the file F<disk.img> discarding all FUA and flush requests.
 This can greatly improve performance, but you will likely lose data if
 there is a crash, so it is not safe.
 
- nbdkit --filter=discard file disk.img fuamode=discard
+ nbdkit --filter=fua file disk.img fuamode=discard
 
 =item *
 
