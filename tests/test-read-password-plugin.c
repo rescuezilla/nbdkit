@@ -33,7 +33,22 @@ exec nbdkit cc "$0" "$@" EXTRA_CFLAGS="-I.. -I$abs_top_srcdir/include"
  * SUCH DAMAGE.
  */
 
-/* See test-read-password.sh and test-read-password-interactive.sh */
+/* Plugin for testing nbdkit_read_password().
+ * (See also test-read-password.sh and test-read-password-interactive.sh)
+ *
+ * This plugin takes two required parameters, "password" and "file".
+ *
+ * It reads a password using nbdkit_read_password(), ie. using one of
+ * the usual password mechanisms like password=-, password=-FD or
+ * others.  It writes whatever password was read to the file.
+ *
+ * Using this plugin we can test that all the mechanisms supported by
+ * nbdkit_read_password() work.  Note that libvirt since 10.0.0 uses
+ * the password=-FD method to pass secrets to nbdkit-ssh-plugin.
+ *
+ * This plugin never gets as far as serving data.  It shuts down
+ * nbdkit in the .get_ready callback.
+ */
 
 #include <config.h>
 
