@@ -45,6 +45,9 @@ requires_run
 requires_plugin cc
 requires guestfish --version
 
+# This variable is used by $script.
+export abs_top_srcdir
+
 $script -fv \
         EXTRA_CFLAGS="-I$abs_top_srcdir/include" \
         --run '

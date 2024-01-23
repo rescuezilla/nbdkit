@@ -50,7 +50,7 @@ cleanup_fn rm -f $errors
 # This command is expected to fail.
 nbdkit -rfv \
        curl file:$PWD/disk protocols=file \
-       header-script=$PWD/test-curl-header-script-fail.script \
+       header-script=$abs_top_srcdir/tests/test-curl-header-script-fail.script \
        --run 'nbdinfo --no-content $uri' >$errors 2>&1 ||:
 
 cat $errors

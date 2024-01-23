@@ -59,7 +59,7 @@ run_test ()
 {
     plugin="$1"
 
-    pod=../plugins/$plugin/nbdkit-$plugin-plugin.pod
+    pod=$srcdir/../plugins/$plugin/nbdkit-$plugin-plugin.pod
     test -f "$pod"
 
     # Get the key=value lines from the help output.

@@ -1,5 +1,7 @@
 #if 0
-exec nbdkit cc "$0" "$@"
+exec nbdkit cc "$0" "$@" \
+               EXTRA_CFLAGS="-I.. -I../include \
+                             -I$abs_top_srcdir/include"
 #endif
 #include <stdint.h>
 #include <string.h>
