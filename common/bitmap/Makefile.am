@@ -52,6 +52,7 @@ check_PROGRAMS = test-bitmap
 test_bitmap_SOURCES = test-bitmap.c bitmap.c bitmap.h
 test_bitmap_CPPFLAGS = \
 	-I$(top_srcdir)/include \
+	-I$(top_builddir)/include \
 	-I$(top_srcdir)/common/include \
 	$(NULL)
 test_bitmap_CFLAGS = $(WARNINGS_CFLAGS)
