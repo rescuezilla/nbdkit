@@ -42,6 +42,8 @@ requires_nbdsh_uri
 requires nbdsh -c 'print(h.set_opt_mode)'
 requires dd iflag=count_bytes </dev/null
 
+plugin=$srcdir/../tests/test-multi-conn-plugin.sh
+
 files="test-multi-conn-name.out"
 rm -f $files
 cleanup_fn rm -f $files
@@ -69,7 +71,7 @@ print(bytes(h["b1"].pread(1, 0)))
 '
 
 # Without the knob we flush all exports
-nbdkit -vf sh test-multi-conn-plugin.sh --filter=multi-conn \
+nbdkit -vf sh $plugin --filter=multi-conn \
   --run 'export uri; nbdsh -c "$script"' > test-multi-conn-name.out || fail=1
 diff -u <(cat <<\EOF
 b'A'
@@ -77,7 +79,7 @@ b'B'
 EOF
          ) test-multi-conn-name.out || fail=1
 # But with the knob, our flush is specific to the correct export
-nbdkit -vf sh test-multi-conn-plugin.sh --filter=multi-conn \
+nbdkit -vf sh $plugin --filter=multi-conn \
   multi-conn-exportname=true \
   --run 'export uri; nbdsh -c "$script"' > test-multi-conn-name.out || fail=1
 diff -u <(cat <<\EOF

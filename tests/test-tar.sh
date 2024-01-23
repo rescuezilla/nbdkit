@@ -45,7 +45,7 @@ cleanup_fn rm -f $files
 
 # Create a tar file containing the disk image plus some other random
 # files that hopefully will be ignored.
-tar cf tar.tar test-tar.sh Makefile disk Makefile.am
+tar cf tar.tar Makefile disk functions.sh
 tar tvvf tar.tar
 
 # Run nbdkit.

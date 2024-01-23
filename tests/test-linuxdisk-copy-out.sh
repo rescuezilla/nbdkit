@@ -65,14 +65,14 @@ guestfish --ro -a linuxdisk-copy-out.img -m /dev/sda <<EOF
   tar-out / - | cat >/dev/null
 
 # Download some files and compare to local copies.
-  download /Makefile linuxdisk-copy-out.test1
+  download /virtual-disk.c linuxdisk-copy-out.test1
   download /Makefile.am linuxdisk-copy-out.test2
   download /nbdkit-linuxdisk-plugin.pod linuxdisk-copy-out.test3
   download /filesystem.c linuxdisk-copy-out.test4
 EOF
 
 # Compare downloaded files to local versions.
-cmp linuxdisk-copy-out.test1 $srcdir/../plugins/linuxdisk/Makefile
+cmp linuxdisk-copy-out.test1 $srcdir/../plugins/linuxdisk/virtual-disk.c
 cmp linuxdisk-copy-out.test2 $srcdir/../plugins/linuxdisk/Makefile.am
 cmp linuxdisk-copy-out.test3 $srcdir/../plugins/linuxdisk/nbdkit-linuxdisk-plugin.pod
 cmp linuxdisk-copy-out.test4 $srcdir/../plugins/linuxdisk/filesystem.c
