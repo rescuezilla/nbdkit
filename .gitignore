@@ -55,6 +55,7 @@ plugins/*/*.3
 /common/replacements/win32/MSG00001.bin
 /common/replacements/win32/nbdkit-cat.h
 /common/replacements/win32/nbdkit-cat.rc
+/common/replacements/win32/stamp-data
 /common/utils/test-quotes
 /common/utils/test-vector
 /common/utils/windows-errors.c

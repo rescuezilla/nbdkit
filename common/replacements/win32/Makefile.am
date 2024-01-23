@@ -38,8 +38,13 @@ if IS_WINDOWS
 # Build the message catalog.
 noinst_DATA = MSG00001.bin nbdkit-cat.h nbdkit-cat.rc
 
-$(noinst_DATA): nbdkit-cat.mc
-	rm -f $@
+CLEANFILES += stamp-data
+
+$(noinst_DATA): stamp-data
+
+stamp-data: nbdkit-cat.mc
+	rm -f $@ $(noinst_DATA)
 	$(MC) $<
+	touch $@
 
 endif
