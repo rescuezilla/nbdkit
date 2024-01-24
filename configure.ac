@@ -583,13 +583,11 @@ AC_DEFINE_UNQUOTED([DIR_SEPARATOR_STR],["$DIR_SEPARATOR_STR"],
                    [String that separates path elements.])
 AM_CONDITIONAL([IS_WINDOWS],[test "x$is_windows" = "xyes"])
 
-AS_IF([test "x$is_windows" = "xyes"],[
-    dnl For Windows, look for the mc/windmc utility.
-    dnl XXX Do we need to check for mc.exe as well?
-    AC_CHECK_TOOLS([MC],[windmc mc],[no])
-    AS_IF([test "x$MC" = "xno"],
-          [AC_MSG_ERROR([mc/windmc utility must be available when compiling for Windows])])
+dnl Look for the mc/windmc utility (optional).
+AC_CHECK_TOOLS([MC],[windmc mc.exe],[no])
+AM_CONDITIONAL([HAVE_MC],[test "x$MC" != "xno"])
 
+AS_IF([test "x$is_windows" = "xyes"],[
     dnl On Windows look for dlltool.
     AC_CHECK_TOOLS([DLLTOOL],[dlltool],[no])
     AS_IF([test "x$DLLTOOL" = "xno"],
