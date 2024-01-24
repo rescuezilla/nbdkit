@@ -52,9 +52,6 @@ plugins/*/*.3
 /common/protocol/protostrings.c
 /common/replacements/libcompat.a
 /common/replacements/test-current-dir-name
-/common/replacements/win32/MSG00001.bin
-/common/replacements/win32/nbdkit-cat.h
-/common/replacements/win32/nbdkit-cat.rc
 /common/replacements/win32/stamp-data
 /common/utils/test-quotes
 /common/utils/test-vector

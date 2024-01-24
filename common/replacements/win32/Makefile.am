@@ -29,15 +29,18 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
+# The Windows message catalog.
+
 include $(top_srcdir)/common-rules.mk
 
-EXTRA_DIST = nbdkit-cat.mc
-
-if IS_WINDOWS
-
-# Build the message catalog.
 noinst_DATA = MSG00001.bin nbdkit-cat.h nbdkit-cat.rc
 
+# We distribute the generated message catalog files to save people
+# needing to install the windmc tool, but they are regenerated (below)
+# if windmc is found at configure time.
+EXTRA_DIST = nbdkit-cat.mc $(noinst_DATA)
+
+if HAVE_MC
 CLEANFILES += stamp-data
 
 $(noinst_DATA): stamp-data
