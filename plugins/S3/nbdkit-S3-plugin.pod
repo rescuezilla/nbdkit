@@ -147,7 +147,7 @@ daemon may prevent this)
 
 =back
 
-However, for high-bandwith network connections s3backer and s3fs-fuse
+However, for high-bandwidth network connections s3backer and s3fs-fuse
 may be faster because they are written in C rather than Python.
 
 =head1 FILES
