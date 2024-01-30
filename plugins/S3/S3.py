@@ -34,6 +34,7 @@ import base64
 import errno
 import os
 import re
+import secrets
 import tempfile
 import threading
 from typing import Any, Dict, Optional, Union, List
@@ -615,7 +616,6 @@ class LocalTest(unittest.TestCase):
         self.dev_size = 20*self.obj_size
         self.ref_fh = tempfile.TemporaryFile()
         self.ref_fh.truncate(cfg.dev_size)
-        self.rnd_fh = builtins.open('/dev/urandom', 'rb')
 
         config('bucket', 'testbucket')
         config('key', 'nbdkit_test')
@@ -630,10 +630,10 @@ class LocalTest(unittest.TestCase):
     def tearDown(self) -> None:
         super().tearDown()
         self.ref_fh.close()
-        self.rnd_fh.close()
 
-    def get_data(self, len):
-        buf = self.rnd_fh.read(len // 2 + 1)
+    @staticmethod
+    def get_data(len):
+        buf = secrets.token_bytes(len // 2 + 1)
         return base64.b16encode(buf)[:len]
 
     def compare_to_ref(self):
