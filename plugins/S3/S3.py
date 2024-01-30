@@ -458,7 +458,7 @@ class Server:
 
     def _list_objects(self, prefix: str,
                       start_after: Optional[str] = None) -> List[str]:
-        """Return keys for objects in  bucket.
+        """Return keys for objects in the bucket.
 
         Lists all keys starting with *prefix* in lexicographic order, starting
         with the key following *start_after*.
@@ -514,7 +514,7 @@ def make_client_error(errcode):
 class MultiLock:
     """Provides locking for large amounts of entities.
 
-    This class provides locking for a dynamically changing  and potentially
+    This class provides locking for a dynamically changing and potentially
     large set of entities, avoiding the need to allocate a separate lock for
     each entity. The `acquire` and `release` methods have an additional
     argument, the locking key, and only locks with the same key can see each
@@ -535,7 +535,7 @@ class MultiLock:
             self.release(key)
 
     def acquire(self, key):
-        '''Acquire lock for given key.'''
+        """Acquire lock for given key."""
 
         with self.cond:
             while key in self.locked_keys:
