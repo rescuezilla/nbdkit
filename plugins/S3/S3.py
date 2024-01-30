@@ -140,10 +140,12 @@ def block_size(server):
         return (1, 512*1024, 0xffffffff)
 
     # Should return (minimum, preferred, maximum) block size. We return the
-    # same value for all three because even though the plugin can handle
-    # arbitrary large and small blocks, the performance penalty is huge and it
-    # is always preferable for the client to split up requests as needed.
-    return (cfg.obj_size, cfg.obj_size, cfg.obj_size)
+    # same value for preferred and maximum because even though the plugin can
+    # handle arbitrary large and small blocks, the performance penalty is
+    # huge, and it is always preferable for the client to split up requests
+    # as needed. At the same time, the minimum accessible block size is still
+    # 1 byte.
+    return (1, cfg.obj_size, cfg.obj_size)
 
 
 def is_rotational(server):
