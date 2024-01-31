@@ -352,7 +352,7 @@ class Server:
                 off += cfg.obj_size
 
     def _put_object(self, obj_name: str, buf: BinaryData) -> None:
-        "Write *buf* into *obj_name"
+        """Write *buf* into *obj_name"""
 
         assert len(buf) == cfg.obj_size
 
@@ -498,7 +498,7 @@ def concat(b1, b2):
 
 
 def put_object(s3, obj_name, buf):
-    "Write *buf* into *obj_name"
+    """Write *buf* into *obj_name"""
 
     assert len(buf) == cfg.obj_size
 
