@@ -139,6 +139,7 @@ For the Python plugin:
 * python development libraries
 * python unittest to run the test suite
 * boto3 is required to run the S3 plugin written in Python
+* google-cloud-storage is required to run the gcs plugin written in Python
 
 For the OCaml plugin:
 

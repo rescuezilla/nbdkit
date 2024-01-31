@@ -1046,6 +1046,17 @@ EXTRA_DIST += \
 	test-S3/botocore/exceptions.py \
 	$(NULL)
 
+# gcs plugin test.
+TESTS += \
+	test-gcs.sh \
+	test-gcs-unit.sh
+EXTRA_DIST += \
+	test-gcs.sh \
+	test-gcs-unit.sh \
+	test-gcs/google/cloud/storage/__init__.py \
+	test-gcs/google/api_core/exceptions.py \
+	$(NULL)
+
 # sparse-random plugin test.
 TESTS += \
 	test-sparse-random-copy.sh \

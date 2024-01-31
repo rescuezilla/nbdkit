@@ -98,7 +98,7 @@ do_test ()
             # Skip all language plugins as this test doesn't
             # make sense for these.
             ;;
-        S3|example4)
+        S3|gcs|example4)
             # The --help output is for the language plugin (like
             # perl or python) not the actual plugin.  This is
             # really a bug in how we do --help output, for now

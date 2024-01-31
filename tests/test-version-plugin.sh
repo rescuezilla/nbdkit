@@ -63,6 +63,13 @@ do_test ()
                 run_test $1
             fi
             ;;
+        gcs*)
+            # Requires Python plugin and google-cloud-storage library.
+            if nbdkit python --version && \
+               $PYTHON -c 'import google.cloud.storage'; then
+                run_test $1
+            fi
+            ;;
         *)
             run_test $1
             ;;

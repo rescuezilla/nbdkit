@@ -88,7 +88,7 @@ is_script_plugin (const char *name, const char **language)
     *language = "perl";
     return true;
   }
-  if (strcmp (name, "S3") == 0) {
+  if (strcmp (name, "S3") == 0 || strcmp (name, "gcs") == 0) {
     *language = "python";
     return true;
   }

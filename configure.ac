@@ -86,6 +86,7 @@ non_lang_plugins="\
         file \
         floppy \
         full \
+        gcs \
         guestfs \
         info \
         iso \
@@ -1568,6 +1569,7 @@ AC_CONFIG_FILES([Makefile
                  plugins/file/Makefile
                  plugins/floppy/Makefile
                  plugins/full/Makefile
+                 plugins/gcs/Makefile
                  plugins/golang/Makefile
                  plugins/guestfs/Makefile
                  plugins/info/Makefile
@@ -1695,6 +1697,7 @@ feature "blkio"               test "x$HAVE_LIBBLKIO_TRUE" = "x"
 feature "curl"                test "x$HAVE_CURL_TRUE" = "x"
 feature "example4"            test "x$HAVE_PERL_TRUE" = "x"
 feature "floppy"              test "x$HAVE_ICONV_TRUE" = "x"
+feature "gcs"                 test "x$HAVE_PYTHON_TRUE" = "x"
 feature "guestfs"             test "x$HAVE_LIBGUESTFS_TRUE" = "x"
 feature "iso"                 test "x$HAVE_ISO_TRUE" = "x"
 feature "libvirt"             test "x$HAVE_LIBVIRT_TRUE" = "x"

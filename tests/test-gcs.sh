@@ -34,45 +34,39 @@ source ./functions.sh
 set -e
 set -x
 
-run_test ()
-{
-    nbdkit $1 --help
-}
+requires_run
+requires hexdump --version
+requires $PYTHON --version
+requires_nbdcopy
+requires_plugin python
+skip_if_valgrind "because Python code leaks memory"
 
-do_test ()
-{
-    vg=; [ "$NBDKIT_VALGRIND" = "1" ] && vg="-valgrind"
-    case "$1$vg" in
-        python-valgrind | ruby-valgrind | tcl-valgrind)
-            echo "$0: skipping $1$vg because this language doesn't support valgrind"
-            ;;
-        example4*)
-            # These tests are written in Perl so we have to check that
-            # the Perl plugin was compiled.
-            if nbdkit perl --version; then run_test $1; fi
-            ;;
-	nbd*)
-	    # Because of macOS SIP misfeature the DYLD_* environment
-	    # variable added by libnbd/run is filtered out and the
-	    # test won't work.  Skip it entirely on Macs.
-	    if test "$(uname)" != "Darwin"; then run_test $1; fi
-	    ;;
-        S3*)
-            # Requires Python plugin and boto3 library.
-            if nbdkit python --version && $PYTHON -c 'import boto3'; then
-                run_test $1
-            fi
-            ;;
-        gcs*)
-            # Requires Python plugin and google-cloud-storage library.
-            if nbdkit python --version && \
-               $PYTHON -c 'import google.cloud.storage'; then
-                run_test $1
-            fi
-            ;;
-        *)
-            run_test $1
-            ;;
-    esac
-}
-foreach_plugin do_test
+# There is a fake google-cloud-storage module in test-gcs/ which
+# we use as a test harness for the plugin.
+requires test -d test-gcs
+export PYTHONPATH=$srcdir/test-gcs:$PYTHONPATH
+
+file=gcs.out
+rm -f $file
+cleanup_fn rm -f $file
+
+# The fake module checks the parameters have these particular values.
+nbdkit gcs \
+       json-credentials=TEST_JSON_CREDENTIALS \
+       bucket=MY_FILES \
+       key=MY_KEY \
+       --run "nbdcopy \"\$uri\" $file"
+
+ls -l $file
+hexdump -C $file
+
+if [ "$(hexdump -C $file)" != "00000000  78 78 78 78 78 78 78 78  78 78 78 78 78 78 78 78  |xxxxxxxxxxxxxxxx|
+*
+00001000  79 79 79 79 79 79 79 79  79 79 79 79 79 79 79 79  |yyyyyyyyyyyyyyyy|
+*
+00001800  7a 7a 7a 7a 7a 7a 7a 7a  7a 7a 7a 7a 7a 7a 7a 7a  |zzzzzzzzzzzzzzzz|
+*
+00002000" ]; then
+    echo "$0: unexpected output from test"
+    exit 1
+fi
