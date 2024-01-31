@@ -403,16 +403,18 @@ class Server:
         if size == 0:
             return
 
+        # Note, NBD protocol allows to round the offset up and size down to
+        # meet internal alignment constraints.
+
         # Calculate block number and offset within the block for the
         # first byte that we need to trim.
         (blockno1, block_offset1) = divmod(offset, cfg.obj_size)
-
-        # Calculate block number of the last block that we have to
-        # trim fully.
-        (blockno2, _) = divmod(offset + size, cfg.obj_size)
-
         if block_offset1 != 0:
             blockno1 += 1
+
+        # Calculate block number of the block following the last one that we
+        # have to trim fully.
+        (blockno2, _) = divmod(offset + size, cfg.obj_size)
 
         if blockno1 == blockno2:
             nbdkit.debug('nothing to delete')
