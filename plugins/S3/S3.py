@@ -41,7 +41,6 @@ from typing import Any, Dict, Optional, Union, List
 import unittest
 from contextlib import closing, contextmanager
 from io import BytesIO
-import builtins
 from unittest.mock import patch
 
 import boto3
@@ -366,9 +365,6 @@ class Server:
         if size == 0:
             return
 
-        if flags & nbdkit.FLAG_MAY_TRIM:
-            return self.trim(size, offset, 0)
-
         # Calculate block number and offset within the block for the
         # first byte that we need to write.
         (blockno1, block_offset1) = divmod(offset, cfg.obj_size)
@@ -643,11 +639,11 @@ class LocalTest(unittest.TestCase):
         bl = self.obj_size
         buf = bytearray(bl)
         fh.seek(0)
-        for off in range(0, self.dev_size, self.obj_size):
+        for off in range(0, self.dev_size, bl):
             ref = fh.read(bl)
             pread(self.s3, buf, off, flags=0)
             self.assertEqual(
-                ref, buf, f'mismatch at off={off} (blk {off//self.obj_size})')
+                ref, buf, f'mismatch at off={off} (blk {off // bl})')
 
     def test_write_memoryview(self):
         buf = memoryview(bytearray(cfg.obj_size))
@@ -686,7 +682,7 @@ class LocalTest(unittest.TestCase):
 
         # Fill disk
         fh.seek(0)
-        for off in range(0, self.dev_size, self.obj_size):
+        for off in range(0, self.dev_size, bl):
             buf = self.get_data(bl)
             pwrite(self.s3, buf, offset=off, flags=0)
             fh.write(buf)
@@ -712,7 +708,7 @@ class LocalTest(unittest.TestCase):
 
         # Fill disk
         fh.seek(0)
-        for off in range(0, self.dev_size, self.obj_size):
+        for off in range(0, self.dev_size, bl):
             buf = self.get_data(bl)
             pwrite(self.s3, buf, offset=off, flags=0)
             fh.write(buf)
@@ -721,21 +717,22 @@ class LocalTest(unittest.TestCase):
         # Test different kinds of zero requests
         corner_cases = (
             1, 2,
-            bl-2, bl-1, bl+2,
+            bl-2, bl-1, bl, bl+2,
             2*bl-1, 2*bl, 2*bl+1,
             5*bl-5, 5*bl, 5*bl+5)
-        for off in (0,) + corner_cases:
-            for len_ in corner_cases:
-                zero(self.s3, len_, off, flags=0)
-                fh.seek(off)
-                fh.write(bytearray(len_))
-                self.compare_to_ref()
+        for flags in (0, nbdkit.FLAG_MAY_TRIM):
+            for off in (0,) + corner_cases:
+                for len_ in corner_cases:
+                    zero(self.s3, len_, off, flags=flags)
+                    fh.seek(off)
+                    fh.write(bytearray(len_))
+                    self.compare_to_ref()
 
-                # Re-fill with data
-                buf = self.get_data(len_)
-                pwrite(self.s3, buf, off, flags=0)
-                fh.seek(off)
-                fh.write(buf)
+                    # Re-fill with data
+                    buf = self.get_data(len_)
+                    pwrite(self.s3, buf, off, flags=0)
+                    fh.seek(off)
+                    fh.write(buf)
 
     def test_trim(self):
         bl = self.obj_size
@@ -790,14 +787,13 @@ class RemoteTest(unittest.TestCase):
 
         config_complete()
         self.s3 = open(False)
-        self.rnd_fh = builtins.open('/dev/urandom', 'rb')
 
     def tearDown(self) -> None:
         super().tearDown()
-        self.rnd_fh.close()
 
-    def get_data(self, len):
-        buf = self.rnd_fh.read(len // 2 + 1)
+    @staticmethod
+    def get_data(len):
+        buf = secrets.token_bytes(len // 2 + 1)
         return base64.b16encode(buf)[:len]
 
     def test_zero(self):
