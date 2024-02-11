@@ -6,31 +6,32 @@ as block device
 =head1 SYNOPSIS
 
  nbdkit gcs [json-credentials=FILE]
-           [size=NN object-size=NN]
-           bucket=BUCKET key=STRING
+            [size=NN object-size=NN]
+            bucket=BUCKET key=STRING
 
 =head1 DESCRIPTION
 
 C<nbdkit-gcs-plugin> is a plugin for L<nbdkit(1)> which lets you open
-objects stored in Google Cloud Storage as disk images.
+objects stored in Google Cloud Storage (GCS) as disk images.
 
-This plugin uses the Python Google Cloud Client Libraries
-(C<google-cloud-storage>).
+This plugin uses the Python Google Cloud Storage client library
+(L<google-cloud-storage|https://pypi.org/project/google-cloud-storage/>).
+It requires Python E<ge> 3.7.
 
 =head1 EXAMPLES
 
  nbdkit gcs json-credentials=/path/to-my-json-credentials.json \
-           bucket=MY-BUCKET key=disk.img
+            bucket=MY-BUCKET key=disk.img
 
-Provides read only block device holding the data contained in the "disk.img"
-object.
+Provides a read only block device holding the data contained in the
+F<disk.img> object.
 
  nbdkit gcs json-credentials=/path/to-my-json-credentials.json \
-           size=50G object-size=128k \
-           bucket=MY-BUCKET key=disk
+            size=50G object-size=128k \
+            bucket=MY-BUCKET key=disk
 
-Provides a read-write block device with size 50G, whose contents are stored
-multiple in objects of size 128k, prefixed with I<disk/>
+Provides a read-write block device with size 50G, whose contents are
+stored across multiple in objects of size 128k, prefixed with F<disk/>
 
 =head1 PARAMETERS
 
@@ -61,10 +62,9 @@ will be split into blocks of C<object-size> and stored as separate
 objects. The block device will report a total size of C<size> and be
 writeable and trim-able.
 
-Object names will have the form I<key/%16x>, where C<%16x> is the
-16-digit hexadecimal block number. If there are existing objects
-under such name that do not have the expected size, the plugin
-will crash.
+Object names will have the form F<key/%16x>, where C<%16x> is the
+16-digit hexadecimal block number. If there are existing objects under
+the prefix that do not have the expected size, the plugin will crash.
 
 =back
 
@@ -90,8 +90,19 @@ object size.
 
 =head1 CREDENTIALS
 
-Learn about L<Google Service account keys|https://developers.google.com/workspace/guides/create-credentials#service-account>
-and L<Application Default Credentials|https://cloud.google.com/docs/authentication/application-default-credentials>.
+Refer to the following web pages:
+
+=over 4
+
+=item Google Service account keys
+
+https://developers.google.com/workspace/guides/create-credentials#service-account
+
+=item Application Default Credentials
+
+https://cloud.google.com/docs/authentication/application-default-credentials
+
+=back
 
 =head1 FILES
 
@@ -115,17 +126,18 @@ Application Default Credentials.
 
 =item C<GOOGLE_APPLICATION_CREDENTIALS>
 
-You can use the C<GOOGLE_APPLICATION_CREDENTIALS> environment variable to
-provide the location of a credential JSON file.
+You can use the C<GOOGLE_APPLICATION_CREDENTIALS> environment variable
+to provide the location of a credential JSON file.
 
 =back
 
 =head1 COMPARISON TO S3 PLUGIN
 
 You can use the C<S3> plugin to access Google Cloud Storage in
-interoperability mode. C<read> and C<write> work perfectly fine, while
-C<trim> and C<zero> operations don't work in the general case: trimmed or
-zeroed-out blocks cannot be deleted from the storage using the C<S3> plugin.
+interoperability mode.  C<read> and C<write> work perfectly fine,
+while C<trim> and C<zero> operations don't work in the general case:
+trimmed or zeroed-out blocks cannot be deleted from the storage using
+the C<S3> plugin.
 
 =head1 VERSION
 
