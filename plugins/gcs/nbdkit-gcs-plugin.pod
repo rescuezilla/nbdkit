@@ -96,11 +96,11 @@ Refer to the following web pages:
 
 =item Google Service account keys
 
-https://developers.google.com/workspace/guides/create-credentials#service-account
+L<https://developers.google.com/workspace/guides/create-credentials#service-account>
 
 =item Application Default Credentials
 
-https://cloud.google.com/docs/authentication/application-default-credentials
+L<https://cloud.google.com/docs/authentication/application-default-credentials>
 
 =back
 
