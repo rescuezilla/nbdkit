@@ -11,8 +11,8 @@ nbdkit-multi-conn-filter - enable, emulate or disable multi-conn
 
 =head1 DESCRIPTION
 
-C<NBD_FLAG_CAN_MULTI_CONN> ("multi-conn") is an L<NBD protocol|
-https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md>
+C<NBD_FLAG_CAN_MULTI_CONN> ("multi-conn") is an
+L<NBD protocol|https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md>
 feature that permits multiple clients to connect to the same export
 simultaneously, guaranteeing that flush operations are consistent
 across connections.  Specifically a sequence of getting a write
