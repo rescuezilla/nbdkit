@@ -369,7 +369,8 @@ unless ($allow_long_lines) {
 # Check for bare URLs.  They should probably be replaced by L<> links.
 # (Allow them in verbatim sections)
 foreach (@lines) {
-    if (substr ($_, 0, 1) ne ' ' &&
+    my $fc = substr ($_, 0, 1);
+    if ($fc ne ' ' && $fc ne '=' &&
         m/(?<!(?:L<|C<|\/|\|))(https?:.*)/) {
         my $frag = substr ($1, 0, 40);
         die "$progname: $input: Bare URL $frag.. should be replaced by L<...> link\n"
