@@ -885,7 +885,7 @@ AS_IF([test "x$PYTHON" != "xno" && test "x$enable_python" != "xno"],[
         AC_MSG_RESULT([no])
         AC_MSG_ERROR([Python $PYTHON_VERSION_MAJOR <> 3 is no longer supported.
 
-Python 2 end of life is 2020-01-01 and nbdkit >= 1.16 no longer
+Python 2 end of life was 2020-01-01 and nbdkit >= 1.16 no longer
 supports it.
 
 If you want to use Python 2, you will need to use nbdkit 1.14.])
