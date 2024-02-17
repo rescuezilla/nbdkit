@@ -900,13 +900,13 @@ If you want to use Python 2, you will need to use nbdkit 1.14.])
     dnl The python.pc is called python-<VERSION>.pc on Debian and
     dnl later versions of Fedora, and python.pc on older versions
     dnl of Fedora.
-    PKG_CHECK_MODULES([PYTHON], [python-"$PYTHON_VERSION"-embed], [
+    PKG_CHECK_MODULES([PYTHON], [python-$PYTHON_VERSION-embed], [
         AC_SUBST([PYTHON_CFLAGS])
         AC_SUBST([PYTHON_LIBS])
         AC_SUBST([PYTHON_VERSION])
         AC_DEFINE([HAVE_PYTHON],[1],[Python library found at compile time])
     ],[
-    PKG_CHECK_MODULES([PYTHON], [python-"$PYTHON_VERSION"], [
+    PKG_CHECK_MODULES([PYTHON], [python-$PYTHON_VERSION], [
         AC_SUBST([PYTHON_CFLAGS])
         AC_SUBST([PYTHON_LIBS])
         AC_SUBST([PYTHON_VERSION])
