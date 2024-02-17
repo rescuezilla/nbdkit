@@ -841,7 +841,6 @@ AS_IF([test "x$PERL" != "xno" && test "x$enable_perl" != "xno"],[
     AC_MSG_RESULT([$PERL_LDOPTS])
 
     dnl Check these actually work.
-    AC_MSG_CHECKING([whether Perl modules will compile])
     old_CFLAGS="$CFLAGS"
     old_LIBS="$LIBS"
     CFLAGS="$PERL_CFLAGS -I$PERL_ARCHLIB/CORE $CFLAGS"
@@ -849,8 +848,12 @@ AS_IF([test "x$PERL" != "xno" && test "x$enable_perl" != "xno"],[
     AC_CHECK_FUNCS([perl_alloc])
     CFLAGS="$old_CFLAGS"
     LIBS="$old_LIBS"
-    if test "x$ac_cv_func_perl_alloc" != xyes; then
-      enable_perl=no
+    AC_MSG_CHECKING([whether Perl modules will compile])
+    if test "x$ac_cv_func_perl_alloc" = xyes; then
+        AC_MSG_RESULT([yes])
+     else
+        AC_MSG_RESULT([no])
+        enable_perl=no
     fi
 ])
 AM_CONDITIONAL([HAVE_PERL],[test "x$enable_perl" != "xno" && test "x$PERL" != "xno"])
