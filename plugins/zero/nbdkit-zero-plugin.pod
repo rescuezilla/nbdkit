@@ -9,10 +9,13 @@ nbdkit-zero-plugin - nbdkit zero length plugin
 =head1 DESCRIPTION
 
 C<nbdkit-zero-plugin> is a zero length plugin for L<nbdkit(1)>.  It
-presents a virtual device of length zero bytes.
+presents a virtual device of size 0.  This plugin is used to test
+corner cases in nbdkit, the NBD protocol and NBD clients.
 
-This plugin is mainly good for testing corner cases in nbdkit, the NBD
-protocol and NBD clients.
+If you want a read-only plugin with non-zero size containing zero
+bytes, use L<nbdkit-null-plugin(1)>.  For a writable plugin that
+starts off initialized to zeroes (a RAM disk), use
+L<nbdkit-memory-plugin(1)>.
 
 =head1 FILES
 
@@ -36,6 +39,7 @@ L<nbdkit(1)>,
 L<nbdkit-plugin(3)>,
 L<nbdkit-data-plugin(1)>,
 L<nbdkit-full-plugin(1)>,
+L<nbdkit-memory-plugin(1)>,
 L<nbdkit-null-plugin(1)>,
 L<nbdkit-ones-plugin(1)>,
 L<nbdkit-pattern-plugin(1)>,
