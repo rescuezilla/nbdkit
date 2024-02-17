@@ -687,27 +687,6 @@ AC_CHECK_PROGS([CUT],[gnucut cut],[cut])
 AC_CHECK_PROGS([STAT],[gstat stat],[stat])
 AC_CHECK_PROGS([TRUNCATE],[gtruncate truncate],[truncate])
 
-AC_ARG_ENABLE([linuxdisk],
-    [AS_HELP_STRING([--disable-linuxdisk],
-                    [disable linuxdisk plugin @<:@default=check@:>@])],
-    [],
-    [enable_linuxdisk=check])
-dnl Check for mke2fs -d (used by linuxdisk plugin).  There are two
-dnl possible outcomes that we care about: (1) We have mke2fs and
-dnl it supports the -d option.  (2) We either don't have mke2fs
-dnl or it's too old to support the -d option (eg. on RHEL 7).
-mke2fs_with_d=no
-AS_IF([test "$enable_linuxdisk" != "no"], [
-    AC_MSG_CHECKING([for mke2fs supporting the -d option])
-    AS_IF([mke2fs -V >/dev/null 2>&1], [
-        AS_IF([LANG=C mke2fs -d 2>&1 | grep -sq "option requires an argument"], [
-            mke2fs_with_d=yes
-        ])
-    ])
-    AC_MSG_RESULT([$mke2fs_with_d])
-])
-AM_CONDITIONAL([HAVE_MKE2FS_WITH_D],[test "x$mke2fs_with_d" = "xyes"])
-
 dnl Check for valgrind.
 AC_CHECK_PROG([VALGRIND],[valgrind],[valgrind],[no])
 
@@ -1461,6 +1440,29 @@ AC_ARG_ENABLE([libguestfs-tests],
 AM_CONDITIONAL([USE_LIBGUESTFS_FOR_TESTS],
                [test "x$LIBGUESTFS_LIBS" != "x" && \
                 test "x$enable_libguestfs_tests" != "xno"])
+
+dnl Check for mke2fs -d (used by linuxdisk plugin).  There are three
+dnl possible outcomes that we care about: (1) We have mke2fs and it
+dnl supports the -d option.  (2) We either don't have mke2fs or it's
+dnl too old to support the -d option (eg. on RHEL 7).  (3) The user
+dnl disables the linuxdisk plugin.
+AC_ARG_ENABLE([linuxdisk],
+    [AS_HELP_STRING([--disable-linuxdisk],
+                    [disable linuxdisk plugin @<:@default=check@:>@])],
+    [],
+    [enable_linuxdisk=check])
+
+mke2fs_with_d=no
+AS_IF([test "$enable_linuxdisk" != "no"], [
+    AC_MSG_CHECKING([for mke2fs supporting the -d option])
+    AS_IF([mke2fs -V >/dev/null 2>&1], [
+        AS_IF([LANG=C mke2fs -d 2>&1 | grep -sq "option requires an argument"], [
+            mke2fs_with_d=yes
+        ])
+    ])
+    AC_MSG_RESULT([$mke2fs_with_d])
+])
+AM_CONDITIONAL([HAVE_MKE2FS_WITH_D],[test "x$mke2fs_with_d" = "xyes"])
 
 dnl Check for ext2fs and com_err, for the ext2 filter.
 AC_ARG_WITH([ext2],
