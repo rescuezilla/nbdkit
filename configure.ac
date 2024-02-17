@@ -766,7 +766,8 @@ AM_CONDITIONAL([HAVE_BASH_COMPLETION],[test "x$bash_completion" = "xyes"])
 
 dnl Check we have enough to run podwrapper.
 AC_ARG_WITH([manpages],
-    [AS_HELP_STRING([--without-manpages], [Do not build man pages @<:@default=check@:>@])],
+    [AS_HELP_STRING([--without-manpages],
+                    [do not build man pages @<:@default=check@:>@])],
     [],
     [: m4_divert_text([DEFAULTS], [with_manpages=check])])
 
@@ -803,10 +804,10 @@ AM_CONDITIONAL([HAVE_PLUGINS], [test "x$enable_plugins" != "xno"])
 dnl For the cc plugin, let the user hard-code their preferred compiler setup
 dnl Default to the settings used for nbdkit itself
 AC_ARG_VAR([CC_PLUGIN_CC],
-  [Value to hard-code into the cc plugin's default for CC, instead of $CC])
+  [value to hard-code into the cc plugin's default for CC, instead of $CC])
 : "${CC_PLUGIN_CC:=$CC}"
 AC_ARG_VAR([CC_PLUGIN_CFLAGS],
-  [Value to hard-code into the cc plugin's default for CFLAGS, instead of
+  [value to hard-code into the cc plugin's default for CFLAGS, instead of
   $CFLAGS])
 : "${CC_PLUGIN_CFLAGS:=$CFLAGS}"
 
