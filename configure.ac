@@ -590,13 +590,14 @@ dnl Look for the mc/windmc utility (optional).
 AC_CHECK_TOOLS([MC],[windmc mc.exe],[no])
 AM_CONDITIONAL([HAVE_MC],[test "x$MC" != "xno"])
 
+dnl On Windows look for dlltool.
 AS_IF([test "x$is_windows" = "xyes"],[
-    dnl On Windows look for dlltool.
     AC_CHECK_TOOLS([DLLTOOL],[dlltool],[no])
     AS_IF([test "x$DLLTOOL" = "xno"],
           [AC_MSG_ERROR([dlltool utility must be available when compiling for Windows])])
 ])
 
+dnl See if getaddrinfo requires an external library.
 AC_SEARCH_LIBS([getaddrinfo], [network socket])
 
 dnl Does this platform require libc_malloc_debug.so.0 (glibc >= 2.34)?
@@ -785,7 +786,6 @@ AS_IF([test "x$bash_completion" = xno && test "x$with_bash_completions" = xyes],
 AM_CONDITIONAL([HAVE_BASH_COMPLETION],[test "x$bash_completion" = "xyes"])
 
 dnl Check we have enough to run podwrapper.
-
 AC_ARG_WITH([manpages],
     [AS_HELP_STRING([--without-manpages], [Do not build man pages @<:@default=check@:>@])],
     [],
@@ -1366,7 +1366,8 @@ AS_IF([test "$with_zlib_ng" != "no"],[
 ])
 AM_CONDITIONAL([HAVE_ZLIB],[test "x$ZLIB_LIBS" != "x"])
 
-dnl Check for libnbd (only if you want to compile the nbd plugin).
+dnl Check for libnbd (only if you want to compile the nbd plugin, and
+dnl to run some tests).
 AC_ARG_WITH([libnbd],
     [AS_HELP_STRING([--without-libnbd],
                     [disable nbd plugin @<:@default=check@:>@])],
