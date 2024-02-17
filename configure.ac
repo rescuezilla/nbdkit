@@ -465,6 +465,7 @@ AS_IF([test "x$nbdkit_cv_func_printf_percent_m" = xyes],
   [AC_DEFINE([HAVE_VFPRINTF_PERCENT_M],[1],
     [Define to 1 if vfprintf supports %m.])])
 
+dnl Check for dlsym (required, on Windows install dlfcn).
 old_LIBS="$LIBS"
 AC_SEARCH_LIBS([dlsym], [dl dld], [
         AS_IF([test "x$ac_cv_search_dlsym" != "xnone required"],
@@ -472,6 +473,12 @@ AC_SEARCH_LIBS([dlsym], [dl dld], [
         AC_SUBST([DL_LIBS])
     ], [AC_MSG_ERROR([unable to find the dlsym() function])
 ])
+LIBS="$old_LIBS"
+
+dnl Check for dladdr in -ldl (optional, this is a glibc extension).
+old_LIBS="$LIBS"
+LIBS="$DL_LIBS $LIBS"
+AC_CHECK_FUNCS([dladdr])
 LIBS="$old_LIBS"
 
 dnl Test if <iconv.h> header can build working binaries.
@@ -551,12 +558,6 @@ main (int argc, char *argv[])
 dnl restore CFLAGS
 LDFLAGS="${acx_nbdkit_save_LDFLAGS}"
 AC_SUBST([DL_LDFLAGS])
-
-dnl Check for dladdr in -ldl, optional.  This is a glibc extension.
-old_LIBS="$LIBS"
-LIBS="$DL_LIBS $LIBS"
-AC_CHECK_FUNCS([dladdr])
-LIBS="$old_LIBS"
 
 dnl Is this Windows?
 AC_MSG_CHECKING([if the target is Windows])
