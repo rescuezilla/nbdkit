@@ -165,6 +165,24 @@ dnl Some very basic tools.
 AC_PROG_SED
 AC_PROG_RANLIB
 
+dnl Bash must be at least version 4.  If it is too old, fail hard
+dnl with a good diagnostic.  Note macOS ships an ancient version
+dnl of bash (https://gitlab.com/nbdkit/nbdkit/-/issues/21)
+bash=`which bash`
+AC_MSG_CHECKING([for the major version of $bash])
+bash_major=`bash -c 'echo ${BASH_VERSINFO:-0}'`
+AC_MSG_RESULT([$bash_major])
+AS_IF([test $bash_major -lt 4],
+      [AC_MSG_ERROR([
+Your bash shell ($bash) is older than version 4.
+
+If you are using macOS, please install the latest version of bash
+from homebrew or macports.
+
+If you have installed the latest bash and this error is still
+showing up, check that \$PATH is set correctly.
+])])
+
 dnl Check for basic C environment.
 AC_PROG_CC
 AC_PROG_INSTALL

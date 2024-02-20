@@ -38,7 +38,7 @@ license.  See [LICENSE](LICENSE) for details.
 
 * Linux, macOS, Windows, FreeBSD, OpenBSD or Haiku
 * GCC or Clang
-* bash
+* bash >= 4
 * GNU make
 
 Recommended for TLS (authentication and encryption) support, but it is
