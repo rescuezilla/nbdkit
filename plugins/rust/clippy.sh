@@ -36,4 +36,10 @@ set -x
 
 requires type cargo-clippy
 
-cargo clippy --all-features --all-targets -- -D warnings
+# Older versions of Clippy incorrectly warn about RefCell inside const
+# in the thread_local! macro. This is fixed in the latest version but
+# Debian 12 still has the older one.
+cargo clippy --all-features --all-targets \
+      -- \
+      -A clippy::declare_interior_mutable_const \
+      -D warnings
