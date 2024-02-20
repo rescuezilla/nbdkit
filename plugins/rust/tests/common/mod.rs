@@ -36,8 +36,10 @@ use std::{
 
 use nbdkit::*;
 
-thread_local!(pub static ERRMSG: RefCell<String> = RefCell::new(String::new()));
-thread_local!(pub static ERRNO: RefCell<i32> = RefCell::new(0));
+thread_local!(pub static ERRMSG: RefCell<String> =
+              const { RefCell::new(String::new()) });
+thread_local!(pub static ERRNO: RefCell<i32> =
+              const { RefCell::new(0) });
 
 lazy_static! {
     /// Mediates access to MockServer's global expectations
