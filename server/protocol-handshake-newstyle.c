@@ -784,6 +784,12 @@ negotiate_handshake_newstyle_options (void)
         if (conn_recv_full (data, optlen, "read: %s: %m", optname) == -1)
           return -1;
 
+        if (no_mc) {
+          if (send_newstyle_option_reply (option, NBD_REP_ERR_UNSUP) == -1)
+            return -1;
+          continue;
+        }
+
         /* Note that we support base:allocation whether or not the plugin
          * supports can_extents.
          */

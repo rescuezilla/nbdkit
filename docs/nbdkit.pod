@@ -318,6 +318,18 @@ Use the newstyle NBD protocol.  This is the default in nbdkit
 E<ge> 1.3.  In earlier versions the default was oldstyle.
 See L<nbdkit-protocol(1)>.
 
+=item B<--no-meta-contexts>
+
+Do not advertise meta contexts.  Normally, nbdkit handles all client
+requests for arbitrary meta context names, with the response being
+affirmative for only the C<base:allocation> meta context (nbdkit
+synthesizes this context even when the plugin does not support
+extents), so that clients can use the block status command.  However,
+meta contexts are not a mandatory part of the newstyle NBD protocol,
+so this option can be used to debug client fallbacks for dealing with
+older servers that lack meta context support.  See
+L<nbdkit-protocol(1)>.
+
 =item B<--no-sr>
 
 Do not advertise structured replies.  A client must request structured

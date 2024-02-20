@@ -263,6 +263,7 @@ TESTS += \
 	test-debug-flags.sh \
 	test-long-name.sh \
 	test-flush.sh \
+	test-crippled-extents.sh \
 	test-swap.sh \
 	test-disconnect.sh \
 	test-disconnect-tls.sh \
@@ -292,6 +293,7 @@ EXTRA_DIST += \
 	test-dump-plugin-thread-model.sh \
 	test-dump-plugin.sh \
 	test-flush.sh \
+	test-crippled-extents.sh \
 	test-foreground.sh \
 	test-help-example1.sh \
 	test-help-plugin.sh \

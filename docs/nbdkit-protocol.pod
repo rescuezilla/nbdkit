@@ -4,8 +4,8 @@ nbdkit-protocol - which parts of the NBD protocol nbdkit supports
 
 =head1 SYNOPSIS
 
- nbdkit [-n|--newstyle] [--mask-handshake MASK] [--no-sr] [-o|--oldstyle]
-        [...]
+ nbdkit [-n|--newstyle] [--mask-handshake MASK] [--no-meta-contexts]
+        [--no-sr] [-o|--oldstyle] [...]
 
 =head1 DESCRIPTION
 
@@ -19,32 +19,62 @@ The NBD protocol comes in two incompatible forms that we call
 use depends on the client and cannot be known in advance, nor can it
 be negotiated from the server side.
 
-nbdkit defaults to the newstyle protocol since nbdkit E<ge> 1.3.  The
-newstyle protocol is better in every respect than the oldstyle
-protocol and you should prefer it if possible.  The newstyle protocol
-also includes an extension where a client may request structured
-replies for even more capabilities, such as sparse reads or obtaining
-block status.  By default, nbdkit advertises as many features as it
-can support (in some cases, this can be limited by what callbacks the
-plugin handles), even if the client does not negotiate to use all
-advertised features.
+nbdkit defaults to the newstyle protocol since nbdkit E<ge> 1.3 (the
+command line flag I<-n> or I<--newstyle> is ignored for backwards
+compatibility with older versions).  The newstyle protocol is better
+in every respect than the oldstyle protocol and you should prefer it
+if possible.  The newstyle protocol also includes extensions where a
+client may request structured replies for even more capabilities, such
+as sparse reads or meta contexts for obtaining block status.  By
+default, nbdkit advertises as many features as it can support (in some
+cases, this can be limited by what callbacks the plugin handles), even
+if the client does not negotiate to use all advertised features.
 
 Nbdkit also includes some options that are useful mainly when
 performing integration tests, for proving whether clients have sane
 fallback behavior when dealing various older servers permitted by the
-NBD protocol.  Use the I<--no-sr> flag to force the newstyle protocol
-to decline any client request for structured replies.  Use the
-I<--mask-handshake> parameter to mask off particular global features
-which are advertised during new-style handshake (defaulting to all
-supported bits set).  Clearing bit 0 (the low order bit) limits a
-client to using just C<NBD_OPT_EXPORT_NAME> (and is incompatible with
-TLS or structured replies); clearing bit 1 causes the handshake to
-send more padding bytes in response to C<NBD_OPT_EXPORT_NAME>.  Other
-bits in the mask will only have an effect if the NBD protocol is
-extended in the future to define other global bits.
+NBD protocol.  The following options intentionally disable optional
+parts of the NBD protocol, with successively larger impacts:
 
-Use the I<-o> or I<--oldstyle> flag to force the oldstyle protocol.
-In this mode, I<--no-sr> and I<--mask-handshake> have no effect.
+=over 4
+
+=item B<--no-meta-contexts>
+
+Force the newstyle protocol to treat all requests for meta context
+negotiation from the client as unsupported; the client will be unable
+to query block status.  By default, nbdkit gracefully handles all meta
+context requests, even though it currently supports only the
+C<base:allocation> context (possibly by synthesizing a context that
+represents an all-data disk when the plugin lacks support for
+extents); but treating meta contexts as unsupported is useful for
+emulating nbd-server 3.25.
+
+=item B<--no-sr>
+
+Force the newstyle protocol to decline any client request for
+structured replies; this is stronger than I<--no-meta-contexts> in
+that it also disables the opportunity for sparse reads.  This is
+useful for emulating nbd-server 3.24.
+
+=item B<--mask-handshake=>MASK
+
+Alter the mask of which particular global features are advertised
+during new-style handshake (defaulting to all supported bits set).
+Clearing bit 0 (the low order bit) limits a client to using just
+C<NBD_OPT_EXPORT_NAME> (incompatible with TLS, and includes all
+effects of I<--no-sr>); clearing bit 1 causes the handshake to send
+more padding bytes in response to C<NBD_OPT_EXPORT_NAME>.  Other bits
+in the mask will only have an effect if the NBD protocol is extended
+in the future to define other global bits.
+
+=item B<-o>
+
+=item B<--oldstyle>
+
+Force the oldstyle protocol.  In this mode, I<--no-meta-contexts>,
+I<--no-sr> and I<--mask-handshake> have no effect.
+
+=back
 
 =head2 Common clients and the protocol they require
 
@@ -153,13 +183,18 @@ However we don’t expose the capability to send structured replies to
 plugins yet, nor do we send human-readable error messages using this
 facility.
 
-In nbdkit E<ge> 1.13.9, the command-line option I<--no-sr> can be
-used to disable server support for structured replies, for testing
-client fallbacks.
+In nbdkit E<ge> 1.13.9, the command-line option I<--no-sr> can be used
+to disable server support for structured replies, for testing client
+fallbacks; disabling structured replies also disables features like
+block status queries that depend on structured replies.
 
 =item Metadata Querying
 
 Supported in nbdkit E<ge> 1.11.8.
+
+In nbdkit E<ge> 1.37.9, the command-line option I<--no-meta-contexts>
+can be used to disable server support for meta contexts, for testing
+client fallbacks.
 
 =item Block Status
 
@@ -215,6 +250,10 @@ a client more details about the export.
 Supported in nbdkit E<ge> 1.30.
 
 =item Resize Extension
+
+I<Not supported>.
+
+=item Extended Headers Extension
 
 I<Not supported>.
 

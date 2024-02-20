@@ -101,6 +101,7 @@ const char *ipaddr;             /* -i */
 enum log_to log_to = LOG_TO_DEFAULT; /* --log */
 unsigned mask_handshake = ~0U;  /* --mask-handshake */
 bool newstyle = true;           /* false = -o, true = -n */
+bool no_mc;                     /* --no-meta-contexts */
 bool no_sr;                     /* --no-sr */
 char *pidfile;                  /* -P */
 const char *port;               /* -p */
@@ -457,6 +458,10 @@ main (int argc, char *argv[])
 
     case 'n':
       newstyle = true;
+      break;
+
+    case NO_MC_OPTION:
+      no_mc = true;
       break;
 
     case NO_SR_OPTION:
