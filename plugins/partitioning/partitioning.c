@@ -148,6 +148,14 @@ partitioning_config (const char *key, const char *value)
       return -1;
     }
 
+    /* XXX We could implement this but it requires extra work. */
+    if (S_ISBLK (file.statbuf.st_mode)) {
+      nbdkit_error ("%s: file parameter points to a block device, "
+                    "not a normal file",
+                    file.filename);
+      return -1;
+    }
+
     if (file.statbuf.st_size == 0) {
       nbdkit_error ("%s: zero length partitions are not allowed",
                     file.filename);

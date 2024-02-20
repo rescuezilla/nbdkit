@@ -155,6 +155,13 @@ split_open (int readonly)
       nbdkit_error ("stat: %s: %m", filenames.ptr[i]);
       goto err;
     }
+    /* XXX We could implement this but it requires extra work. */
+    if (S_ISBLK (statbuf.st_mode)) {
+      nbdkit_error ("%s: file parameter points to a block device, "
+                    "not a normal file",
+                    filenames.ptr[i]);
+      goto err;
+    }
     h->files[i].size = statbuf.st_size;
     offset += statbuf.st_size;
 

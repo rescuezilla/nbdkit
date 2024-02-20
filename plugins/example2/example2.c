@@ -172,6 +172,15 @@ example2_get_size (void *handle)
     return -1;
   }
 
+  /* The reason for this check is that st_size (below) will be 0 for
+   * block devices.  Supporting block devices requires extra work.
+   */
+  if (S_ISBLK (statbuf.st_mode)) {
+    nbdkit_error ("stat: file parameter points to a block device, "
+                  "not a normal file");
+    return -1;
+  }
+
   /* Use the debug flags for extra debugging which would only be
    * useful for the original developers of the plugin.  For ordinary
    * debugging, just use nbdkit_debug and enable messages with the -v
