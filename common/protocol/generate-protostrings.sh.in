@@ -30,6 +30,8 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
+set -e
+
 # The header.
 cat <<'EOF'
 /* Generated from nbd-protocol.h by generate-protostrings.sh.
