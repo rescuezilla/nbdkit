@@ -56,6 +56,7 @@ for i in $(nbdkit --long-options | $nocr); do
         --no-fork) ;;           # alias of -f
         --ip-addr) ;;           # alias of -i, --ipaddr
         --new-style) ;;         # alias of -n, --newstyle
+        --no-mc) ;;             # alias of --no-meta-contexts
         --old-style) ;;         # alias of -o, --oldstyle
         --pid-file) ;;          # alias of -P, --pidfile
         --read-only) ;;         # alias of -r, --readonly

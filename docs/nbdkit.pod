@@ -318,6 +318,8 @@ Use the newstyle NBD protocol.  This is the default in nbdkit
 E<ge> 1.3.  In earlier versions the default was oldstyle.
 See L<nbdkit-protocol(1)>.
 
+=item B<--no-mc>
+
 =item B<--no-meta-contexts>
 
 Do not advertise meta contexts.  Normally, nbdkit handles all client
