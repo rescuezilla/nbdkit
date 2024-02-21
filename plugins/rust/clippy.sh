@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # nbdkit
 # Copyright Red Hat
 #
@@ -29,72 +30,10 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-include $(top_srcdir)/common-rules.mk
+source ../../tests/functions.sh
+set -e
+set -x
 
-EXTRA_DIST = \
-	CHANGELOG.md \
-	Cargo.lock.msrv \
-	Cargo.toml \
-	LICENSE \
-	README.md \
-	cargo-tests.sh \
-	clippy.sh \
-	examples/ramdisk.rs \
-	nbdkit-rust-plugin.pod \
-	src/lib.rs \
-	test-ramdisk.sh \
-	tests/bare_bones.rs \
-	tests/common/mod.rs \
-	tests/full_featured.rs \
-	$(NULL)
+requires type cargo-clippy
 
-if HAVE_RUST
-
-noinst_SCRIPTS = \
-	target/release/libnbdkit.rlib \
-	target/release/examples/libramdisk.so \
-	target/doc/nbdkit/index.html \
-	$(NULL)
-
-Cargo.lock: Cargo.toml
-	if [ `rustc --version | cut -d . -f 2` -lt 64 ]; then cp Cargo.lock.msrv Cargo.lock; else cargo update; fi
-
-target/release/libnbdkit.rlib: Cargo.lock Cargo.toml src/lib.rs
-	cargo build --release
-
-target/release/examples/libramdisk.so: Cargo.lock Cargo.toml examples/ramdisk.rs
-	cargo build --release --example ramdisk
-
-target/doc/nbdkit/index.html: Cargo.lock Cargo.toml src/lib.rs
-	cargo doc --no-deps
-
-distclean-local:
-	cargo clean
-
-if !IS_WINDOWS
-TESTS_ENVIRONMENT = \
-	LIBNBD_DEBUG=1 \
-	PATH=$(abs_top_builddir):$(PATH) \
-	$(NULL)
-endif
-
-TESTS = \
-	cargo-tests.sh \
-	test-ramdisk.sh \
-	clippy.sh \
-	$(NULL)
-
-if HAVE_POD
-
-man_MANS = nbdkit-rust-plugin.3
-CLEANFILES += $(man_MANS)
-
-nbdkit-rust-plugin.3: nbdkit-rust-plugin.pod \
-		$(top_builddir)/podwrapper.pl
-	$(PODWRAPPER) --section=3 --man $@ \
-	    --html $(top_builddir)/html/$@.html \
-	    $<
-
-endif HAVE_POD
-
-endif
+cargo clippy --all-features --all-targets -- -D warnings
