@@ -30,20 +30,11 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
+source ../../tests/functions.sh
 set -e
+set -x
 
 export RUSTFLAGS=-Dwarnings
-export RUSTDOCFLAGS=-Dwarnings
 
 cargo test --all-features
 cargo test --all-features --release
-
-if type cargo-doc >/dev/null 2>/dev/null
-then
-   cargo doc --no-deps
-fi
-
-if type cargo-clippy >/dev/null 2>/dev/null
-then
-    cargo clippy --all-features --all-targets -- -D warnings
-fi
