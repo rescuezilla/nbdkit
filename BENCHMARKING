@@ -41,13 +41,13 @@ using:
 (4) Run nbdkit and fio together.  From the fio source directory:
 
     rm -f /tmp/socket
-    nbdkit -f -U /tmp/socket null 1G --run './fio examples/nbd.fio'
+    nbdkit -f -U /tmp/socket null 1G --run 'export uri; ./fio examples/nbd.fio'
 
 If you want to use nbdkit from the source directory too, change
 ‘nbdkit’ to the path of the wrapper, eg:
 
     rm -f /tmp/socket
-    ../nbdkit/nbdkit -f -U /tmp/socket null 1G --run './fio examples/nbd.fio'
+    ../nbdkit/nbdkit -f -U /tmp/socket null 1G --run 'export uri; ./fio examples/nbd.fio'
 
 
 Variations
