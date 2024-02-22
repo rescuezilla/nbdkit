@@ -39,6 +39,7 @@ EXTRA_DIST = \
 	README.md \
 	cargo-tests.sh \
 	clippy.sh \
+	clippy.toml \
 	examples/ramdisk.rs \
 	nbdkit-rust-plugin.pod \
 	src/lib.rs \
