@@ -48,7 +48,12 @@ Running nbdkit captive under nbdsh for unit testing:
 
  nbdkit memory 1 --run 'nbdsh -u "$uri" -c "print(h.pread(1, 0))"'
 
-The following shell variables are available in the I<--run> argument:
+Running an fio benchmark:
+
+ nbdkit -f null 1G --run 'export uri; fio fio.git/examples/nbd.fio'
+
+The following shell variables are available in the I<--run> argument
+(local to the run script unless you use C<export>):
 
 =over 4
 
