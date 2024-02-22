@@ -2195,7 +2195,7 @@ EXTRA_DIST += \
 	old-plugins/*/*/*/nbdkit-file-plugin.so \
 	test-old-plugins.sh \
 	$(NULL)
-CLEANFILES += \
+DISTCLEANFILES += \
 	test-old-plugins-*.sh \
 	$(NULL)
 
