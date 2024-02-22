@@ -57,6 +57,7 @@ for i in $(nbdkit --long-options | $nocr); do
         --ip-addr) ;;           # alias of -i, --ipaddr
         --new-style) ;;         # alias of -n, --newstyle
         --no-mc) ;;             # alias of --no-meta-contexts
+        --no-sr) ;;             # alias of --no-structured-replies
         --old-style) ;;         # alias of -o, --oldstyle
         --pid-file) ;;          # alias of -P, --pidfile
         --read-only) ;;         # alias of -r, --readonly

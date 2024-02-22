@@ -334,6 +334,8 @@ L<nbdkit-protocol(1)>.
 
 =item B<--no-sr>
 
+=item B<--no-structured-replies>
+
 Do not advertise structured replies.  A client must request structured
 replies to take advantage of block status and potential sparse reads;
 however, as structured reads are not a mandatory part of the newstyle

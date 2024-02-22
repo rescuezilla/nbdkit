@@ -86,6 +86,7 @@ static const struct option long_options[] = {
   { "no-mc",            no_argument,       NULL, NO_MC_OPTION },
   { "no-meta-contexts", no_argument,       NULL, NO_MC_OPTION },
   { "no-sr",            no_argument,       NULL, NO_SR_OPTION },
+  { "no-structured-replies", no_argument,  NULL, NO_SR_OPTION },
   { "old-style",        no_argument,       NULL, 'o' },
   { "oldstyle",         no_argument,       NULL, 'o' },
   { "pid-file",         required_argument, NULL, 'P' },

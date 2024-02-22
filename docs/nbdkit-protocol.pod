@@ -4,8 +4,8 @@ nbdkit-protocol - which parts of the NBD protocol nbdkit supports
 
 =head1 SYNOPSIS
 
- nbdkit [-n|--newstyle] [--mask-handshake MASK] [--no-meta-contexts]
-        [--no-sr] [-o|--oldstyle] [...]
+ nbdkit [-n|--newstyle] [--mask-handshake MASK] [--no-mc|--no-meta-contexts]
+        [--no-sr|--no-structured-replies] [-o|--oldstyle] [...]
 
 =head1 DESCRIPTION
 
@@ -38,6 +38,8 @@ parts of the NBD protocol, with successively larger impacts:
 
 =over 4
 
+=item B<--no-mc>
+
 =item B<--no-meta-contexts>
 
 Force the newstyle protocol to treat all requests for meta context
@@ -50,6 +52,8 @@ extents); but treating meta contexts as unsupported is useful for
 emulating nbd-server 3.25.
 
 =item B<--no-sr>
+
+=item B<--no-structured-replies>
 
 Force the newstyle protocol to decline any client request for
 structured replies; this is stronger than I<--no-meta-contexts> in
