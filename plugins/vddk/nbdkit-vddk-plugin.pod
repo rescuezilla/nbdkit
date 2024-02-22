@@ -388,6 +388,30 @@ In nbdkit E<le> 1.16 you had to set the environment variable
 C<LD_LIBRARY_PATH> when using this plugin.  In nbdkit E<ge> 1.18 this
 is I<not> recommended.
 
+=head1 SUPPORTED VERSIONS OF VDDK
+
+=over 4
+
+=item VDDK E<ge> 6.5 (released Nov 2016)
+
+This is the minimum version of VDDK supported.  Older versions will
+not work.
+
+=item VDDK 6.7 (released Apr 2018)
+
+This is the first version that supported the
+C<VixDiskLib_QueryAllocatedBlocks> API.  This is required to provide
+sparseness (extent) information over NBD.
+
+=item VDDK 8.0.2.1 (released Feb 2024)
+
+This is the latest version of VDDK that we have tested at the time of
+writing, but the plugin should work with future versions.
+
+=back
+
+This plugin is only supported on the x86-64 architecture.
+
 =head1 FILE PARAMETER
 
 The C<file> parameter can either be a local file, in which case it
@@ -670,18 +694,6 @@ The cumulative time spent connecting and disconnecting from the VMware
 server, which can also be very slow.
 
 =back
-
-=head1 SUPPORTED VERSIONS OF VDDK
-
-This plugin requires VDDK E<ge> 6.5 (released Nov 2016).  It is only
-supported on the x64-64 archtecture.
-
-It has been tested with all versions up to 8.0.2 (but should work with
-future versions).
-
-VDDK 6.7 was the first version that supported the
-C<VixDiskLib_QueryAllocatedBlocks> API, required to provide extent
-information over NBD.
 
 =head1 DEBUG FLAGS
 
