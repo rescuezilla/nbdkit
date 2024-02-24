@@ -34,11 +34,21 @@ L<https://gitlab.com/nbdkit/vddk-remote>
 
 =head1 EXAMPLES
 
-=head2 Open an existing local VMDK file
+=head2 Open a local VMDK file
 
- nbdkit vddk /absolute/path/to/file.vmdk
+ $ nbdkit vddk libdir=/opt/vmware-vix-disklib-distrib \
+               /absolute/path/to/file.vmdk
+ $ nbdinfo --size nbd://localhost
+ 10485760
+ $ nbdcopy nbd://localhost outputfile.raw
 
-When opening local files the filename B<must> be an absolute path.
+Open F<file.vmdk> with this plugin, and use L<nbdinfo(1)> and
+L<nbdcopy(1)> to inspect and copy out the data.  When opening local
+files the filename B<must> be an absolute path.
+
+The C<libdir> parameter points to the location of VDDK, see
+L</LIBRARY LOCATION> below.  In the examples below it is omitted for
+brevity.
 
 Because VDDK needs to lock the file, the file must be on a writable
 filesystem.  You can avoid this by opening the file read-only (the
