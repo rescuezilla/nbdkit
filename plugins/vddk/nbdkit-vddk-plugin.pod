@@ -50,12 +50,6 @@ The C<libdir> parameter points to the location of VDDK, see
 L</LIBRARY LOCATION> below.  In the examples below it is omitted for
 brevity.
 
-Because VDDK needs to lock the file, the file must be on a writable
-filesystem.  You can avoid this by opening the file read-only (the
-I<-r> option):
-
- nbdkit -r vddk /absolute/path/to/file.vmdk
-
 =head2 Create a new local VMDK file
 
 You can use VDDK to create a VMDK file and fill it with the contents
@@ -593,6 +587,20 @@ take sector numbers.  If your client needs finer granularity, you can
 use L<nbdkit-blocksize-filter(1)>:
 
  nbdkit vddk ... --filter=blocksize minblock=512
+
+=head2 FileLockCreateEntryDirectory errors
+
+When opening a local VMDK file, VDDK needs to create a lock file in
+the same directory.  The directory must be writable otherwise you will
+see errors like:
+
+ nbdkit: vddk[1]: error: FILE: FileLockCreateEntryDirectory creation
+ failure on '/absolute/path/to/file.vmdk.lck': Permission denied
+
+The solution is to either make the directory / filesystem writable; or
+open the file read-only by adding the nbdkit I<-r> option:
+
+ nbdkit -r vddk /absolute/path/to/file.vmdk
 
 =head2 Out of memory errors
 
