@@ -317,7 +317,7 @@ luks_pread (nbdkit_next *next, void *handle,
 
  err:
   gnutls_cipher_deinit (cipher);
-  goto err;
+  return -1;
 }
 
 /* Lock preventing read-modify-write cycles from overlapping. */
