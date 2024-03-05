@@ -381,8 +381,8 @@ call3 (const char *wbuf, size_t wbuflen, /* sent to stdin (can be NULL) */
   }
 
   /* \0-terminate both read buffers (for convenience). */
-  if ((rbuf->cap <= rbuf->len && string_reserve (rbuf, 1) == -1) ||
-      (ebuf->cap <= ebuf->len && string_reserve (ebuf, 1) == -1)) {
+  if ((rbuf->cap <= rbuf->len && string_reserve_exactly (rbuf, 1) == -1) ||
+      (ebuf->cap <= ebuf->len && string_reserve_exactly (ebuf, 1) == -1)) {
     nbdkit_error ("%s: realloc: %m", argv0);
     goto error;
   }
@@ -424,7 +424,7 @@ handle_script_error (const char *argv0, string *ebuf, exit_code code)
    * Note that ebuf->len is still 0 after this.
    */
   if (ebuf->len == 0) {
-    if (string_reserve (ebuf, 1) == -1) {
+    if (string_reserve_exactly (ebuf, 1) == -1) {
       nbdkit_error ("realloc: %m");
       err = EIO;
       return ERROR;

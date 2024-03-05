@@ -1115,7 +1115,7 @@ start_serving (void)
      * the number of file descriptors from FIRST_SOCKET_ACTIVATION_FD
      * to FIRST_SOCKET_ACTIVATION_FD+socket_activation-1.
      */
-    if (sockets_reserve (&socks, socket_activation) == -1) {
+    if (sockets_reserve_exactly (&socks, socket_activation) == -1) {
       perror ("realloc");
       exit (EXIT_FAILURE);
     }

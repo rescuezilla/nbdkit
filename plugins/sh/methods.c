@@ -408,7 +408,7 @@ sh_open (int readonly)
      * for it because we don't know what call_read returned here.
      */
     string_reset (&h->h);
-    if (string_reserve (&h->h, 1) == -1) {
+    if (string_reserve_exactly (&h->h, 1) == -1) {
       nbdkit_error ("realloc: %m");
       free (h);
       return NULL;

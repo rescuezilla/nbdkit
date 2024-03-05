@@ -1009,7 +1009,7 @@ parse_word (const char *value, size_t *start, size_t len, string *rtn)
   /* Reserve enough space in the return buffer for the longest
    * possible bitstring (64 bits / 8 bytes).
    */
-  if (string_reserve (rtn, 8) == -1) {
+  if (string_reserve_exactly (rtn, 8) == -1) {
     nbdkit_error ("realloc: %m");
     return -1;
   }
@@ -1501,7 +1501,7 @@ exprs_can_combine (expr_t e0, expr_t e1, node_id *id_rtn)
       return true;
     case EXPR_STRING:           /* byte string => string */
       len = e1.string.len;
-      if (string_reserve (&s, len+1) == -1)
+      if (string_reserve_exactly (&s, len+1) == -1)
         goto out_of_memory;
       s.len = len+1;
       s.ptr[0] = e0.b;
@@ -1523,7 +1523,7 @@ exprs_can_combine (expr_t e0, expr_t e1, node_id *id_rtn)
     switch (e1.t) {
     case EXPR_BYTE:             /* string byte => string */
       len = e0.string.len;
-      if (string_reserve (&s, len+1) == -1)
+      if (string_reserve_exactly (&s, len+1) == -1)
         goto out_of_memory;
       s.len = len+1;
       memcpy (s.ptr, e0.string.ptr, len);
@@ -1533,7 +1533,7 @@ exprs_can_combine (expr_t e0, expr_t e1, node_id *id_rtn)
     case EXPR_STRING:           /* string string => string */
       len = e0.string.len;
       len1 = e1.string.len;
-      if (string_reserve (&s, len+len1) == -1)
+      if (string_reserve_exactly (&s, len+len1) == -1)
         goto out_of_memory;
       s.len = len+len1;
       memcpy (s.ptr, e0.string.ptr, len);
