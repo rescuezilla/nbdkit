@@ -117,7 +117,7 @@ generic_vector_reserve_page_aligned (struct generic_vector *v,
 
   assert (pagesize % itemsize == 0);
 
-  if (calculate_capacity (v, n, itemsize, &newcap, &newbytes, false) == -1)
+  if (calculate_capacity (v, n, itemsize, &newcap, &newbytes, true) == -1)
     return -1;
 
   /* If the new size (in bytes) is not a full page then we have to
