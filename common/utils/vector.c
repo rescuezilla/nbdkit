@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <errno.h>
 #include <assert.h>
@@ -45,7 +46,7 @@
 
 static int
 calculate_capacity (struct generic_vector *v, size_t n, size_t itemsize,
-                    size_t *newcap_r, size_t *newbytes_r)
+                    size_t *newcap_r, size_t *newbytes_r, bool exactly)
 {
   size_t reqcap, reqbytes, newcap, newbytes, t;
 
@@ -64,7 +65,8 @@ calculate_capacity (struct generic_vector *v, size_t n, size_t itemsize,
    *   newcap = v->cap + (v->cap + 1) / 2
    *   newbytes = newcap * itemsize
    */
-  if (ADD_OVERFLOW (v->cap, 1u, &t) ||
+  if (exactly ||
+      ADD_OVERFLOW (v->cap, 1u, &t) ||
       ADD_OVERFLOW (v->cap, t/2, &newcap) ||
       MUL_OVERFLOW (newcap, itemsize, &newbytes) ||
       newbytes < reqbytes) {
@@ -81,12 +83,13 @@ calculate_capacity (struct generic_vector *v, size_t n, size_t itemsize,
 }
 
 int
-generic_vector_reserve (struct generic_vector *v, size_t n, size_t itemsize)
+generic_vector_reserve (struct generic_vector *v, size_t n, size_t itemsize,
+                        bool exactly)
 {
   void *newptr;
   size_t newcap, newbytes;
 
-  if (calculate_capacity (v, n, itemsize, &newcap, &newbytes) == -1)
+  if (calculate_capacity (v, n, itemsize, &newcap, &newbytes, exactly) == -1)
     return -1;
 
   newptr = realloc (v->ptr, newbytes);
@@ -114,7 +117,7 @@ generic_vector_reserve_page_aligned (struct generic_vector *v,
 
   assert (pagesize % itemsize == 0);
 
-  if (calculate_capacity (v, n, itemsize, &newcap, &newbytes) == -1)
+  if (calculate_capacity (v, n, itemsize, &newcap, &newbytes, false) == -1)
     return -1;
 
   /* If the new size (in bytes) is not a full page then we have to

@@ -127,6 +127,43 @@ test_string (void)
   free (s.ptr);
 }
 
+/* Same as above, but using string_reserve_exactly. */
+static void
+test_string_concat_exactly (string *s, const char *append)
+{
+  const size_t len = strlen (append);
+  size_t i;
+  int r;
+
+  r = string_reserve_exactly (s, len);
+  assert (r == 0);
+
+  /* The contract is that after calling string_reserve with 'n', we
+   * can append up to 'n' items to the vector without failing.
+   */
+  for (i = 0; i < len; ++i) {
+    r = string_append (s, append[i]);
+    assert (r == 0);
+  }
+}
+
+static void
+test_string_exactly (void)
+{
+  string s = empty_vector;
+  int r;
+  char nul = 0;
+
+  test_string_concat_exactly (&s, "hello");
+  test_string_concat_exactly (&s, " world");
+  r = string_append (&s, nul);
+  assert (r == 0);
+
+  assert (strcmp (s.ptr, "hello world") == 0);
+  assert (s.len == 12); /* hello + space + world + \0 */
+  free (s.ptr);
+}
+
 static void
 test_string_vector (void)
 {
@@ -248,6 +285,7 @@ main (int argc, char *argv[])
     /* Do normal tests. */
     test_int64_vector ();
     test_string ();
+    test_string_exactly ();
     test_string_vector ();
     test_const_string_vector ();
     test_overflow ();

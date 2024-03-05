@@ -41,6 +41,7 @@
 #ifndef NBDKIT_VECTOR_H
 #define NBDKIT_VECTOR_H
 
+#include <stdbool.h>
 #include <assert.h>
 #include <string.h>
 
@@ -107,7 +108,18 @@
   name##_reserve (name *v, size_t n)                                    \
   {                                                                     \
     return generic_vector_reserve ((struct generic_vector *)v, n,       \
-                                   sizeof (type));                      \
+                                   sizeof (type), false);               \
+  }                                                                     \
+                                                                        \
+  /* Same as _reserve, but reserve exactly this number of elements      \
+   * without any overhead.  Useful if you know ahead of time that you   \
+   * will never need to extend the vector.                              \
+   */                                                                   \
+  static inline int __attribute__ ((__unused__))                        \
+  name##_reserve_exactly (name *v, size_t n)                            \
+  {                                                                     \
+    return generic_vector_reserve ((struct generic_vector *)v,          \
+                                   n, sizeof (type), true);             \
   }                                                                     \
                                                                         \
   /* Same as _reserve, but the allocation will be page aligned.  Note   \
@@ -248,7 +260,8 @@ struct generic_vector {
 };
 
 extern int generic_vector_reserve (struct generic_vector *v,
-                                   size_t n, size_t itemsize);
+                                   size_t n, size_t itemsize,
+                                   bool exactly);
 
 extern int generic_vector_reserve_page_aligned (struct generic_vector *v,
                                                 size_t n, size_t itemsize);
