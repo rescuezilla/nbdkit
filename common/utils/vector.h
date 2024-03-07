@@ -30,12 +30,68 @@
  * SUCH DAMAGE.
  */
 
-/* Simple implementation of a vector.  It can be cheaply appended, and
- * more expensively inserted.  There are two main use-cases we
- * consider: lists of strings (either with a defined length, or
- * NULL-terminated), and lists of numbers.  It is generic so could be
- * used for lists of anything (eg. structs) where being able to append
- * easily is important.
+/* Simple implementation of a vector.
+ *
+ * Appending to the end is cheap.  Inserting in the middle is more
+ * expensive.  The vector can be a list of anything, eg. ints,
+ * structs, pointers.
+ *
+ * The vector is implemented as a struct with three fields:
+ *
+ *   struct <name> {
+ *     <type> *ptr;    Pointer to array of items.
+ *     size_t len;     Number of valid items (ptr[0] .. ptr[len-1]).
+ *     size_t cap;     Capacity, size of the array allocated.
+ *   };
+ *   typedef struct <name> <name>;
+ *
+ * Note you can just access the struct fields directly.  That is
+ * intentional, they are not private!
+ *
+ * When defining a vector type you give the <name> to use for the new
+ * vector type, and the <type> of each element:
+ *
+ *   DEFINE_VECTOR_TYPE (<name>, <type>);
+ *
+ * This also defines functions called "<name>_reserve",
+ * "<name>_append", etc.
+ *
+ * <name>_reserve (&vector, n) reserves n additional elements beyond
+ * the current capacity.  This is a wrapper around "realloc" and might
+ * fail (returning -1).  If it succeeds (returning 0) then you are
+ * allowed to call <name>_append (&vector, elem) up to n times and it
+ * will not fail.
+ *
+ * <name>_append (&vector, elem) appends the new element at the end of
+ * the array (at ptr[len]), increasing the length.  This may need to
+ * reallocate the array if there is not sufficient capacity.
+ *
+ * <name>_insert and <name>_remove insert and remove single elements
+ * in the middle of the array.  <name>_insert may have to extend the
+ * array, so it may fail, while <name>_remove can never fail.
+ *
+ * There are various other methods, see the macros below.
+ *
+ * For example, you could define a list of ints as:
+ *
+ *   DEFINE_VECTOR_TYPE (int_vector, int);
+ *   int_vector myints = empty_vector;
+ *
+ * where "myints.ptr[]" will be an array of ints and "myints.len" will
+ * be the number of ints.  There are no get/set accessors.  To iterate
+ * over myints you can use the ".ptr" field directly:
+ *
+ *   for (size_t i = 0; i < myints.len; ++i)
+ *     printf ("%d\n", myints.ptr[i]);
+ *
+ * Initializing with "empty_vector", or assigning the compound literal
+ * "(int_vector)empty_vector", sets .ptr = NULL and .len = 0
+ *
+ * Because the implementation uses realloc, the .ptr array may move,
+ * so you should not save the address of array elements.
+ *
+ * There are predefined types in "string-vector.h" and
+ * "const-string-vector.h" for storing lists of strings.
  */
 
 #ifndef NBDKIT_VECTOR_H
@@ -53,45 +109,6 @@
 #pragma clang diagnostic ignored "-Wduplicate-decl-specifier"
 #endif
 
-/* Use of this macro defines a new type called ‘name’ containing an
- * extensible vector of ‘type’ elements.  For example:
- *
- *   DEFINE_VECTOR_TYPE (string_vector, char *);
- *
- * defines a new type called ‘string_vector’ as a vector of ‘char *’.
- * You can create variables of this type:
- *
- *   string_vector names = empty_vector;
- *
- * or
- *
- *   string_vector names;
- *   names = (string_vector)empty_vector;
- *
- * where ‘names.ptr[]’ will be an array of strings and ‘names.len’
- * will be the number of strings.  There are no get/set accessors.  To
- * iterate over the strings you can use the ‘.ptr’ field directly:
- *
- *   for (size_t i = 0; i < names.len; ++i)
- *     printf ("%s\n", names.ptr[i]);
- *
- * Initializing with ‘empty_vector’, or assigning the compound literal
- * ‘(string_vector)empty_vector’, sets ‘.ptr = NULL’ and ‘.len = 0’.
- *
- * DEFINE_VECTOR_TYPE also defines utility functions.  For the full
- * list see the definition below, but useful functions include:
- *
- * ‘name’_append  (eg. ‘string_vector_append’)
- *   - Append a new element at the end.  This operation is cheap.
- *
- * ‘name’_insert  (eg. ‘string_vector_insert’)
- *   - Insert a new element at the beginning, middle or end.  This
- *     operation is more expensive because existing elements may need
- *     to be copied around.
- *
- * Both functions extend the vector if required, and so both may fail
- * (returning -1) which you must check for.
- */
 #define DEFINE_VECTOR_TYPE(name, type)                                  \
   struct name {                                                         \
     type *ptr;              /* Pointer to array of items. */            \
