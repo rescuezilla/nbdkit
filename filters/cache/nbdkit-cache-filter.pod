@@ -15,9 +15,12 @@ nbdkit-cache-filter - nbdkit caching filter
 =head1 DESCRIPTION
 
 C<nbdkit-cache-filter> is a filter that adds caching on top of a
-plugin.  This is useful if a plugin is slow or expensive to use,
-because nbdkit will try to minimize requests to the plugin by caching
-previous requests.
+plugin.
+
+This is useful if a plugin is slow or expensive to use, because nbdkit
+will try to minimize requests to the plugin by caching previous
+requests.  You should use C<cache-on-read=true> (not the default) to
+cache reads from slow plugins.
 
 Note that many NBD I<clients> are able to do caching, and because the
 caching happens on the client side it will usually be more effective
