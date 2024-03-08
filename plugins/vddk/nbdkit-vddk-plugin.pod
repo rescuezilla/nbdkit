@@ -713,6 +713,16 @@ server, which can also be very slow.
 
 =back
 
+=head2 Failure to load libssl.so.3 on RHEL 8
+
+With VDDK E<ge> 8.0.2 on Red Hat Enterprise Linux 8:
+
+ nbdkit: error: libssl.so.3: cannot open shared object file:
+ No such file or directory
+
+This is a bug in VDDK.  The workaround is to use VDDK 8.0.1.
+See also: L<https://issues.redhat.com/browse/RHEL-28533>
+
 =head1 DEBUG FLAGS
 
 Debugging messages can be very helpful if you have problems connecting
