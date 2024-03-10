@@ -132,8 +132,8 @@ it wants.
 
 =head3 C<nbdkit.is_tls()>
 
-Returns C<True> if the client completed TLS authentication, or false
-if the connection is still plaintext.
+Returns C<True> if the client completed TLS authentication, or
+C<False> if the connection is plaintext.
 
 =head3 C<nbdkit.nanosleep(secs, nsecs)>
 
@@ -141,13 +141,13 @@ Sleep for seconds and nanoseconds.
 
 =head3 C<nbdkit.parse_size(str)>
 
-Parse a string (such as "100M") into a size in bytes. Wraps the
+Parse a string (such as "100M") into a size in bytes.  Wraps the
 C<nbdkit_parse_size()> C function.
 
 =head3 C<nbdkit.parse_probability(what, str)>
 
 Parse a string (such as "100%") into a probability, returning a
-floating point number. Wraps the C<nbdkit_parse_probability()> C
+floating point number.  Wraps the C<nbdkit_parse_probability()> C
 function.
 
 =head3 C<nbdkit.peer_pid()>,
