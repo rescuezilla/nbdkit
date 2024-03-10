@@ -46,7 +46,7 @@ skip_if_valgrind "because Python code leaks memory"
 requires nbdsh --version
 
 export script
-nbdsh -n -c - <<'EOF'
+nbdsh -c - <<'EOF'
 import os
 
 script = os.environ["script"]
