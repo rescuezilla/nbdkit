@@ -1274,6 +1274,7 @@ if HAVE_PYTHON
 
 TESTS += \
 	test-python.sh \
+	test-python-error.sh \
 	test-python-exception.sh \
 	test-python-export-name.sh \
 	test-python-export-list.sh \
@@ -1284,6 +1285,7 @@ TESTS += \
 	test-shebang-python.sh \
 	$(NULL)
 EXTRA_DIST += \
+	python-error.py \
 	python-exception.py \
 	python-export-name.py \
 	python-export-list.py \

@@ -170,9 +170,16 @@ can be parsed.
 
 =head3 C<nbdkit.set_error(err)>
 
-Record C<err> as the reason you are about to throw an exception. C<err>
-should correspond to usual errno values, where it may help to
-C<import errno>.
+Throwing a Python exception from a callback causes an error message to
+be sent back to the NBD client.  The NBD protocol allows an error code
+(ie. errno) to be sent to the client, but by default the Python plugin
+always sends C<EIO>.  To control what error code is sent call
+C<nbdkit.set_error>:
+
+ def pread(h, buf, offset):
+   if access_denied:
+     nbdkit.set_error(errno.EPERM)
+     raise RuntimeError()
 
 =head3 C<nbdkit.shutdown()>
 
