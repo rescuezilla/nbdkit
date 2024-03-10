@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] - ReleaseDate
+
+### Changed
+
+- The MSRV is now 1.63.0
+  (#[49](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/49))
+ 
 ## [0.3.0] - 20 July 2023
 ### Added
 

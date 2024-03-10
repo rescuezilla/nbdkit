@@ -115,11 +115,11 @@ extern fn nbdkit_error(fmt: *const c_char, msg: *const c_char) {
         unsafe {CStr::from_ptr(fmt) },
         CString::new("%s").unwrap().as_c_str()
     );
-    ERRMSG.with(|m| *m.borrow_mut() = unsafe {
+    ERRMSG.with(|m| unsafe {
             CStr::from_ptr(msg)
         }.to_str()
         .unwrap()
-        .to_owned()
+        .clone_into(&mut m.borrow_mut())
     );
 }
 #[no_mangle]
