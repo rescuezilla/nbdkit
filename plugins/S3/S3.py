@@ -69,11 +69,11 @@ class Config:
         """Set a configuration value."""
 
         if key == "access-key" or key == "access_key":
-            self.access_key = value
+            self.access_key = nbdkit.read_password(value).decode("ascii")
         elif key == "secret-key" or key == "secret_key":
-            self.secret_key = value
+            self.secret_key = nbdkit.read_password(value).decode("ascii")
         elif key == "session-token" or key == "session_token":
-            self.session_token = value
+            self.session_token = nbdkit.read_password(value).decode("ascii")
         elif key == "endpoint-url" or key == "endpoint_url":
             self.endpoint_url = value
         elif key == "bucket":

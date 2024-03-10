@@ -38,13 +38,29 @@ multiple in objects of size 128k, prefixed with I<disk/>
 
 =item B<access-key=>ACCESS_KEY
 
+=item B<access-key=+>FILENAME
+
+=item B<access-key=->
+
+=item B<access-key=->FD
+
 =item B<secret-key=>SECRET_KEY
+
+=item B<secret-key=+>FILENAME
+
+=item B<secret-key=->
+
+=item B<secret-key=->FD
 
 =item B<session-token=>SESSION_TOKEN
 
-The AWS credentials may be specified on the command line using these
-parameters, but it is more secure to pass them using files (see
-L</CREDENTIALS> below).
+=item B<session-token=+>FILENAME
+
+=item B<session-token=->
+
+=item B<session-token=->FD
+
+Pass AWS credentials.  See L</CREDENTIALS>.
 
 =item B<endpoint-url=>ENDPOINT
 
@@ -99,12 +115,48 @@ object size.
 
 =head1 CREDENTIALS
 
-Although AWS credentials can be passed to nbdkit on the command line,
-this is not secure since a user on the same machine could read them
+You can pass AWS credentials in several ways:
+
+=over 4
+
+=item In plaintext on the nbdkit command line
+
+For example:
+
+ nbdkit S3 access-key=ABC secret-key=SECRET session-token=123
+
+This is B<not secure> since a user on the same machine could read them
 using L<ps(1)>.
 
-A better way is to pass the credentials through the
-F<~/.aws/credentials> file.  This takes the form:
+=item Via files on the nbdkit command line
+
+For example:
+
+ nbdkit S3 access-key=+/tmp/access [...]
+
+Be careful with the permissions on these files to ensure that no one
+else can read the sensitive information.
+
+=item Interactively when nbdkit starts up
+
+For example:
+
+ nbdkit S3 access-key=- [...]
+
+nbdkit will ask for each key to be entered interactively.
+
+=item Inherited through a file descriptor
+
+For example:
+
+ nbdkit S3 access-key=-3 [...]
+
+The parent process must set up the file descriptor (FD 3 in the
+example) so that nbdkit can read the key from it.
+
+=item Using F<~/.aws/credentials> file
+
+This file takes the form:
 
  [default]
  aws_access_key_id = XXX
@@ -116,6 +168,13 @@ F<~/.aws/credentials> file.  This takes the form:
 
 Different profiles from the file can be selected by setting
 the C<AWS_PROFILE> environment variable.
+
+=item Through environment variables
+
+Use the environment variables C<AWS_ACCESS_KEY_ID>,
+C<AWS_SECRET_ACCESS_KEY> and C<AWS_SESSION_TOKEN>.
+
+=back
 
 There is much more information about credentials in
 L<the Boto3 documentation|https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html>.
