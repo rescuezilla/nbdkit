@@ -130,6 +130,8 @@ using L<ps(1)>.
 
 =item Via files on the nbdkit command line
 
+(nbdkit E<ge> 1.38)
+
 For example:
 
  nbdkit S3 access-key=+/tmp/access [...]
@@ -139,6 +141,8 @@ else can read the sensitive information.
 
 =item Interactively when nbdkit starts up
 
+(nbdkit E<ge> 1.38)
+
 For example:
 
  nbdkit S3 access-key=- [...]
@@ -146,6 +150,8 @@ For example:
 nbdkit will ask for each key to be entered interactively.
 
 =item Inherited through a file descriptor
+
+(nbdkit E<ge> 1.38)
 
 For example:
 
