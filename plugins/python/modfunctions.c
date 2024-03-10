@@ -232,6 +232,28 @@ do_peer_security_context (PyObject *self, PyObject *args)
   return r;
 }
 
+/* nbdkit.read_password */
+static PyObject *
+do_read_password (PyObject *self, PyObject *args)
+{
+  const char *s;
+  char *password;
+  PyObject *r;
+
+  if (!PyArg_ParseTuple (args, "s:read_password", &s))
+    return NULL;
+
+  if (nbdkit_read_password (s, &password) == -1) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Unable to parse parameter as a password");
+    return NULL;
+  }
+
+  r = PyBytes_FromString (password);
+  free (password);
+  return r;
+}
+
 static PyMethodDef NbdkitMethods[] = {
   { "debug", debug, METH_VARARGS,
     "Print a debug message" },
@@ -255,6 +277,8 @@ static PyMethodDef NbdkitMethods[] = {
     "Return the client group ID for Unix domain sockets" },
   { "peer_security_context", do_peer_security_context, METH_NOARGS,
     "Return the client security context" },
+  { "read_password", do_read_password, METH_VARARGS,
+    "Read a password from a config parameter" },
   { "set_error", set_error, METH_VARARGS,
     "Store an errno value prior to throwing an exception" },
   { "shutdown", do_shutdown, METH_NOARGS,

@@ -1278,6 +1278,7 @@ TESTS += \
 	test-python-export-name.sh \
 	test-python-export-list.sh \
 	test-python-is-tls.sh \
+	test-python-password.sh \
 	test-python-peer.sh \
 	test-python-thread-model.sh \
 	test-shebang-python.sh \
@@ -1287,6 +1288,7 @@ EXTRA_DIST += \
 	python-export-name.py \
 	python-export-list.py \
 	python-is-tls.py \
+	python-password.py \
 	python-peer.py \
 	python-thread-model.py \
 	shebang.py \
