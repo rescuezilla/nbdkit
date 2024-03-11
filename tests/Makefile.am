@@ -1294,10 +1294,12 @@ EXTRA_DIST += \
 	python-peer.py \
 	python-thread-model.py \
 	shebang.py \
+	test-python-error.sh \
 	test-python-exception.sh \
 	test-python-export-name.sh \
 	test-python-export-list.sh \
 	test-python-is-tls.sh \
+	test-python-password.sh \
 	test-python-peer.sh \
 	test-python-plugin.py \
 	test-python-thread-model.sh \
