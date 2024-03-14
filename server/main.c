@@ -982,10 +982,32 @@ make_uri (void)
   return r;
 }
 
+static void
+failed_to_load_error (const char *what,
+                      const char *orig_name, const char *name, int short_name)
+{
+  fprintf (stderr, "%s: error: cannot open %s '%s': %s\n",
+           program_name, what, name, dlerror ());
+  if (short_name)
+    fprintf (stderr,
+             "\n"
+             "To add this functionality you might need to install a separate\n"
+             "%s package such as nbdkit-%s-%s (Fedora) or\n"
+             "nbdkit-%s-%s (Debian).\n",
+             what, orig_name, what, what, orig_name);
+  fprintf (stderr,
+           "\n"
+           "Use '%s --help' or "
+           "read the nbdkit(1) manual page for documentation.\n",
+           program_name);
+  exit (EXIT_FAILURE);
+}
+
 static struct backend *
 open_plugin_so (size_t i, const char *name, int short_name)
 {
   struct backend *ret;
+  const char *orig_name = name;
   char *filename = (char *) name;
   bool free_filename = false;
   void *dl;
@@ -1003,15 +1025,8 @@ open_plugin_so (size_t i, const char *name, int short_name)
   }
 
   dl = dlopen (filename, RTLD_NOW|RTLD_GLOBAL);
-  if (dl == NULL) {
-    fprintf (stderr,
-             "%s: error: cannot open plugin '%s': %s\n"
-             "Use '%s --help' or "
-             "read the nbdkit(1) manual page for documentation.\n",
-             program_name, name, dlerror (),
-             program_name);
-    exit (EXIT_FAILURE);
-  }
+  if (dl == NULL)
+    failed_to_load_error ("plugin", orig_name, name, short_name);
 
   /* Initialize the plugin.  See dlopen(3) to understand C weirdness. */
   dlerror ();
@@ -1039,6 +1054,7 @@ open_filter_so (struct backend *next, size_t i,
                 const char *name, int short_name)
 {
   struct backend *ret;
+  const char *orig_name = name;
   char *filename = (char *) name;
   bool free_filename = false;
   void *dl;
@@ -1056,11 +1072,8 @@ open_filter_so (struct backend *next, size_t i,
   }
 
   dl = dlopen (filename, RTLD_NOW|RTLD_GLOBAL);
-  if (dl == NULL) {
-    fprintf (stderr, "%s: error: cannot open filter '%s': %s\n",
-             program_name, name, dlerror ());
-    exit (EXIT_FAILURE);
-  }
+  if (dl == NULL)
+    failed_to_load_error ("filter", orig_name, name, short_name);
 
   /* Initialize the filter.  See dlopen(3) to understand C weirdness. */
   dlerror ();
