@@ -344,6 +344,16 @@ eval_config_complete (void)
   const char *script = get_script (method);
   const char *args[] = { script, method, NULL };
 
+  /* Check we have get_size.  This is required in order for clients to
+   * even connect.  pread would also be required, however it is
+   * possible to connect and disconnect without this, and some tests
+   * do that.
+   */
+  if (get_script ("get_size") == missing) {
+    nbdkit_error ("'get_size' method is required");
+    return -1;
+  }
+
   /* Synthesize can_* scripts as the core nbdkit server would for C
    * plugins.
    */
