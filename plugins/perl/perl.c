@@ -294,7 +294,12 @@ perl_config_complete (void)
 {
   dSP;
 
-  if (callback_defined ("config_complete")) {
+  if (!script) {
+    nbdkit_error ("the first parameter must be "
+                  "script=/path/to/perl/script.pl");
+    return -1;
+  }
+  else if (callback_defined ("config_complete")) {
     ENTER;
     SAVETMPS;
     PUSHMARK (SP);
