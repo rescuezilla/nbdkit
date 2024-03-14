@@ -186,7 +186,11 @@ tcl_config_complete (void)
   int r;
   Tcl_Obj *cmd;
 
-  if (proc_defined ("config_complete")) {
+  if (!script) {
+    nbdkit_error ("the first parameter must be script=/path/to/script.tcl");
+    return -1;
+  }
+  else if (proc_defined ("config_complete")) {
     cmd = Tcl_NewObj ();
     Tcl_IncrRefCount (cmd);
     Tcl_ListObjAppendElement (0, cmd, Tcl_NewStringObj ("config_complete", -1));

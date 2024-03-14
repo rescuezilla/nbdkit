@@ -184,7 +184,11 @@ lua_plugin_config (const char *key, const char *value)
 static int
 lua_plugin_config_complete (void)
 {
-  if (function_defined ("config_complete")) {
+  if (!script) {
+    nbdkit_error ("the first parameter must be script=/path/to/script.lua");
+    return -1;
+  }
+  else if (function_defined ("config_complete")) {
     lua_getglobal (L, "config_complete");
     if (lua_pcall (L, 0, 0, 0) != 0) {
       nbdkit_error ("config_complete: %s", lua_tostring (L, -1));
