@@ -223,7 +223,12 @@ py_config_complete (void)
   PyObject *fn;
   PyObject *r;
 
-  if (callback_defined ("config_complete", &fn)) {
+  if (!script) {
+    nbdkit_error ("the first parameter must be "
+                  "script=/path/to/python/script.py");
+    return -1;
+  }
+  else if (callback_defined ("config_complete", &fn)) {
     PyErr_Clear ();
 
     r = PyObject_CallObject (fn, NULL);
