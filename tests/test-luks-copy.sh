@@ -47,6 +47,10 @@ requires_filter luks
 # qemu-img: luks-copy-zero1.img: Unsupported cipher mode xts
 requires_not test "$(uname)" = "Darwin"
 
+# It takes several minutes to valgrind the 'gnutls_pbkdf2' function,
+# although it does work.
+skip_if_valgrind
+
 encrypt_disk=luks-copy1.img
 plain_disk=luks-copy2.img
 pid=luks-copy.pid
