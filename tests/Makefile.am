@@ -247,6 +247,7 @@ TESTS += \
 	test-probe-filter.sh \
 	test-probe-plugin.sh \
 	test-probe-filter-dump-plugin.sh \
+	test-no-parameters.sh \
 	test-start.sh \
 	test-single.sh \
 	test-single-from-file.sh \
@@ -304,6 +305,7 @@ EXTRA_DIST += \
 	test-nbd-client.sh \
 	test-nbd-client-tls.sh \
 	test-nbdkit-backend-debug.sh \
+	test-no-parameters.sh \
 	test-not-linked-to-libssl.sh \
 	test-probe-filter.sh \
 	test-probe-filter-dump-plugin.sh \
