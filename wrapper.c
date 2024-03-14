@@ -194,6 +194,9 @@ main (int argc, char *argv[])
   bool verbose = false;
   char *s;
   int r;
+#ifndef WIN32
+  bool valgrind = false, gdb = false;
+#endif
 
 #ifndef WIN32
   /* If NBDKIT_VALGRIND=1 is set in the environment, then we run the
@@ -201,10 +204,21 @@ main (int argc, char *argv[])
    * NBDKIT_GDB=1 is set, we run the program under GDB, useful during
    * development.
    */
+
   s = getenv ("NBDKIT_VALGRIND");
-  if (s && strcmp (s, "1") == 0) {
+  if (s && strcmp (s, "1") == 0)
+    valgrind = true;
+  s = getenv ("NBDKIT_GDB");
+  if (s && strcmp (s, "1") == 0)
+    gdb = true;
+
+  if (valgrind) {
     passthru (VALGRIND);
-    passthru ("--vgdb=no");
+    if (!gdb)
+      passthru ("--vgdb=no");
+    else
+      /* https://valgrind.org/docs/manual/manual-core-adv.html#manual-core-adv.gdbserver */
+      passthru ("--vgdb-error=0");
     passthru ("--leak-check=full");
     passthru ("--show-leak-kinds=all");
     passthru ("--error-exitcode=119");
@@ -223,12 +237,9 @@ main (int argc, char *argv[])
      */
     unsetenv ("GLIBC_TUNABLES");
   }
-  else {
-    s = getenv ("NBDKIT_GDB");
-    if (s && strcmp (s, "1") == 0) {
-      passthru ("gdb");
-      passthru ("--args");
-    }
+  else if (gdb) {
+    passthru ("gdb");
+    passthru ("--args");
   }
 #endif
 
