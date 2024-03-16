@@ -34,7 +34,9 @@
 (** Interface between plugins written in OCaml and the nbdkit server.
 
     Read these man pages for additional information:
-    nbdkit-ocaml-plugin(3) and nbdkit-plugin(3) *)
+    {{:http://libguestfs.org/nbdkit-ocaml-plugin.3.html}[nbdkit-ocaml-plugin(3)]}
+    and
+    {{:http://libguestfs.org/nbdkit-plugin.3.html}[nbdkit-plugin(3)]} *)
 
 (** Flags passed from the server to various callbacks. *)
 type flags = flag list
@@ -136,7 +138,8 @@ val set_error : Unix.error -> unit
 
 (** Bindings for [nbdkit_parse_size], [nbdkit_parse_probability],
     [nbdkit_parse_bool] and [nbdkit_read_password].  See
-    nbdkit-plugin(3) for information about these functions.
+    {{:http://libguestfs.org/nbdkit-plugin.3.html}[nbdkit-plugin(3)]}
+    for information about these functions.
 
     On error these functions all raise [Invalid_argument].  The
     actual error is sent to the nbdkit error log and is not
@@ -191,7 +194,8 @@ val version : unit -> string
 
 (** Return the nbdkit API version used by the plugin.
 
-    See [NBDKIT_API_VERSION] in nbdkit-plugin(3). *)
+    See [NBDKIT_API_VERSION] in
+    {{:http://libguestfs.org/nbdkit-plugin.3.html}[nbdkit-plugin(3)]}. *)
 val api_version : unit -> int
 
 (** Binding for [nbdkit_peer_name]. *)
