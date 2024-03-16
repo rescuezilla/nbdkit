@@ -36,6 +36,7 @@ EXTRA_DIST = \
 	NBDKit.ml \
 	nbdkit-ocaml-plugin.pod \
 	example.ml \
+	example-debug-flag.c \
 	$(NULL)
 
 if HAVE_OCAML
@@ -67,11 +68,11 @@ libnbdkitocaml_la_SOURCES = \
 	$(NULL)
 
 libnbdkitocaml_la_CPPFLAGS = \
+	-DCAML_NAME_SPACE \
 	-I$(OCAMLLIB) \
 	-I$(top_srcdir)/include \
 	-I$(top_builddir)/include \
 	-I$(top_srcdir)/common/include \
-	-DCAML_NAME_SPACE \
 	$(NULL)
 
 libnbdkitocaml_la_CFLAGS = \
@@ -81,13 +82,22 @@ libnbdkitocaml_la_CFLAGS = \
 
 # The example plugin.
 noinst_SCRIPTS = nbdkit-ocamlexample-plugin.so
-nbdkit-ocamlexample-plugin.so: example.cmx libnbdkitocaml.la NBDKit.cmi NBDKit.cmx
+nbdkit-ocamlexample-plugin.so: example.cmx \
+	    example-debug-flag.o \
+	    libnbdkitocaml.la NBDKit.cmi NBDKit.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) \
 	  -output-obj -runtime-variant _pic -o $@ \
-	  $(OCAML_PLUGIN_LIBRARIES) NBDKit.cmx $< \
+	  $(OCAML_PLUGIN_LIBRARIES) NBDKit.cmx \
+	  $< example-debug-flag.o \
 	  -cclib -L.libs -cclib -lnbdkitocaml
 example.cmx: example.ml NBDKit.cmi NBDKit.cmx
 	$(OCAMLOPT) $(OCAMLOPTFLAGS) -c $< -o $@
+example-debug-flag.o: example-debug-flag.c
+	$(CC) $(CFLAGS) \
+	  -DCAML_NAME_SPACE -I$(OCAMLLIB) \
+	  -I$(top_srcdir)/include -I$(top_builddir)/include \
+	  $(WARNINGS_CFLAGS) -fPIC \
+	  -c $^ -o $@
 
 if HAVE_POD
 

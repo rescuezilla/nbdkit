@@ -53,6 +53,10 @@ let config key value =
   | _ ->
      failwith (Printf.sprintf "unknown parameter: %s" key)
 
+(* A debug flag (see example-debug-flag.c) *)
+external ocamlexample_debug_foo : unit -> int =
+  "get_ocamlexample_debug_foo" [@@noalloc]
+
 (* Any type (even unit) can be used as a per-connection handle.
  * This is just an example.  The same value that you return from
  * your [open_connection] function is passed back as the first
@@ -67,6 +71,7 @@ let open_connection readonly =
   let export_name = NBDKit.export_name () in
   NBDKit.debug "example OCaml plugin handle opened readonly=%b export=%S"
     readonly export_name;
+  NBDKit.debug "debug flag: -D ocamlexample.foo=%d" (ocamlexample_debug_foo ());
   incr id;
   { h_id = !id }
 
