@@ -7,6 +7,9 @@ nbdkit-cc-plugin - write small nbdkit plugins in inline C
 
  nbdkit cc /path/to/plugin.c [CC=<CC>] [CFLAGS=<CFLAGS>]
                              [EXTRA_CFLAGS=<EXTRA_CFLAGS>]
+
+=for paragraph
+
  nbdkit cc - <<'EOF'
  ... C code ...
  EOF
