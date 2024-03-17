@@ -138,6 +138,18 @@ plugin_init (void)
  * next time.
  */
 
+/* This macro calls nbdkit_error when we get an exception thrown in
+ * OCaml callback code.  The 'return_stmt' parameter is usually a call
+ * to CAMLreturnT, but may be empty in order to fall through.
+ */
+#define EXCEPTION_TO_ERROR(rv, return_stmt)                             \
+  do {                                                                  \
+    if (Is_exception_result (rv)) {                                     \
+      nbdkit_error ("%s", caml_format_exception (Extract_exception (rv))); \
+      return_stmt;                                                      \
+    }                                                                   \
+  } while (0)
+
 static void
 load_wrapper (void)
 {
@@ -176,8 +188,7 @@ dump_plugin_wrapper (void)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (dump_plugin_fn, Val_unit);
-  if (Is_exception_result (rv))
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
+  EXCEPTION_TO_ERROR (rv, /* fallthrough */);
   CAMLreturn0;
 }
 
@@ -193,10 +204,7 @@ config_wrapper (const char *key, const char *val)
   valv = caml_copy_string (val);
 
   rv = caml_callback2_exn (config_fn, keyv, valv);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -210,10 +218,7 @@ config_complete_wrapper (void)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (config_complete_fn, Val_unit);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -227,10 +232,7 @@ thread_model_wrapper (void)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (thread_model_fn, Val_unit);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Int_val (rv));
 }
@@ -244,10 +246,7 @@ get_ready_wrapper (void)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (get_ready_fn, Val_unit);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -261,10 +260,7 @@ after_fork_wrapper (void)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (after_fork_fn, Val_unit);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -278,10 +274,7 @@ cleanup_wrapper (void)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (cleanup_fn, Val_unit);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturn0;
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturn0);
 
   CAMLreturn0;
 }
@@ -295,10 +288,7 @@ preconnect_wrapper (int readonly)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (preconnect_fn, Val_bool (readonly));
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -313,10 +303,7 @@ list_exports_wrapper (int readonly, int is_tls, struct nbdkit_exports *exports)
 
   rv = caml_callback2_exn (list_exports_fn, Val_bool (readonly),
                            Val_bool (is_tls));
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   /* Convert exports list into calls to nbdkit_add_export. */
   while (rv != Val_emptylist) {
@@ -347,10 +334,7 @@ default_export_wrapper (int readonly, int is_tls)
 
   rv = caml_callback2_exn (default_export_fn, Val_bool (readonly),
                            Val_bool (is_tls));
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (const char *, NULL);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (const char *, NULL));
 
   name = nbdkit_strdup_intern (String_val (rv));
   CAMLreturnT (const char *, name);
@@ -366,10 +350,7 @@ open_wrapper (int readonly)
   value *ret;
 
   rv = caml_callback_exn (open_fn, Val_bool (readonly));
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (void *, NULL);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (void *, NULL));
 
   /* Allocate a root on the C heap that points to the OCaml handle. */
   ret = malloc (sizeof *ret);
@@ -393,10 +374,7 @@ close_wrapper (void *h)
 
   if (close_fn) {
     rv = caml_callback_exn (close_fn, *(value *) h);
-    if (Is_exception_result (rv)) {
-      nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-      /*FALLTHROUGH*/
-    }
+    EXCEPTION_TO_ERROR (rv, /* fallthrough */);
   }
 
   caml_remove_generational_global_root (h);
@@ -417,10 +395,7 @@ export_description_wrapper (void *h)
   const char *desc;
 
   rv = caml_callback_exn (export_description_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (const char *, NULL);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (const char *, NULL));
 
   desc = nbdkit_strdup_intern (String_val (rv));
   CAMLreturnT (const char *, desc);
@@ -436,10 +411,7 @@ get_size_wrapper (void *h)
   int64_t r;
 
   rv = caml_callback_exn (get_size_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int64_t, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int64_t, -1));
 
   r = Int64_val (rv);
   CAMLreturnT (int64_t, r);
@@ -457,10 +429,7 @@ block_size_wrapper (void *h,
   int64_t i64;
 
   rv = caml_callback_exn (block_size_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   i = Int_val (Field  (rv, 0));
   if (i < 0 || i > 65536) {
@@ -498,10 +467,7 @@ can_write_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_write_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -515,10 +481,7 @@ can_flush_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_flush_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -532,10 +495,7 @@ is_rotational_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (is_rotational_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -549,10 +509,7 @@ can_trim_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_trim_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -566,10 +523,7 @@ can_zero_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_zero_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -583,10 +537,7 @@ can_fua_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_fua_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Int_val (rv));
 }
@@ -600,10 +551,7 @@ can_fast_zero_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_fast_zero_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -617,10 +565,7 @@ can_cache_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_cache_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Int_val (rv));
 }
@@ -634,10 +579,7 @@ can_extents_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_extents_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -651,10 +593,7 @@ can_multi_conn_wrapper (void *h)
   CAMLlocal1 (rv);
 
   rv = caml_callback_exn (can_multi_conn_fn, *(value *) h);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
@@ -704,10 +643,7 @@ pread_wrapper (void *h, void *buf, uint32_t count, uint64_t offset,
 
   value args[] = { *(value *) h, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (pread_fn, ARRAY_SIZE (args), args);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   len = caml_string_length (rv);
   if (len < count) {
@@ -734,10 +670,7 @@ pwrite_wrapper (void *h, const void *buf, uint32_t count, uint64_t offset,
 
   value args[] = { *(value *) h, strv, offsetv, flagsv };
   rv = caml_callbackN_exn (pwrite_fn, ARRAY_SIZE (args), args);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -753,10 +686,7 @@ flush_wrapper (void *h, uint32_t flags)
   flagsv = Val_flags (flags);
 
   rv = caml_callback2_exn (flush_fn, *(value *) h, flagsv);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -775,10 +705,7 @@ trim_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 
   value args[] = { *(value *) h, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (trim_fn, ARRAY_SIZE (args), args);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -797,10 +724,7 @@ zero_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 
   value args[] = { *(value *) h, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (zero_fn, ARRAY_SIZE (args), args);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
@@ -820,10 +744,7 @@ extents_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags,
 
   value args[] = { *(value *) h, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (extents_fn, ARRAY_SIZE (args), args);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   /* Convert extents list into calls to nbdkit_add_extent. */
   while (rv != Val_emptylist) {
@@ -861,10 +782,7 @@ cache_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 
   value args[] = { *(value *) h, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (cache_fn, ARRAY_SIZE (args), args);
-  if (Is_exception_result (rv)) {
-    nbdkit_error ("%s", caml_format_exception (Extract_exception (rv)));
-    CAMLreturnT (int, -1);
-  }
+  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
