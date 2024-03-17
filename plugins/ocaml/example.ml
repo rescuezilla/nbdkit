@@ -28,12 +28,14 @@
 (* Disk image with default size. *)
 let disk = ref (Bytes.make (1024*1024) '\000')
 
+(* This is called when the plugin is loaded. *)
 let load () =
   (* Debugging output is only printed when the server is in
    * verbose mode (nbdkit -v option).
    *)
   NBDKit.debug "example OCaml plugin loaded"
 
+(* This is called when the plugin is unloaded. *)
 let unload () =
   NBDKit.debug "example OCaml plugin unloaded"
 
@@ -45,6 +47,9 @@ let dump_plugin () =
   Printf.printf "ocamlexample_data=42\n";
   flush stdout
 
+(* This is called for every [key=value] parameter passed to the plugin
+ * on the command line.
+ *)
 let config key value =
   match key with
   | "size" ->
@@ -63,6 +68,8 @@ type handle = {
 }
 
 let id = ref 0
+
+(* An NBD client has opened a connection. *)
 let open_connection readonly =
   let export_name = NBDKit.export_name () in
   NBDKit.debug "example OCaml plugin handle opened readonly=%b export=%S"
@@ -70,19 +77,27 @@ let open_connection readonly =
   incr id;
   { h_id = !id }
 
+(* Return the size of the disk. *)
 let get_size h =
   NBDKit.debug "example OCaml plugin get_size id=%d" h.h_id;
   Int64.of_int (Bytes.length !disk)
 
+(* Read part of the disk.  This should return a newly allocated
+ * string of exactly [count] bytes in length.
+ *)
 let pread h count offset _ =
   let offset = Int64.to_int offset in
   Bytes.sub_string !disk offset count
 
+(* Write part of the disk. *)
 let pwrite h buf offset _ =
   let len = String.length buf in
   let offset = Int64.to_int offset in
   String.blit buf 0 !disk offset len
 
+(* Set the plugin thread model.  [SERIALIZE_ALL_REQUESTS] is a
+ * safe default.
+ *)
 let thread_model () =
   NBDKit.THREAD_MODEL_SERIALIZE_ALL_REQUESTS
 
@@ -94,10 +109,11 @@ let version =
    *)
   NBDKit.version ()
 
+(* The plugin must be registered once by calling [register_plugin].
+ * name, open_connection, get_size and pread are required,
+ * everything else is optional.
+ *)
 let () =
-  (* name, open_connection, get_size and pread are required,
-   * everything else is optional.
-   *)
   NBDKit.register_plugin
     ~name: "ocamlexample"
     ~version
