@@ -145,7 +145,8 @@ plugin_init (void)
 #define EXCEPTION_TO_ERROR(rv, return_stmt)                             \
   do {                                                                  \
     if (Is_exception_result (rv)) {                                     \
-      nbdkit_error ("%s", caml_format_exception (Extract_exception (rv))); \
+      nbdkit_error ("%s: %s", __func__,                                 \
+                    caml_format_exception (Extract_exception (rv)));    \
       return_stmt;                                                      \
     }                                                                   \
   } while (0)
