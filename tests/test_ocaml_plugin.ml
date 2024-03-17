@@ -166,9 +166,8 @@ let block_size _ = (1, 4096, -1L)
 let pread h count offset _ =
   assert (h.h_id > 0);
   assert (h.h_sentinel = "TESTING");
-  let buf = Bytes.create count in
-  Bytes.blit disk (Int64.to_int offset) buf 0 count;
-  Bytes.unsafe_to_string buf
+  let offset = Int64.to_int offset in
+  Bytes.sub_string disk offset count
 
 let set_non_sparse offset len =
   Bytes.fill sparse (offset/sector_size) ((len-1)/sector_size) '\001'

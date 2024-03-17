@@ -25,9 +25,8 @@ let open_connection _ = ()
 let get_size () = Bytes.length !disk |> Int64.of_int
 
 let pread () count offset _ =
-  let buf = Bytes.create count in
-  Bytes.blit !disk (Int64.to_int offset) buf 0 count;
-  Bytes.unsafe_to_string buf
+  let offset = Int64.to_int offset in
+  Bytes.sub_string !disk offset count
 
 let pwrite () buf offset _ =
   let len = String.length buf in
