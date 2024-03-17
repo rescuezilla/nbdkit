@@ -346,6 +346,11 @@ default_export_wrapper (int readonly, int is_tls)
   CAMLreturnT (const char *, name);
 }
 
+/* The C handle. */
+struct handle {
+  value v;       /* The OCaml handle, also registered as a GC root. */
+};
+
 static void *
 open_wrapper (int readonly)
 {
@@ -353,37 +358,41 @@ open_wrapper (int readonly)
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
-  value *ret;
+  struct handle *h;
 
   rv = caml_callback_exn (open_fn, Val_bool (readonly));
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (void *, NULL));
 
   /* Allocate a root on the C heap that points to the OCaml handle. */
-  ret = malloc (sizeof *ret);
-  if (ret == NULL) abort ();
-  *ret = rv;
-  caml_register_generational_global_root (ret);
+  h = malloc (sizeof *h);
+  if (h == NULL) {
+    nbdkit_error ("malloc: %m");
+    CAMLreturnT (void *, NULL);
+  }
+  h->v = rv;
+  caml_register_generational_global_root (&h->v);
 
-  CAMLreturnT (void *, ret);
+  CAMLreturnT (void *, h);
 }
 
 /* We always have a close wrapper, since we need to unregister the
  * global root, free the handle and unregister the thread.
  */
 static void
-close_wrapper (void *h)
+close_wrapper (void *hv)
 {
   caml_c_thread_register ();
   do_caml_acquire_runtime_system ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
   if (close_fn) {
-    rv = caml_callback_exn (close_fn, *(value *) h);
+    rv = caml_callback_exn (close_fn, h->v);
     EXCEPTION_TO_ERROR (rv, /* fallthrough */);
   }
 
-  caml_remove_generational_global_root (h);
+  caml_remove_generational_global_root (&h->v);
   free (h);
   do_caml_release_runtime_system ();
   caml_c_thread_unregister ();
@@ -392,15 +401,16 @@ close_wrapper (void *h)
 }
 
 static const char *
-export_description_wrapper (void *h)
+export_description_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
   const char *desc;
 
-  rv = caml_callback_exn (export_description_fn, *(value *) h);
+  rv = caml_callback_exn (export_description_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (const char *, NULL));
 
   desc = nbdkit_strdup_intern (String_val (rv));
@@ -408,15 +418,16 @@ export_description_wrapper (void *h)
 }
 
 static int64_t
-get_size_wrapper (void *h)
+get_size_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
   int64_t r;
 
-  rv = caml_callback_exn (get_size_fn, *(value *) h);
+  rv = caml_callback_exn (get_size_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int64_t, -1));
 
   r = Int64_val (rv);
@@ -424,17 +435,18 @@ get_size_wrapper (void *h)
 }
 
 static int
-block_size_wrapper (void *h,
+block_size_wrapper (void *hv,
                     uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
   int i;
   int64_t i64;
 
-  rv = caml_callback_exn (block_size_fn, *(value *) h);
+  rv = caml_callback_exn (block_size_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   i = Int_val (Field  (rv, 0));
@@ -465,140 +477,150 @@ block_size_wrapper (void *h,
 }
 
 static int
-can_write_wrapper (void *h)
+can_write_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_write_fn, *(value *) h);
+  rv = caml_callback_exn (can_write_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
 
 static int
-can_flush_wrapper (void *h)
+can_flush_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_flush_fn, *(value *) h);
+  rv = caml_callback_exn (can_flush_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
 
 static int
-is_rotational_wrapper (void *h)
+is_rotational_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (is_rotational_fn, *(value *) h);
+  rv = caml_callback_exn (is_rotational_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
 
 static int
-can_trim_wrapper (void *h)
+can_trim_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_trim_fn, *(value *) h);
+  rv = caml_callback_exn (can_trim_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
 
 static int
-can_zero_wrapper (void *h)
+can_zero_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_zero_fn, *(value *) h);
+  rv = caml_callback_exn (can_zero_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
 
 static int
-can_fua_wrapper (void *h)
+can_fua_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_fua_fn, *(value *) h);
+  rv = caml_callback_exn (can_fua_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Int_val (rv));
 }
 
 static int
-can_fast_zero_wrapper (void *h)
+can_fast_zero_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_fast_zero_fn, *(value *) h);
+  rv = caml_callback_exn (can_fast_zero_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
 
 static int
-can_cache_wrapper (void *h)
+can_cache_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_cache_fn, *(value *) h);
+  rv = caml_callback_exn (can_cache_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Int_val (rv));
 }
 
 static int
-can_extents_wrapper (void *h)
+can_extents_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_extents_fn, *(value *) h);
+  rv = caml_callback_exn (can_extents_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
 }
 
 static int
-can_multi_conn_wrapper (void *h)
+can_multi_conn_wrapper (void *hv)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+  struct handle *h = hv;
 
-  rv = caml_callback_exn (can_multi_conn_fn, *(value *) h);
+  rv = caml_callback_exn (can_multi_conn_fn, h->v);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, Bool_val (rv));
@@ -634,20 +656,21 @@ Val_flags (uint32_t flags)
 }
 
 static int
-pread_wrapper (void *h, void *buf, uint32_t count, uint64_t offset,
+pread_wrapper (void *hv, void *buf, uint32_t count, uint64_t offset,
                uint32_t flags)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
+  struct handle *h = hv;
   mlsize_t len;
 
   countv = Val_int (count);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { *(value *) h, countv, offsetv, flagsv };
+  value args[] = { h->v, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (pread_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
@@ -662,19 +685,20 @@ pread_wrapper (void *h, void *buf, uint32_t count, uint64_t offset,
 }
 
 static int
-pwrite_wrapper (void *h, const void *buf, uint32_t count, uint64_t offset,
+pwrite_wrapper (void *hv, const void *buf, uint32_t count, uint64_t offset,
                 uint32_t flags)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, strv, offsetv, flagsv);
+  struct handle *h = hv;
 
   strv = caml_alloc_initialized_string (count, buf);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { *(value *) h, strv, offsetv, flagsv };
+  value args[] = { h->v, strv, offsetv, flagsv };
   rv = caml_callbackN_exn (pwrite_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
@@ -682,34 +706,36 @@ pwrite_wrapper (void *h, const void *buf, uint32_t count, uint64_t offset,
 }
 
 static int
-flush_wrapper (void *h, uint32_t flags)
+flush_wrapper (void *hv, uint32_t flags)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal2 (rv, flagsv);
+  struct handle *h = hv;
 
   flagsv = Val_flags (flags);
 
-  rv = caml_callback2_exn (flush_fn, *(value *) h, flagsv);
+  rv = caml_callback2_exn (flush_fn, h->v, flagsv);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
   CAMLreturnT (int, 0);
 }
 
 static int
-trim_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
+trim_wrapper (void *hv, uint32_t count, uint64_t offset, uint32_t flags)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
+  struct handle *h = hv;
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { *(value *) h, countv, offsetv, flagsv };
+  value args[] = { h->v, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (trim_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
@@ -717,18 +743,19 @@ trim_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 }
 
 static int
-zero_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
+zero_wrapper (void *hv, uint32_t count, uint64_t offset, uint32_t flags)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
+  struct handle *h = hv;
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { *(value *) h, countv, offsetv, flagsv };
+  value args[] = { h->v, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (zero_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
@@ -736,19 +763,20 @@ zero_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
 }
 
 static int
-extents_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags,
+extents_wrapper (void *hv, uint32_t count, uint64_t offset, uint32_t flags,
                  struct nbdkit_extents *extents)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal5 (rv, countv, offsetv, flagsv, v);
+  struct handle *h = hv;
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { *(value *) h, countv, offsetv, flagsv };
+  value args[] = { h->v, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (extents_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
@@ -775,18 +803,19 @@ extents_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags,
 }
 
 static int
-cache_wrapper (void *h, uint32_t count, uint64_t offset, uint32_t flags)
+cache_wrapper (void *hv, uint32_t count, uint64_t offset, uint32_t flags)
 {
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal4 (rv, countv, offsetv, flagsv);
+  struct handle *h = hv;
 
   countv = caml_copy_int64 (count);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { *(value *) h, countv, offsetv, flagsv };
+  value args[] = { h->v, countv, offsetv, flagsv };
   rv = caml_callbackN_exn (cache_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
