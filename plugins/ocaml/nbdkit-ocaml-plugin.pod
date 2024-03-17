@@ -141,6 +141,19 @@ in verbose mode by calling:
 
 This function works like C<Printf.printf>.
 
+=head2 --dump-plugin output
+
+As with all nbdkit plugins, you can add a C<dump_plugin> callback in
+order to print additional facts about your plugin.  The OCaml wrapper
+also adds some additional fields to help identify which version of
+OCaml was used:
+
+ $ nbdkit your-ocaml-plugin.so --dump-plugin
+ ...
+ ocaml_version_major=4
+ ocaml_version_minor=5
+ ocaml_version=4.05.0
+
 =head2 OCaml scripts
 
 Using L<nbdkit-cc-plugin(1)> it is possible to write OCaml plugins
