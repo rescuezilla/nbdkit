@@ -45,6 +45,7 @@
 #include <caml/mlvalues.h>
 #include <caml/printexc.h>
 #include <caml/threads.h>
+#include <caml/version.h>
 
 #define NBDKIT_API_VERSION 2
 #include <nbdkit-plugin.h>
@@ -187,6 +188,10 @@ dump_plugin_wrapper (void)
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
   CAMLlocal1 (rv);
+
+  printf ("ocaml_version_major=%d\n", OCAML_VERSION_MAJOR);
+  printf ("ocaml_version_minor=%d\n", OCAML_VERSION_MINOR);
+  printf ("ocaml_version=%s\n", OCAML_VERSION_STRING);
 
   rv = caml_callback_exn (dump_plugin_fn, Val_unit);
   EXCEPTION_TO_ERROR (rv, /* fallthrough */);
