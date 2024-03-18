@@ -38,12 +38,12 @@ let open_connection _ = ()
 
 let get_size () = Int64.of_int (6 * sector_size)
 
-let pread () count offset _ =
+let pread () buf offset _ =
   (* Depending on the sector requested (offset), return a different
    * error code.
    *)
   match (Int64.to_int offset) / sector_size with
-  | 0 -> (* good, return data *) String.make count '\000'
+  | 0 -> (* good, return data *) Bigarray.Array1.fill buf '\000'
   | 1 -> NBDKit.set_error EPERM;     failwith "EPERM"
   | 2 -> NBDKit.set_error EIO;       failwith "EIO"
   | 3 -> NBDKit.set_error ENOMEM;    failwith "ENOMEM"

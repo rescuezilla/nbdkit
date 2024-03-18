@@ -39,6 +39,7 @@
 #include <errno.h>
 
 #include <caml/alloc.h>
+#include <caml/bigarray.h>
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/memory.h>
@@ -655,6 +656,11 @@ Val_flags (uint32_t flags)
   CAMLreturn (rv);
 }
 
+/* Wrap the buf in an OCaml bigarray so that callers can read and
+ * write directly to it without copying.
+ * https://discuss.ocaml.org/t/is-there-a-simple-library-that-wraps-a-c-mallocd-char-buffer/14323
+ * https://v2.ocaml.org/manual/intfc.html#ss:C-Bigarrays-wrap
+ */
 static int
 pread_wrapper (void *hv, void *buf, uint32_t count, uint64_t offset,
                uint32_t flags)
@@ -662,25 +668,18 @@ pread_wrapper (void *hv, void *buf, uint32_t count, uint64_t offset,
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
-  CAMLlocal4 (rv, countv, offsetv, flagsv);
+  CAMLlocal4 (rv, ba, offsetv, flagsv);
   struct handle *h = hv;
-  mlsize_t len;
+  long dims[1] = { count };
 
-  countv = Val_int (count);
+  ba = caml_ba_alloc (CAML_BA_CHAR|CAML_BA_C_LAYOUT, 1, buf, dims);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { h->v, countv, offsetv, flagsv };
+  value args[] = { h->v, ba, offsetv, flagsv };
   rv = caml_callbackN_exn (pread_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
-  len = caml_string_length (rv);
-  if (len < count) {
-    nbdkit_error ("buffer returned from pread is too small");
-    CAMLreturnT (int, -1);
-  }
-
-  memcpy (buf, String_val (rv), count);
   CAMLreturnT (int, 0);
 }
 
@@ -691,14 +690,18 @@ pwrite_wrapper (void *hv, const void *buf, uint32_t count, uint64_t offset,
   caml_c_thread_register ();
   ACQUIRE_RUNTIME_FOR_CURRENT_SCOPE ();
   CAMLparam0 ();
-  CAMLlocal4 (rv, strv, offsetv, flagsv);
+  CAMLlocal4 (rv, ba, offsetv, flagsv);
   struct handle *h = hv;
+  long dims[1] = { count };
 
-  strv = caml_alloc_initialized_string (count, buf);
+  /* We discard the const of the incoming buffer, and in theory OCaml
+   * plugins could try writing to it. XXX
+   */
+  ba = caml_ba_alloc (CAML_BA_CHAR|CAML_BA_C_LAYOUT, 1, (void *) buf, dims);
   offsetv = caml_copy_int64 (offset);
   flagsv = Val_flags (flags);
 
-  value args[] = { h->v, strv, offsetv, flagsv };
+  value args[] = { h->v, ba, offsetv, flagsv };
   rv = caml_callbackN_exn (pwrite_fn, ARRAY_SIZE (args), args);
   EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
 
