@@ -163,11 +163,12 @@ let get_size h =
 
 let block_size _ = (1, 4096, -1L)
 
-let pread h count offset _ =
+let pread h buf offset _ =
   assert (h.h_id > 0);
   assert (h.h_sentinel = "TESTING");
+  let len = NBDKit.buf_len buf in
   let offset = Int64.to_int offset in
-  Bytes.sub_string disk offset count
+  NBDKit.blit_bytes_to_buf disk offset buf 0 len
 
 let set_non_sparse offset len =
   Bytes.fill sparse (offset/sector_size) ((len-1)/sector_size) '\001'
@@ -175,9 +176,9 @@ let set_non_sparse offset len =
 let pwrite h buf offset _ =
   assert (h.h_id > 0);
   assert (h.h_sentinel = "TESTING");
-  let len = String.length buf in
+  let len = NBDKit.buf_len buf in
   let offset = Int64.to_int offset in
-  String.blit buf 0 disk offset len;
+  NBDKit.blit_buf_to_bytes buf 0 disk offset len;
   set_non_sparse offset len
 
 let extents _ count offset _ =

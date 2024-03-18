@@ -61,6 +61,7 @@ lib_LTLIBRARIES = libnbdkitocaml.la
 
 libnbdkitocaml_la_SOURCES = \
 	bindings.c \
+	buf.c \
 	callbacks.h \
 	plugin.c \
 	plugin.h \

@@ -94,6 +94,28 @@ handle struct in your plugin:
 If you don't need to store per-connection data, C<open_connection> can
 return C<()>.
 
+=head2 Reading and writing
+
+The C<pread> and C<pwrite> callbacks are declared:
+
+ val pread: 'a -> buf -> int64 -> flags -> unit
+ val pwrite: 'a -> buf -> int64 -> flags -> unit
+
+C<NBDKit.buf> is an OCaml Bigarray wrapping the C buffer:
+
+ type buf =
+ (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+
+This allows direct, zero-copy access to the underlying buffer using
+the functions in the OCaml stdlib L<Bigarray.Array1(3)> module
+(L<https://v2.ocaml.org/api/Bigarray.Array1.html>).
+
+There are also helper functions in the L<NBDKit(3)> module for fast
+blitting between C<buf> and OCaml C<string> and C<bytes>.
+
+Note that the length of the data to read or write is implicit in
+C<buf>.  Use C<NBDKit.buf_len buf> to get this.
+
 =head2 Errors
 
 Plugins can return errors from methods by raising an exception.
@@ -175,6 +197,7 @@ OCaml plugins first appeared in nbdkit 1.2.
 L<NBDKit(3)>,
 L<nbdkit(1)>,
 L<nbdkit-plugin(3)>,
+L<Bigarray.Array1(3)>,
 L<ocamlopt(1)>.
 
 =head1 AUTHORS

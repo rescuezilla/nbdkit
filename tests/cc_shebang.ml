@@ -24,14 +24,15 @@ let open_connection _ = ()
 
 let get_size () = Bytes.length !disk |> Int64.of_int
 
-let pread () count offset _ =
+let pread () buf offset _ =
+  let len = NBDKit.buf_len buf in
   let offset = Int64.to_int offset in
-  Bytes.sub_string !disk offset count
+  NBDKit.blit_bytes_to_buf !disk offset buf 0 len
 
 let pwrite () buf offset _ =
-  let len = String.length buf in
+  let len = NBDKit.buf_len buf in
   let offset = Int64.to_int offset in
-  String.blit buf 0 !disk offset len
+  NBDKit.blit_buf_to_bytes buf 0 !disk offset len
 
 let () =
   NBDKit.register_plugin

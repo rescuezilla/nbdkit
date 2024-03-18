@@ -67,6 +67,29 @@ type thread_model =
 | THREAD_MODEL_SERIALIZE_REQUESTS
 | THREAD_MODEL_PARALLEL
 
+(** Define a convenient type name for the buffer type passed to
+    the [~pread] and [~pwrite] methods. *)
+type buf =
+  (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+
+(** Return the length of the [~pread] and [~pwrite] [buf] parameter. *)
+val buf_len : buf -> int
+
+(** Helper functions to blit between bytes/string and buf.
+
+    [blit_string_to_buf src src_pos buf buf_pos len] copies
+    [len] bytes from string [src+src_pos] to [buf+buf_pos].
+
+    [blit_bytes_to_buf src src_pos buf buf_pos len] is the
+    same but the source is bytes.
+
+    [blit_buf_to_bytes buf buf_pos dst dst_pos len] copies
+    [len] bytes from [buf+buf_pos] to bytes [dst+dst_pos].
+*)
+val blit_string_to_buf : string -> int -> buf -> int -> int -> unit
+val blit_bytes_to_buf : bytes -> int -> buf -> int -> int -> unit
+val blit_buf_to_bytes : buf -> int -> bytes -> int -> int -> unit
+
 (** Register the plugin with nbdkit.
 
     The ['a] parameter is the handle type returned by your
@@ -113,8 +136,8 @@ val register_plugin :
   ?is_rotational: ('a -> bool) ->
 
   (* Serving data. *)
-  pread: ('a -> int -> int64 -> flags -> string) ->
-  ?pwrite: ('a -> string -> int64 -> flags -> unit) ->
+  pread: ('a -> buf -> int64 -> flags -> unit) ->
+  ?pwrite: ('a -> buf -> int64 -> flags -> unit) ->
   ?flush: ('a -> flags -> unit) ->
   ?trim: ('a -> int64 -> int64 -> flags -> unit) ->
   ?zero: ('a -> int64 -> int64 -> flags -> unit) ->

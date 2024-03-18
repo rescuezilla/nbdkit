@@ -87,18 +87,19 @@ let get_size h =
   NBDKit.debug "example OCaml plugin get_size id=%d" h.h_id;
   Int64.of_int (Bytes.length !disk)
 
-(* Read part of the disk.  This should return a newly allocated
- * string of exactly [count] bytes in length.
+(* Read part of the disk.  This should modify the buf parameter
+ * directly as shown below.
  *)
-let pread h count offset _ =
+let pread h buf offset _ =
+  let len = NBDKit.buf_len buf in
   let offset = Int64.to_int offset in
-  Bytes.sub_string !disk offset count
+  NBDKit.blit_bytes_to_buf !disk offset buf 0 len
 
 (* Write part of the disk. *)
 let pwrite h buf offset _ =
-  let len = String.length buf in
+  let len = NBDKit.buf_len buf in
   let offset = Int64.to_int offset in
-  String.blit buf 0 !disk offset len
+  NBDKit.blit_buf_to_bytes buf 0 !disk offset len
 
 (* Set the plugin thread model.  [SERIALIZE_ALL_REQUESTS] is a
  * safe default.

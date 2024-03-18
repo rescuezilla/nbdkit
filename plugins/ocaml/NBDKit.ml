@@ -46,6 +46,36 @@ type thread_model =
 | THREAD_MODEL_SERIALIZE_REQUESTS
 | THREAD_MODEL_PARALLEL
 
+type buf =
+  (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+
+let buf_len = Bigarray.Array1.dim
+
+external _blit_from_string : string -> int -> buf -> int -> int -> unit
+  = "ocaml_nbdkit_blit_from" [@@noalloc]
+external _blit_from_bytes : bytes -> int -> buf -> int -> int -> unit
+  = "ocaml_nbdkit_blit_from" [@@noalloc]
+external _blit_to_bytes : buf -> int -> bytes -> int -> int -> unit
+  = "ocaml_nbdkit_blit_to_bytes" [@@noalloc]
+
+let blit_string_to_buf src src_pos buf buf_pos len =
+  if len < 0 || src_pos < 0 || src_pos > String.length src - len
+             || buf_pos < 0 || buf_pos > buf_len buf - len
+  then invalid_arg "NBDKit.blit_string_to_buf";
+  _blit_from_string src src_pos buf buf_pos len
+
+let blit_bytes_to_buf src src_pos buf buf_pos len =
+  if len < 0 || src_pos < 0 || src_pos > Bytes.length src - len
+             || buf_pos < 0 || buf_pos > buf_len buf - len
+  then invalid_arg "NBDKit.blit_bytes_to_buf";
+  _blit_from_bytes src src_pos buf buf_pos len
+
+let blit_buf_to_bytes buf buf_pos dst dst_pos len =
+  if len < 0 || buf_pos < 0 || buf_pos > buf_len buf - len
+             || dst_pos < 0 || dst_pos > Bytes.length dst - len
+  then invalid_arg "NBDKit.blit_buf_to_bytes";
+  _blit_to_bytes buf buf_pos dst dst_pos len
+
 type extent = {
   offset : int64;
   length : int64;
