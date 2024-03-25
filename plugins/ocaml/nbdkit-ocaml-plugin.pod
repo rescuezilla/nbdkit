@@ -113,6 +113,10 @@ the functions in the OCaml stdlib L<Bigarray.Array1(3)> module
 There are also helper functions in the L<NBDKit(3)> module for fast
 blitting between C<buf> and OCaml C<string> and C<bytes>.
 
+This type is compatible with the
+L<bigstring|https://v3.ocaml.org/p/bigstring/latest> and
+L<bigstringaf|https://v3.ocaml.org/p/bigstringaf/latest> libraries.
+
 Note that the length of the data to read or write is implicit in
 C<buf>.  Use C<NBDKit.buf_len buf> to get this.
 
