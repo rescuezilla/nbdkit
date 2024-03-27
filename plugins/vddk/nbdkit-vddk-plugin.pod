@@ -648,6 +648,36 @@ Using:
 will cause nbdkit to automatically split and combine requests so that
 VDDK sees only sizes in the range C<[512..2M]>.
 
+=head2 Error 1 (Unknown error) when opening a disk
+
+Opening a disk fails with an error like:
+
+ nbdkit: vddk[1]: debug: VixDiskLib: VixDiskLib_OpenEx:
+ Cannot open disk <name>. Error 1 (Unknown error) at <line>.
+
+This common and totally useless error message can be printed by VDDK
+for lots of reasons.  B<Make sure debugging is enabled> and look at
+any debug messages printed before this to find out what is really
+going on.  Common reasons are listed below.
+
+=head3 The thumbprint parameter is wrong
+
+Verify whether the C<thumbprint> parameter matches the SHA1
+fingerprint of the remote VMware server.  See L</THUMBPRINTS> above
+for how to set this correctly.
+
+=head3 The guest is using an "Independent" mode disk
+
+In debugging output you will see messages including:
+
+ GetFileName: Cannot create disk spec for disk <name>.
+ Error occurred when obtaining the file name for <name>.
+
+If the Disk Mode is "Independent-Persistent" or
+"Independent-Nonpersistent", then S<VDDK E<ge> 7> has a bug where it
+cannot open these disks.  The only known workarounds are to use S<VDDK
+E<le> 6.7>, or to change the Disk Mode to a regular dependent disk.
+
 =head2 Troubleshooting performance problems
 
 VDDK has very uneven performance with some operations being very slow.
