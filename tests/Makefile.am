@@ -645,8 +645,8 @@ EXTRA_DIST += test-block-size-constraints.sh
 # blkio plugin test.
 if HAVE_LIBBLKIO
 TESTS += test-blkio.sh
-EXTRA_DIST += test-blkio.sh
 endif
+EXTRA_DIST += test-blkio.sh
 
 # cdi plugin test.
 TESTS += test-cdi.sh
