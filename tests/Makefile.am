@@ -1992,6 +1992,10 @@ test_retry_request_mirror_LDADD = \
 	$(LIBNBD_LIBS) \
 	$(NULL)
 
+# rotational filter test.
+TESTS += test-rotational.sh
+EXTRA_DIST += test-rotational.sh
+
 # scan filter test.
 TESTS += \
 	test-scan-copy.sh \

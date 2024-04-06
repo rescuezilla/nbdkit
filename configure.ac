@@ -148,6 +148,7 @@ filters="\
         readonly \
         retry \
         retry-request \
+        rotational \
         scan \
         stats \
         swab \
@@ -1665,6 +1666,7 @@ AC_CONFIG_FILES([Makefile
                  filters/readonly/Makefile
                  filters/retry/Makefile
                  filters/retry-request/Makefile
+                 filters/rotational/Makefile
                  filters/scan/Makefile
                  filters/stats/Makefile
                  filters/swab/Makefile
