@@ -60,7 +60,7 @@
 #endif
 
 #if defined (__linux__) && HAVE_LINUX_FS_H
-#include <linux/fs.h>       /* For BLKZEROOUT */
+#include <linux/fs.h>       /* For BLKZEROOUT, BLKROTATIONAL */
 #endif
 
 #define NBDKIT_API_VERSION 2
@@ -470,6 +470,7 @@ struct handle {
   int fd;
   bool is_block_device;
   int sector_size;
+  unsigned short rotational;
   bool can_write;
   bool can_punch_hole;
   bool can_zero_range;
@@ -668,6 +669,14 @@ file_open (int readonly)
   }
 #endif
 
+  h->rotational = 0; /* Default before nbdkit 1.40 */
+#ifdef BLKROTATIONAL
+  if (h->is_block_device) {
+    if (ioctl (h->fd, BLKROTATIONAL, &h->rotational) == -1)
+      nbdkit_debug ("cannot get rotational property: %s: %m", file);
+  }
+#endif
+
 #ifdef FALLOC_FL_PUNCH_HOLE
   h->can_punch_hole = true;
 #else
@@ -738,6 +747,15 @@ file_get_size (void *handle)
 
     return statbuf.st_size;
   }
+}
+
+/* Check if file is rotational. */
+static int
+file_is_rotational (void *handle)
+{
+  struct handle *h = handle;
+
+  return h->rotational;
 }
 
 /* Check if file is read-only. */
@@ -1167,6 +1185,7 @@ static struct nbdkit_plugin plugin = {
   .open              = file_open,
   .close             = file_close,
   .get_size          = file_get_size,
+  .is_rotational     = file_is_rotational,
   .can_write         = file_can_write,
   .can_multi_conn    = file_can_multi_conn,
   .can_trim          = file_can_trim,
