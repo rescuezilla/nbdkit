@@ -141,10 +141,6 @@ def can_fua(server):
     return nbdkit.FUA_NATIVE
 
 
-def can_extents(server):
-    return False
-
-
 def can_flush(server):
     return True
 
