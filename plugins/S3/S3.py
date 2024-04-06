@@ -148,10 +148,6 @@ def block_size(server):
     return (1, cfg.obj_size, cfg.obj_size)
 
 
-def is_rotational(server):
-    return False
-
-
 def can_fua(server):
     return nbdkit.FUA_NATIVE
 
