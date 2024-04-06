@@ -659,8 +659,8 @@ file_open (int readonly)
     free (h);
     return NULL;
   }
-  h->sector_size = 4096;  /* Start with safe guess */
 
+  h->sector_size = 4096; /* Start with safe guess */
 #ifdef BLKSSZGET
   if (h->is_block_device) {
     if (ioctl (h->fd, BLKSSZGET, &h->sector_size))
