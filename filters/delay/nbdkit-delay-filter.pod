@@ -28,7 +28,8 @@ nbdkit-delay-filter - nbdkit delay filter
 C<nbdkit-delay-filter> is a filter that delays read and write requests
 by some seconds or milliseconds.  This is used to simulate a slow or
 remote server, or to test certain kinds of race conditions in Linux.
-To limit server bandwidth use L<nbdkit-rate-filter(1)> instead.
+To limit server bandwidth use L<nbdkit-rate-filter(1)> instead.  To
+simulate a spinning disk see L<nbdkit-spinning-filter(1)>.
 
 =head1 EXAMPLES
 
@@ -163,7 +164,8 @@ C<rdelay> and C<wdelay> options in L<nbdkit-file-plugin(1)>.
 L<nbdkit(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-pause-filter(1)>,
-L<nbdkit-rate-filter(1)>.
+L<nbdkit-rate-filter(1)>,
+L<nbdkit-spinning-filter(1)>.
 
 =head1 AUTHORS
 

@@ -150,6 +150,7 @@ filters="\
         retry-request \
         rotational \
         scan \
+        spinning \
         stats \
         swab \
         tar \
@@ -1668,6 +1669,7 @@ AC_CONFIG_FILES([Makefile
                  filters/retry-request/Makefile
                  filters/rotational/Makefile
                  filters/scan/Makefile
+                 filters/spinning/Makefile
                  filters/stats/Makefile
                  filters/swab/Makefile
                  filters/tar/Makefile

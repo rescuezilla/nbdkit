@@ -280,6 +280,11 @@ nbdkit-qcow2dec-filter:
 * implement internal snapshots - it should be possible to select an
   internal snapshot by name
 
+nbdkit-spinning-filter:
+
+* fix multiconn / multiple connections so there is a single view of
+  heads across all NBD clients
+
 Filters for security
 --------------------
 

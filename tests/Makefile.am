@@ -2006,6 +2006,16 @@ EXTRA_DIST += \
 	test-scan-info.sh \
 	$(NULL)
 
+# spinning filter test.
+TESTS += \
+	test-spinning-info.sh \
+	test-spinning-mkfs.sh \
+	$(NULL)
+EXTRA_DIST += \
+	test-spinning-info.sh \
+	test-spinning-mkfs.sh \
+	$(NULL)
+
 # swab filter test.
 TESTS += \
 	test-swab-8.sh \
