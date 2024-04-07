@@ -663,7 +663,7 @@ file_open (int readonly)
   h->sector_size = 4096; /* Start with safe guess */
 #ifdef BLKSSZGET
   if (h->is_block_device) {
-    if (ioctl (h->fd, BLKSSZGET, &h->sector_size))
+    if (ioctl (h->fd, BLKSSZGET, &h->sector_size) == -1)
       nbdkit_debug ("cannot get sector size: %s: %m", file);
   }
 #endif
