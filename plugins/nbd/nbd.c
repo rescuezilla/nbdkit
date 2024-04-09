@@ -158,7 +158,6 @@ nbdplug_config (const char *key, const char *value)
   int r;
 
   if (strcmp (key, "socket") == 0) {
-    /* See FILENAMES AND PATHS in nbdkit-plugin(3) */
     free (sockname);
     sockname = nbdkit_absolute_path (value);
     if (!sockname)

@@ -496,7 +496,7 @@ The names of C<key>s accepted by plugins is up to the plugin, but you
 should probably look at other plugins and follow the same conventions.
 
 If the value is a relative path, then note that the server changes
-directory when it starts up.  See L</FILENAMES AND PATHS> above.
+directory when it starts up.  See L<nbdkit_realpath(3)>.
 
 If C<nbdkit_stdio_safe> returns 1, the value of the configuration
 parameter may be used to trigger reading additional data through stdin
@@ -1295,6 +1295,10 @@ This field defaults to 0; if non-zero, nbdkit can reliably use the
 value of C<errno> when a callback reports failure, rather than the
 plugin having to call L<nbdkit_set_error(3)>.
 
+=head1 UMASK
+
+All plugins will see a L<umask(2)> of C<0022>.
+
 =head1 PARSING COMMAND LINE PARAMETERS
 
 nbdkit provides several functions to help plugins and filters to parse
@@ -1335,56 +1339,12 @@ L<nbdkit_read_password(3)>
 
 L<nbdkit_stdio_safe(3)>
 
+=item Filenames and paths
+
+L<nbdkit_absolute_path(3)>
+L<nbdkit_realpath(3)>
+
 =back
-
-=head1 FILENAMES AND PATHS
-
-The server usually (not always) changes directory to C</> before it
-starts serving connections.  This means that any relative paths passed
-during configuration will not work when the server is running
-(example: S<C<nbdkit plugin.so disk.img>>).
-
-To avoid problems, prepend relative paths with the current directory
-before storing them in the handle.  Or open files and store the file
-descriptor.
-
-=head2 C<nbdkit_absolute_path>
-
- char *nbdkit_absolute_path (const char *filename);
-
-The utility function C<nbdkit_absolute_path> converts any path to an
-absolute path: if it is relative, then all this function does is
-prepend the current working directory to the path, with no extra
-checks.
-
-Note that this function works I<only> when used in the C<.config>,
-C<.config_complete> and C<.get_ready> callbacks.
-
-If conversion was not possible, this calls L<nbdkit_error(3)> and returns
-C<NULL>.  Note that this function does not check that the file exists.
-
-The returned string must be freed by the caller.
-
-=head2 C<nbdkit_realpath>
-
- char *nbdkit_realpath (const char *filename);
-
-The utility function C<nbdkit_realpath> converts any path to an
-absolute path, resolving symlinks.  Under the hood it uses the
-C<realpath> function, and thus it fails if the path does not exist,
-or it is not possible to access to any of the components of the path.
-
-Note that this function works I<only> when used in the C<.config>,
-C<.config_complete> and C<.get_ready> callbacks.
-
-If the path resolution was not possible, this calls L<nbdkit_error(3)>
-and returns C<NULL>.
-
-The returned string must be freed by the caller.
-
-=head2 umask
-
-All plugins will see a L<umask(2)> of C<0022>.
 
 =head1 SLEEPING
 
@@ -1727,6 +1687,7 @@ L<nbdkit-filter(3)>.
 
 Utility functions provided by nbdkit for plugins and filters to use:
 
+L<nbdkit_absolute_path(3)>,
 L<nbdkit_disconnect(3)>,
 L<nbdkit_error(3)>,
 L<nbdkit_parse_bool(3)>,
@@ -1748,6 +1709,7 @@ L<nbdkit_peer_pid(3)>,
 L<nbdkit_peer_security_context(3)>,
 L<nbdkit_peer_uid(3)>,
 L<nbdkit_read_password(3)>,
+L<nbdkit_realpath(3)>,
 L<nbdkit_set_error(3)>,
 L<nbdkit_shutdown(3)>,
 L<nbdkit_stdio_safe(3)>,

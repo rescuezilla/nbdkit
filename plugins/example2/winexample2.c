@@ -88,7 +88,7 @@ static int
 example2_config (const char *key, const char *value)
 {
   if (strcmp (key, "file") == 0) {
-    /* See FILENAMES AND PATHS in nbdkit-plugin(3). */
+    /* See nbdkit_realpath(3). */
     filename = nbdkit_realpath (value);
     if (!filename)
       return -1;

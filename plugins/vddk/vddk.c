@@ -146,7 +146,6 @@ vddk_config (const char *key, const char *value)
     }
   }
   else if (strcmp (key, "config") == 0) {
-    /* See FILENAMES AND PATHS in nbdkit-plugin(3). */
     free (config);
     config = nbdkit_realpath (value);
     if (!config)
@@ -241,7 +240,6 @@ vddk_config (const char *key, const char *value)
     filename = value;
   }
   else if (strcmp (key, "libdir") == 0) {
-    /* See FILENAMES AND PATHS in nbdkit-plugin(3). */
     free (libdir);
     libdir = nbdkit_realpath (value);
     if (!libdir)

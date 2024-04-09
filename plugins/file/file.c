@@ -182,8 +182,7 @@ file_unload (void)
 static int
 file_config (const char *key, const char *value)
 {
-  /* See FILENAMES AND PATHS in nbdkit-plugin(3).
-   * Our use of nbdkit_realpath requires the destination to exist at
+  /* Our use of nbdkit_realpath requires the destination to exist at
    * startup; use nbdkit_absolute_path instead if we wanted to defer
    * existence checks to the last possible moment.
    */

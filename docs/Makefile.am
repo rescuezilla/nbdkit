@@ -48,6 +48,7 @@ EXTRA_DIST = \
 	nbdkit-probing.pod \
 	nbdkit-protocol.pod \
 	nbdkit_read_password.pod \
+	nbdkit_realpath.pod \
 	nbdkit-release-notes-1.4.pod \
 	nbdkit-release-notes-1.6.pod \
 	nbdkit-release-notes-1.8.pod \
@@ -78,6 +79,7 @@ EXTRA_DIST = \
 # from pod sources.  Therefore we have to distribute them in the
 # tarball.
 non_generated_mans = \
+	nbdkit_absolute_path.3 \
 	nbdkit_disconnect.3 \
 	nbdkit_parse_int8_t.3 \
 	nbdkit_parse_int16_t.3 \
@@ -117,6 +119,7 @@ generated_mans = \
 	nbdkit-probing.1 \
 	nbdkit-protocol.1 \
 	nbdkit_read_password.3 \
+	nbdkit_realpath.3 \
 	nbdkit-release-notes-1.4.1 \
 	nbdkit-release-notes-1.6.1 \
 	nbdkit-release-notes-1.8.1 \
@@ -230,6 +233,11 @@ nbdkit-protocol.1: nbdkit-protocol.pod $(top_builddir)/podwrapper.pl
 	    $<
 
 nbdkit_read_password.3: nbdkit_read_password.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_realpath.3: nbdkit_realpath.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
