@@ -1331,27 +1331,11 @@ L<nbdkit_parse_probability(3)>
 
 L<nbdkit_read_password(3)>
 
+=item Safely interacting with stdin and stdout
+
+L<nbdkit_stdio_safe(3)>
+
 =back
-
-=head2 Safely interacting with stdin and stdout
-
- int nbdkit_stdio_safe (void);
-
-The C<nbdkit_stdio_safe> utility function returns C<1> if it is safe
-to interact with stdin and stdout during the configuration phase, and
-C<0> otherwise.  This is because when the nbdkit I<-s> option is used
-the plugin must not directly interact with stdin, because that would
-interfere with the client.
-
-The result of this function only matters in callbacks up to
-C<.config_complete>.  Once nbdkit reaches C<.get_ready>, the plugin
-should assume that nbdkit may have closed the original stdin and
-stdout in order to become a daemon.
-
-L<nbdkit-sh-plugin(3)> uses this function to determine whether it is
-safe to support C<script=-> to read a script from stdin.  Also
-constructs like C<password=-> (see L<nbdkit_read_password(3)>) are
-disabled when reading from stdio is not safe.
 
 =head1 FILENAMES AND PATHS
 
@@ -1766,6 +1750,7 @@ L<nbdkit_peer_uid(3)>,
 L<nbdkit_read_password(3)>,
 L<nbdkit_set_error(3)>,
 L<nbdkit_shutdown(3)>,
+L<nbdkit_stdio_safe(3)>,
 L<nbdkit_verror(3)>.
 
 Standard plugins provided by nbdkit:

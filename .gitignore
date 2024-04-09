@@ -34,6 +34,7 @@ docs/nbdkit_peer_name.3
 docs/nbdkit-plugin.3
 docs/nbdkit_read_password.3
 docs/nbdkit_shutdown.3
+docs/nbdkit_stdio_safe.3
 filters/*/*.1
 plugins/*/*.1
 plugins/*/*.3

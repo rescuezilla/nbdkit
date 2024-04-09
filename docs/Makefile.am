@@ -69,6 +69,7 @@ EXTRA_DIST = \
 	nbdkit-security.pod \
 	nbdkit-service.pod \
 	nbdkit_shutdown.pod \
+	nbdkit_stdio_safe.pod \
 	nbdkit-tls.pod \
 	synopsis.txt \
 	$(NULL)
@@ -137,6 +138,7 @@ generated_mans = \
 	nbdkit-security.1 \
 	nbdkit-service.1 \
 	nbdkit_shutdown.3 \
+	nbdkit_stdio_safe.3 \
 	nbdkit-tls.1 \
 	$(NULL)
 CLEANFILES += $(generated_mans)
@@ -249,6 +251,11 @@ nbdkit-service.1: nbdkit-service.pod $(top_builddir)/podwrapper.pl
 	    $<
 
 nbdkit_shutdown.3: nbdkit_shutdown.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_stdio_safe.3: nbdkit_stdio_safe.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
