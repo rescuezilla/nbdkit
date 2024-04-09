@@ -36,7 +36,9 @@ EXTRA_DIST = \
 	nbdkit.pod \
 	nbdkit-captive.pod \
 	nbdkit-client.pod \
+	nbdkit-filter.pod \
 	nbdkit-loop.pod \
+	nbdkit-plugin.pod \
 	nbdkit-probing.pod \
 	nbdkit-protocol.pod \
 	nbdkit-release-notes-1.4.pod \
@@ -60,8 +62,6 @@ EXTRA_DIST = \
 	nbdkit-security.pod \
 	nbdkit-service.pod \
 	nbdkit-tls.pod \
-	nbdkit-plugin.pod \
-	nbdkit-filter.pod \
 	synopsis.txt \
 	$(NULL)
 
@@ -71,7 +71,9 @@ man_MANS = \
 	nbdkit.1 \
 	nbdkit-captive.1 \
 	nbdkit-client.1 \
+	nbdkit-filter.3 \
 	nbdkit-loop.1 \
+	nbdkit-plugin.3 \
 	nbdkit-probing.1 \
 	nbdkit-protocol.1 \
 	nbdkit-release-notes-1.4.1 \
@@ -95,8 +97,6 @@ man_MANS = \
 	nbdkit-security.1 \
 	nbdkit-service.1 \
 	nbdkit-tls.1 \
-	nbdkit-plugin.3 \
-	nbdkit-filter.3 \
 	$(NULL)
 CLEANFILES += $(man_MANS)
 
@@ -120,9 +120,24 @@ nbdkit-client.1: nbdkit-client.pod $(top_builddir)/podwrapper.pl
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 
+nbdkit-filter.3: nbdkit-filter.pod filter-links.pod \
+		$(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    --insert filter-links.pod:__FILTER_LINKS__ \
+	    $<
+
 nbdkit-loop.1: nbdkit-loop.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit-plugin.3: nbdkit-plugin.pod plugin-links.pod lang-plugin-links.pod \
+		$(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    --insert plugin-links.pod:__PLUGIN_LINKS__ \
+	    --insert lang-plugin-links.pod:__LANG_PLUGIN_LINKS__ \
 	    $<
 
 nbdkit-probing.1: nbdkit-probing.pod $(top_builddir)/podwrapper.pl
@@ -154,21 +169,6 @@ nbdkit-service.1: nbdkit-service.pod $(top_builddir)/podwrapper.pl
 nbdkit-tls.1: nbdkit-tls.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
-	    $<
-
-nbdkit-plugin.3: nbdkit-plugin.pod plugin-links.pod lang-plugin-links.pod \
-		$(top_builddir)/podwrapper.pl
-	$(PODWRAPPER) --section=3 --man $@ \
-	    --html $(top_builddir)/html/$@.html \
-	    --insert plugin-links.pod:__PLUGIN_LINKS__ \
-	    --insert lang-plugin-links.pod:__LANG_PLUGIN_LINKS__ \
-	    $<
-
-nbdkit-filter.3: nbdkit-filter.pod filter-links.pod \
-		$(top_builddir)/podwrapper.pl
-	$(PODWRAPPER) --section=3 --man $@ \
-	    --html $(top_builddir)/html/$@.html \
-	    --insert filter-links.pod:__FILTER_LINKS__ \
 	    $<
 
 endif HAVE_POD
