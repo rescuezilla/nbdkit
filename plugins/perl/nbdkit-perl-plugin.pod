@@ -73,7 +73,7 @@ already available in all scripts.
 =head3 C<Nbdkit::debug ($msg)>
 
 In debugging mode, print C<$msg>.  This is a wrapper around the C
-function C<nbdkit_debug> (see L<nbdkit-plugin(3)>).
+function L<nbdkit_debug(3)> (see L<nbdkit-plugin(3)>).
 
 =head3 C<Nbdkit::set_error ($err)>
 

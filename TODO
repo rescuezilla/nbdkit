@@ -76,6 +76,9 @@ General ideas for improvements
 * password=- to mean read a password interactively from /dev/tty (not
   stdin).
 
+* Add separate man pages for a few missing NBDKIT_EXTERN_DECL
+  functions, including those for extents, contexts, and exports.
+
 Suggestions for plugins
 -----------------------
 

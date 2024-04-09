@@ -238,10 +238,10 @@ connection (such as during C<.after_fork>), and the resulting context
 may be freely shared among multiple client connections.  In shared
 mode, it will not be possible for the plugin to differentiate content
 based on the client export name, the result of the plugin calling
-nbdkit_is_tls() will depend solely whether I<--tls=require> was on the
-command line, the lifetime of interned strings (via
-C<nbdkit_strdup_intern> and friends) lasts for the life of the filter,
-and the filter must take care to not expose potentially-secure
+L<nbdkit_is_tls(3)> will depend solely whether I<--tls=require> was on
+the command line, the lifetime of interned strings (via
+L<nbdkit_strdup_intern(3)> and friends) lasts for the life of the
+filter, and the filter must take care to not expose potentially-secure
 information from the backend to an insecure client.
 
  void nbdkit_next_context_close (nbdkit_next *next);
@@ -304,8 +304,9 @@ You can modify parameters when you call the C<next> function.  However
 be careful when modifying strings because for some methods
 (eg. C<.config>) the plugin may save the string pointer that you pass
 along.  So you may have to ensure that the string is not freed for the
-lifetime of the server; you may find C<nbdkit_strdup_intern> helpful
-for avoiding a memory leak while still obeying lifecycle constraints.
+lifetime of the server; you may find L<nbdkit_strdup_intern(3)>
+helpful for avoiding a memory leak while still obeying lifecycle
+constraints.
 
 Note that if your filter registers a callback but in that callback it
 doesn't call the C<next> function then the corresponding method in the
@@ -607,13 +608,13 @@ requires write access to the underlying device in case a journal needs
 to be replayed for consistency as part of the mounting process.
 
 The C<exportname> string is only guaranteed to be available during the
-call (different than the lifetime for the return of C<nbdkit_export_name>
-used by plugins).  If the filter needs to use it (other than immediately
-passing it down to the next layer) it must take a copy, although
-C<nbdkit_strdup_intern> is useful for this task.  The C<exportname> and
-C<is_tls> parameters are provided so that filters do not need to use
-the plugin-only interfaces of C<nbdkit_export_name> and
-C<nbdkit_is_tls>.
+call (different than the lifetime for the return of
+L<nbdkit_export_name(3)> used by plugins).  If the filter needs to use
+it (other than immediately passing it down to the next layer) it must
+take a copy, although L<nbdkit_strdup_intern(3)> is useful for this
+task.  The C<exportname> and C<is_tls> parameters are provided so that
+filters do not need to use the plugin-only interfaces of
+L<nbdkit_export_name(3)> and L<nbdkit_is_tls(3)>.
 
 The filter should generally call C<next> as its first step, to
 allocate from the plugin outwards, so that C<.close> running from the
@@ -1091,17 +1092,8 @@ can see debugging information:
  nbdkit -fv --filter=./myfilter.so plugin [key=value [key=value [...]]]
 
 To print debugging information from within the filter, call
-C<nbdkit_debug>, which has the following prototype and works like
-L<printf(3)>:
-
- void nbdkit_debug (const char *fs, ...);
- void nbdkit_vdebug (const char *fs, va_list args);
-
-For convenience, C<nbdkit_debug> preserves the value of C<errno>, and
-also supports the glibc extension of a single C<%m> in a format string
-expanding to C<strerror(errno)>, even on platforms that don't support
-that natively.  Note that C<nbdkit_debug> only prints things when the
-server is in verbose mode (I<-v> option).
+L<nbdkit_debug(3)>.  Note that C<nbdkit_debug> only prints things when
+the server is in verbose mode (I<-v> option).
 
 =head2 Debug Flags
 

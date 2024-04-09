@@ -275,7 +275,7 @@ content to plaintext connections.  With this filter the underlying
 plugin content is only served on secure connections.
 
 Alternatively a plugin may wish to serve different content depending
-on whether the client is using TLS.  The function C<nbdkit_is_tls()>
+on whether the client is using TLS.  The function L<nbdkit_is_tls(3)>
 can be used during the C<.open> callback for that purpose.
 
 =head2 NBD URIs for TLS
@@ -409,6 +409,7 @@ L<https://wiki.wireshark.org/TLS#using-the-pre-master-secret>
 L<nbdkit(1)>,
 L<nbdkit-luks-filter(1)>,
 L<nbdkit-tls-fallback-filter(1)>,
+L<nbdkit_is_tls(3)>,
 L<nbdcopy(1)>,
 L<nbdfuse(1)>,
 L<nbdinfo(1)>,

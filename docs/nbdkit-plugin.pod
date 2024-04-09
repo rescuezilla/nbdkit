@@ -742,16 +742,16 @@ false from the C<.can_write> callback.  So if your plugin can only
 serve read-only, you can ignore this parameter.
 
 If the plugin wants to differentiate the content it serves based on
-client input, then this is the spot to use C<nbdkit_export_name()> to
-determine which export the client requested.  See also L</EXPORT NAME>
-below.
+client input, then this is the spot to use L<nbdkit_export_name(3)> to
+determine which export the client requested.  See also
+L</EXPORT NAME AND TLS> below.
 
 This callback is called after the NBD handshake has completed; if the
 server requires TLS authentication, then that has occurred as well.
 But if the server is set up to have optional TLS authentication, you
-may check C<nbdkit_is_tls> to learn whether the client has completed
-TLS authentication.  When running the server in a mode that permits
-but does not require TLS, be careful that you do not allow
+may check L<nbdkit_is_tls(3)> to learn whether the client has
+completed TLS authentication.  When running the server in a mode that
+permits but does not require TLS, be careful that you do not allow
 unauthenticated clients to cause a denial of service against
 authentication.
 
@@ -799,7 +799,7 @@ than 4096 bytes), or if this callback is omitted, no description is
 offered to the client.  As this is not an error in the protocol, it is
 not necessary to call L<nbdkit_error(3)>.  If the callback will not be
 returning a compile-time constant string, you may find
-C<nbdkit_strdup_intern> helpful for returning a value that avoids a
+L<nbdkit_strdup_intern(3)> helpful for returning a value that avoids a
 memory leak.
 
 =head2 C<.block_size>
@@ -1348,49 +1348,23 @@ L<nbdkit_realpath(3)>
 
 =head1 SLEEPING
 
-A plugin that needs to sleep may call L<sleep(2)>, L<nanosleep(2)> and
-similar.  However that can cause nbdkit to delay excessively when
-shutting down (since it must wait for any plugin or filter which is
-sleeping).  To avoid this there is a special wrapper around nanosleep
-which plugins and filters should use instead.
+A plugin or filter that needs to sleep may call L<sleep(2)>,
+L<nanosleep(2)> and similar.  However that can cause nbdkit to delay
+excessively when shutting down (since it must wait for any plugin or
+filter which is sleeping).  To avoid this plugins and filters should
+call L<nbdkit_nanosleep(3)> instead.
 
-=head2 C<nbdkit_nanosleep>
-
- int nbdkit_nanosleep (unsigned sec, unsigned nsec);
-
-The utility function C<nbdkit_nanosleep> suspends the current thread,
-and returns 0 if it slept at least as many seconds and nanoseconds as
-requested, or -1 after calling L<nbdkit_error(3)> if there is no point in
-continuing the current command.  Attempts to sleep more than
-C<INT_MAX> seconds are treated as an error.
-
-=head1 EXPORT NAME
+=head1 EXPORT NAME AND TLS
 
 If the client negotiated an NBD export name with nbdkit then plugins
-may read this from any connected callbacks.  Nbdkit's normal behaviour
+may read this from any connected callback.  Nbdkit's normal behaviour
 is to accept any export name passed by the client, log it in debug
-output, but otherwise ignore it.  By using C<nbdkit_export_name>
+output, but otherwise ignore it.  By calling L<nbdkit_export_name(3)>
 plugins may choose to filter by export name or serve different
 content.
 
-=head2 C<nbdkit_export_name>
-
- const char *nbdkit_export_name (void);
-
-Return the optional NBD export name if one was negotiated with the
-current client (this uses thread-local magic so no parameter is
-required).  The returned string is valid at least through the
-C<.close> of the current connection, but if you need to store it
-in the plugin for use by more than one client you must copy it.
-
-The export name is a free-form text string, it is not necessarily a
-path or filename and it does not need to begin with a C<'/'>
-character.  The NBD protocol describes the empty string (C<"">) as a
-representing a "default export" or to be used in cases where the
-export name does not make sense.  B<The export name is untrusted
-client data, be cautious when parsing it.>
-
-On error, L<nbdkit_error(3)> is called and the call returns C<NULL>.
+L<nbdkit_is_tls(3)> can be used to find the status of TLS negotiation
+on the current connection.
 
 =head1 STRING LIFETIME
 
@@ -1400,57 +1374,12 @@ Returning dynamically-allocated memory for such a callback would
 induce a memory leak or otherwise complicate the plugin to perform
 additional bookkeeping.  For these cases, nbdkit provides several
 convenience functions for creating a copy of a string for better
-lifetime management.
+lifetime management:
 
-=head2 C<nbdkit_strdup_intern>
-
-=head2 C<nbdkit_strndup_intern>
-
- const char *nbdkit_strdup_intern (const char *str);
- const char *nbdkit_strndup_intern (const char *str, size_t n);
-
-Returns a copy of C<str>, possibly limited to a maximum of C<n> bytes,
-so that the caller may reclaim str and use the copy in its place.  If
-the copy is created outside the scope of a connection (such as during
-C<.load> or C<.config>), the lifetime of the copy will last at least
-through C<.unload>.  If the copy is created after a client has
-triggered a connection (such as during C<.preconnect> or C<.open>),
-the lifetime will last at least through C<.close>, but the copy is not
-safe to share with other connections.
-
-On error, L<nbdkit_error(3)> is called and the call returns C<NULL>.
-
-=head2 C<nbdkit_printf_intern>
-
-=head2 C<nbdkit_vprintf_intern>
-
- const char *nbdkit_printf_intern (const char *fmt, ...);
- const char *nbdkit_vprintf_intern (const char *fmt, va_list ap);
-
-Return a string created from a format template, with a lifetime longer
-than the current connection.  Shorthand for passing C<fmt> to
-L<asprintf(3)> on a temporary string, then passing that result to
-C<nbdkit_strdup_intern>.
-
-On error, L<nbdkit_error(3)> is called and the call returns C<NULL>.
-
-=head1 AUTHENTICATION
-
-A server may use C<nbdkit_is_tls> to limit which export names work
-until after a client has completed TLS authentication.  See
-L<nbdkit-tls(1)>.  It is also possible to use
-L<nbdkit-tls-fallback-filter(1)> to automatically ensure that the
-plugin is only used with authentication.
-
-=head2 C<nbdkit_is_tls>
-
- int nbdkit_is_tls (void);
-
-Return true if the client has completed TLS authentication, or false
-if the connection is still plaintext.
-
-On error (such as calling this function outside of the context of
-C<.open>), L<nbdkit_error(3)> is called and the call returns C<-1>.
+L<nbdkit_strdup_intern(3)>,
+L<nbdkit_strndup_intern(3)>,
+L<nbdkit_printf_intern(3)>,
+L<nbdkit_vprintf_intern(3)>.
 
 =head1 PEER NAME
 
@@ -1515,17 +1444,8 @@ can see debugging information:
  nbdkit -fv ./myplugin.so [key=value [key=value [...]]]
 
 To print debugging information from within the plugin, call
-C<nbdkit_debug>, which has the following prototype and works like
-L<printf(3)>:
-
- void nbdkit_debug (const char *fs, ...);
- void nbdkit_vdebug (const char *fs, va_list args);
-
-For convenience, C<nbdkit_debug> preserves the value of C<errno>, and
-also supports the glibc extension of a single C<%m> in a format string
-expanding to C<strerror(errno)>, even on platforms that don't support
-that natively. Note that C<nbdkit_debug> only prints things when the
-server is in verbose mode (I<-v> option).
+L<nbdkit_debug(3)>.  Note that L<nbdkit_debug(3)> only prints things
+when the server is in verbose mode (I<-v> option).
 
 =head2 Debug Flags
 
@@ -1688,8 +1608,12 @@ L<nbdkit-filter(3)>.
 Utility functions provided by nbdkit for plugins and filters to use:
 
 L<nbdkit_absolute_path(3)>,
+L<nbdkit_debug(3)>,
 L<nbdkit_disconnect(3)>,
 L<nbdkit_error(3)>,
+L<nbdkit_export_name(3)>,
+L<nbdkit_is_tls(3)>,
+L<nbdkit_nanosleep(3)>,
 L<nbdkit_parse_bool(3)>,
 L<nbdkit_parse_int(3)>,
 L<nbdkit_parse_int16_t(3)>,
@@ -1708,12 +1632,17 @@ L<nbdkit_peer_name(3)>,
 L<nbdkit_peer_pid(3)>,
 L<nbdkit_peer_security_context(3)>,
 L<nbdkit_peer_uid(3)>,
+L<nbdkit_printf_intern(3)>,
 L<nbdkit_read_password(3)>,
 L<nbdkit_realpath(3)>,
 L<nbdkit_set_error(3)>,
 L<nbdkit_shutdown(3)>,
 L<nbdkit_stdio_safe(3)>,
-L<nbdkit_verror(3)>.
+L<nbdkit_strdup_intern(3)>,
+L<nbdkit_strndup_intern(3)>,
+L<nbdkit_vdebug(3)>,
+L<nbdkit_verror(3)>,
+L<nbdkit_vprintf_intern(3)>.
 
 Standard plugins provided by nbdkit:
 

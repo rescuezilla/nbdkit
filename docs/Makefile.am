@@ -36,9 +36,13 @@ EXTRA_DIST = \
 	nbdkit.pod \
 	nbdkit-captive.pod \
 	nbdkit-client.pod \
+	nbdkit_debug.pod \
 	nbdkit_error.pod \
+	nbdkit_export_name.pod \
 	nbdkit-filter.pod \
+	nbdkit_is_tls.pod \
 	nbdkit-loop.pod \
+	nbdkit_nanosleep.pod \
 	nbdkit_parse_bool.pod \
 	nbdkit_parse_int.pod \
 	nbdkit_parse_probability.pod \
@@ -71,6 +75,7 @@ EXTRA_DIST = \
 	nbdkit-service.pod \
 	nbdkit_shutdown.pod \
 	nbdkit_stdio_safe.pod \
+	nbdkit_strdup_intern.pod \
 	nbdkit-tls.pod \
 	synopsis.txt \
 	$(NULL)
@@ -94,8 +99,12 @@ non_generated_mans = \
 	nbdkit_peer_pid.3 \
 	nbdkit_peer_uid.3 \
 	nbdkit_peer_security_context.3 \
+	nbdkit_printf_intern.3 \
 	nbdkit_set_error.3 \
+	nbdkit_strndup_intern.3 \
+	nbdkit_vdebug.3 \
 	nbdkit_verror.3 \
+	nbdkit_vprintf_intern.3 \
 	$(NULL)
 EXTRA_DIST += $(non_generated_mans)
 
@@ -107,9 +116,13 @@ generated_mans = \
 	nbdkit.1 \
 	nbdkit-captive.1 \
 	nbdkit-client.1 \
+	nbdkit_debug.3 \
 	nbdkit_error.3 \
+	nbdkit_export_name.3 \
 	nbdkit-filter.3 \
+	nbdkit_is_tls.3 \
 	nbdkit-loop.1 \
+	nbdkit_nanosleep.3 \
 	nbdkit_parse_bool.3 \
 	nbdkit_parse_int.3 \
 	nbdkit_parse_probability.3 \
@@ -142,6 +155,7 @@ generated_mans = \
 	nbdkit-service.1 \
 	nbdkit_shutdown.3 \
 	nbdkit_stdio_safe.3 \
+	nbdkit_strdup_intern.3 \
 	nbdkit-tls.1 \
 	$(NULL)
 CLEANFILES += $(generated_mans)
@@ -171,7 +185,17 @@ nbdkit-client.1: nbdkit-client.pod $(top_builddir)/podwrapper.pl
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 
+nbdkit_debug.3: nbdkit_debug.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
 nbdkit_error.3: nbdkit_error.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_export_name.3: nbdkit_export_name.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
@@ -183,8 +207,18 @@ nbdkit-filter.3: nbdkit-filter.pod filter-links.pod \
 	    --insert filter-links.pod:__FILTER_LINKS__ \
 	    $<
 
+nbdkit_is_tls.3: nbdkit_is_tls.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
 nbdkit-loop.1: nbdkit-loop.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_nanosleep.3: nbdkit_nanosleep.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 
@@ -264,6 +298,11 @@ nbdkit_shutdown.3: nbdkit_shutdown.pod $(top_builddir)/podwrapper.pl
 	    $<
 
 nbdkit_stdio_safe.3: nbdkit_stdio_safe.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_strdup_intern.3: nbdkit_strdup_intern.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
