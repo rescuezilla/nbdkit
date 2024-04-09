@@ -65,9 +65,18 @@ EXTRA_DIST = \
 	synopsis.txt \
 	$(NULL)
 
+# These man pages are links to other man pages, they are not generated
+# from pod sources.  Therefore we have to distribute them in the
+# tarball.
+non_generated_mans = \
+	$(NULL)
+EXTRA_DIST += $(non_generated_mans)
+
 if HAVE_POD
 
-man_MANS = \
+# These man pages are generated from pod sources.  Use a separate
+# variable here so we can add only these to CLEANFILES below.
+generated_mans = \
 	nbdkit.1 \
 	nbdkit-captive.1 \
 	nbdkit-client.1 \
@@ -98,7 +107,12 @@ man_MANS = \
 	nbdkit-service.1 \
 	nbdkit-tls.1 \
 	$(NULL)
-CLEANFILES += $(man_MANS)
+CLEANFILES += $(generated_mans)
+
+man_MANS = \
+	$(generated_mans) \
+	$(non_generated_mans) \
+	$(NULL)
 
 nbdkit.1: nbdkit.pod plugin-links.pod lang-plugin-links.pod filter-links.pod \
 		synopsis.txt $(top_builddir)/podwrapper.pl
