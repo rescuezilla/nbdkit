@@ -31,6 +31,7 @@ docs/nbdkit-filter.3
 docs/nbdkit_is_tls.3
 docs/nbdkit_nanosleep.3
 docs/nbdkit_parse_bool.3
+docs/nbdkit_parse_delay.3
 docs/nbdkit_parse_int.3
 docs/nbdkit_parse_probability.3
 docs/nbdkit_parse_size.3

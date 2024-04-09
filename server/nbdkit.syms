@@ -62,6 +62,7 @@
     nbdkit_next_context_close;
     nbdkit_next_context_open;
     nbdkit_parse_bool;
+    nbdkit_parse_delay;
     nbdkit_parse_int16_t;
     nbdkit_parse_int32_t;
     nbdkit_parse_int64_t;

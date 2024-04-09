@@ -423,6 +423,53 @@ nbdkit_parse_bool (const char *str)
   return -1;
 }
 
+/* Parse a delay or sleep. */
+NBDKIT_DLL_PUBLIC int
+nbdkit_parse_delay (const char *what, const char *str,
+                    unsigned *rsec, unsigned *rnsec)
+{
+  double d;
+  int n;
+
+  if (sscanf (str, "%lg%n", &d, &n) == 1) {
+    if (strcmp (&str[n], "s") == 0 || strcmp (&str[n], "") == 0) {
+      /* Seconds. */
+    }
+    else if (strcmp (&str[n], "ms") == 0) {
+      /* Milliseconds. */
+      d /= 1000;
+    }
+    else if (strcmp (&str[n], "us") == 0 || strcmp (&str[n], "μs") == 0) {
+      /* Microseconds. */
+      d /= 1000000;
+    }
+    else if (strcmp (&str[n], "ns") == 0) {
+      /* Nanoseconds. */
+      d /= 1000000000;
+    }
+    else
+      goto bad_parse;
+  }
+  else {
+  bad_parse:
+    nbdkit_error ("%s: could not parse delay or sleep: \"%s\"",
+                  what, str);
+    return -1;
+  }
+
+  if (!isfinite (d))            /* reject NaN or inf */
+    goto bad_parse;
+  if (signbit (d))              /* reject negative numbers */
+    goto bad_parse;
+
+  if (rsec)
+    *rsec = d;
+  if (rnsec)
+    *rnsec = (d - *rsec) * 1000000000.;
+
+  return 0;
+}
+
 /* Return true if it is safe to read from stdin during configuration. */
 NBDKIT_DLL_PUBLIC int
 nbdkit_stdio_safe (void)

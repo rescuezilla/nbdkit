@@ -108,6 +108,9 @@ NBDKIT_EXTERN_DECL (int64_t, nbdkit_parse_size, (const char *str));
 NBDKIT_EXTERN_DECL (int, nbdkit_parse_probability,
                     (const char *what, const char *str, double *r));
 NBDKIT_EXTERN_DECL (int, nbdkit_parse_bool, (const char *str));
+NBDKIT_EXTERN_DECL (int, nbdkit_parse_delay,
+                    (const char *what, const char *str,
+                     unsigned *sec, unsigned *nsec));
 NBDKIT_EXTERN_DECL (int, nbdkit_parse_int,
                     (const char *what, const char *str, int *r));
 NBDKIT_EXTERN_DECL (int, nbdkit_parse_unsigned,

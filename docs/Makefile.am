@@ -44,6 +44,7 @@ EXTRA_DIST = \
 	nbdkit-loop.pod \
 	nbdkit_nanosleep.pod \
 	nbdkit_parse_bool.pod \
+	nbdkit_parse_delay.pod \
 	nbdkit_parse_int.pod \
 	nbdkit_parse_probability.pod \
 	nbdkit_parse_size.pod \
@@ -124,6 +125,7 @@ generated_mans = \
 	nbdkit-loop.1 \
 	nbdkit_nanosleep.3 \
 	nbdkit_parse_bool.3 \
+	nbdkit_parse_delay.3 \
 	nbdkit_parse_int.3 \
 	nbdkit_parse_probability.3 \
 	nbdkit_parse_size.3 \
@@ -223,6 +225,11 @@ nbdkit_nanosleep.3: nbdkit_nanosleep.pod $(top_builddir)/podwrapper.pl
 	    $<
 
 nbdkit_parse_bool.3: nbdkit_parse_bool.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_parse_delay.3: nbdkit_parse_delay.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<

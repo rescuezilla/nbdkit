@@ -225,6 +225,95 @@ test_nbdkit_parse_probability (void)
 }
 
 static bool
+test_nbdkit_parse_delay (void)
+{
+  size_t i;
+  bool pass = true;
+  struct pair {
+    const char *str;
+    int result;
+    unsigned expected_sec, expected_nsec;
+  } tests[] = {
+    /* Bogus strings */
+    { "", -1 },
+    { "garbage", -1 },
+    { "0garbage", -1 },
+    { "s0", -1 },
+    { "0ss", -1 },
+    { "0ssss", -1 },
+    { "000ssss", -1 },
+    { "1X", -1 },
+    { "1%%", -1 },
+    { "1:", -1 },
+    { "1:1:1", -1 },
+    { "1?", -1 },
+
+    /* Reject inf, NaN, negative. */
+    { "inf", -1 },
+    { "nan", -1 },
+    { "-1", -1 },
+
+    /* Seconds. */
+    { "0", 0, 0, 0 },
+    { "0s", 0, 0, 0 },
+    { "1", 0, 1, 0 },
+    { "1s", 0, 1, 0 },
+    { "1.234", 0, 1, 234000000 },
+    { "1.234s", 0, 1, 234000000 },
+
+    /* Milliseconds. */
+    { "0ms", 0, 0, 0 },
+    { "1ms", 0, 0, 1000000 },
+    { "1.234ms", 0, 0, 1234000 },
+
+    /* Microseconds. */
+    { "0us", 0, 0, 0 },
+    { "0μs", 0, 0, 0 },
+    { "1us", 0, 0, 1000 },
+    { "1μs", 0, 0, 1000 },
+    { "1.234us", 0, 0, 1234 },
+    { "1.234μs", 0, 0, 1234 },
+
+    /* Nanoseconds. */
+    { "0ns", 0, 0, 0 },
+    { "1ns", 0, 0, 1 },
+    { "999999999ns", 0, 0, 999999999 },
+    { "1000000000ns", 0, 1, 0 },
+    { "1000000001ns", 0, 1, 1 },
+    { "2000000001ns", 0, 2, 1 },
+  };
+
+  for (i = 0; i < ARRAY_SIZE (tests); i++) {
+    int r;
+    unsigned sec, nsec;
+
+    error_flagged = false;
+    r = nbdkit_parse_delay ("test", tests[i].str, &sec, &nsec);
+    if (r != tests[i].result) {
+      fprintf (stderr,
+               "Wrong return value for %s, got %d, expected %d\n",
+               tests[i].str, r, tests[i].result);
+      pass = false;
+    }
+    if (r == 0 && (sec != tests[i].expected_sec ||
+                   nsec != tests[i].expected_nsec)) {
+      fprintf (stderr,
+               "Wrong result for %s, got (%u, %u), expected (%u, %u)\n",
+               tests[i].str,
+               sec, nsec,
+               tests[i].expected_sec, tests[i].expected_nsec);
+      pass = false;
+    }
+    if ((r == -1) != error_flagged) {
+      fprintf (stderr, "Wrong error message handling for %s\n", tests[i].str);
+      pass = false;
+    }
+  }
+
+  return pass;
+}
+
+static bool
 test_nbdkit_parse_ints (void)
 {
   bool pass = true;
@@ -528,6 +617,7 @@ main (int argc, char *argv[])
   bool pass = true;
   pass &= test_nbdkit_parse_size ();
   pass &= test_nbdkit_parse_probability ();
+  pass &= test_nbdkit_parse_delay ();
   pass &= test_nbdkit_parse_ints ();
   pass &= test_nbdkit_read_password ();
   /* nbdkit_absolute_path and nbdkit_nanosleep not unit-tested here, but
