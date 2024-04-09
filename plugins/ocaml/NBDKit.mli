@@ -161,7 +161,7 @@ val set_error : Unix.error -> unit
 
 (** Bindings for
     {{:http://libguestfs.org/nbdkit_parse_size.3.html}[nbdkit_parse_size(3)]},
-    [nbdkit_parse_probability],
+    {{:http://libguestfs.org/nbdkit_parse_probability.3.html}[nbdkit_parse_probability(3)]},
     {{:http://libguestfs.org/nbdkit_parse_bool.3.html}[nbdkit_parse_bool(3)]}
     and
     [nbdkit_read_password].

@@ -147,7 +147,7 @@ L<nbdkit_parse_size(3)> C function.
 =head3 C<nbdkit.parse_probability(what, str)>
 
 Parse a string (such as "100%") into a probability, returning a
-floating point number.  Wraps the C<nbdkit_parse_probability()> C
+floating point number.  Wraps the L<nbdkit_parse_probability(3)>
 function.
 
 =head3 C<nbdkit.peer_pid()>,
