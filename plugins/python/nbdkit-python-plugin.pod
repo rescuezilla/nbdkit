@@ -164,9 +164,9 @@ NetLabel.
 =head3 C<nbdkit.read_password(value)>
 
 Read a password from a config parameter.  This returns the password as
-a Python C<bytes> object.  See L<nbdkit-plugin(3)/Reading passwords>
-for more information on the different ways that the C<value> parameter
-can be parsed.
+a Python C<bytes> object.  See L<nbdkit_read_password(3)> for more
+information on the different ways that the C<value> parameter can be
+parsed.
 
 =head3 C<nbdkit.set_error(err)>
 

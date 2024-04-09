@@ -46,6 +46,7 @@ EXTRA_DIST = \
 	nbdkit-plugin.pod \
 	nbdkit-probing.pod \
 	nbdkit-protocol.pod \
+	nbdkit_read_password.pod \
 	nbdkit-release-notes-1.4.pod \
 	nbdkit-release-notes-1.6.pod \
 	nbdkit-release-notes-1.8.pod \
@@ -106,6 +107,7 @@ generated_mans = \
 	nbdkit-plugin.3 \
 	nbdkit-probing.1 \
 	nbdkit-protocol.1 \
+	nbdkit_read_password.3 \
 	nbdkit-release-notes-1.4.1 \
 	nbdkit-release-notes-1.6.1 \
 	nbdkit-release-notes-1.8.1 \
@@ -208,6 +210,11 @@ nbdkit-probing.1: nbdkit-probing.pod $(top_builddir)/podwrapper.pl
 
 nbdkit-protocol.1: nbdkit-protocol.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_read_password.3: nbdkit_read_password.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 

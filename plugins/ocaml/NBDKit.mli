@@ -164,7 +164,7 @@ val set_error : Unix.error -> unit
     {{:http://libguestfs.org/nbdkit_parse_probability.3.html}[nbdkit_parse_probability(3)]},
     {{:http://libguestfs.org/nbdkit_parse_bool.3.html}[nbdkit_parse_bool(3)]}
     and
-    [nbdkit_read_password].
+    {{:http://libguestfs.org/nbdkit_read_password.3.html}[nbdkit_read_password(3)]}.
 
     On error these functions all raise [Invalid_argument].  The
     actual error is sent to the nbdkit error log and is not
