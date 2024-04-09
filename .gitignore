@@ -32,6 +32,7 @@ docs/nbdkit_parse_probability.3
 docs/nbdkit_parse_size.3
 docs/nbdkit-plugin.3
 docs/nbdkit_read_password.3
+docs/nbdkit_shutdown.3
 filters/*/*.1
 plugins/*/*.1
 plugins/*/*.3

@@ -1295,49 +1295,6 @@ This field defaults to 0; if non-zero, nbdkit can reliably use the
 value of C<errno> when a callback reports failure, rather than the
 plugin having to call L<nbdkit_set_error(3)>.
 
-=head1 SHUTDOWN
-
-When nbdkit receives certain signals it will shut down (see
-L<nbdkit(1)/SIGNALS>).  The server will wait for any currently running
-plugin callbacks to finish, call C<.close> on those connections, then
-call the C<.cleanup> and C<.unload> callbacks before unloading the
-plugin.
-
-Note that it's not guaranteed this can always happen (eg. the server
-might be killed by C<SIGKILL> or segfault).
-
-=head2 Requesting asynchronous shutdown
-
-Plugins and filters can call L<exit(3)> in the configuration phase
-(before and including C<.get_ready>, but not in connected callbacks).
-
-Once nbdkit has started serving connections, plugins and filters
-should not call L<exit(3)>.  However they may instruct nbdkit to shut
-down by calling C<nbdkit_shutdown>, or to disconnect a single client
-by calling C<nbdkit_disconnect>:
-
- void nbdkit_shutdown (void);
-
-This function requests an asynchronous shutdown and returns (I<note>
-that it does I<not> exit the process immediately).  It ensures that
-the plugin and all filters are unloaded cleanly which may take some
-time.  Further callbacks from nbdkit into the plugin or filter may
-occur after you have called this.
-
- void nbdkit_disconnect (int force);
-
-This function requests that the current connection be disconnected
-(I<note> that it does not affect other connections, and the client may
-try to reconnect).  It is only useful from connected callbacks (that
-is, after C<.open> and before C<.close>).  If C<force> is true, nbdkit
-will disconnect the client immediately, and the client will not
-receive any response to the current command or any other commands in
-flight in parallel threads; otherwise, nbdkit will not accept any new
-commands from the client (failing all commands other than
-C<NBD_CMD_DISC> with C<ESHUTDOWN>), but will allow existing commands
-to complete gracefully.  Either way, the next callback for the current
-connection should be C<.close>.
-
 =head1 PARSING COMMAND LINE PARAMETERS
 
 nbdkit provides several functions to help plugins and filters to parse
@@ -1625,6 +1582,20 @@ must free the string.  On error (which can include missing label or
 unsupported protocol), L<nbdkit_error(3)> is called and this call returns
 C<NULL>.
 
+=head1 SHUTDOWN
+
+When nbdkit receives certain signals it will shut down (see
+L<nbdkit(1)/SIGNALS>).  The server will wait for any currently running
+plugin callbacks to finish, call C<.close> on those connections, then
+call the C<.cleanup> and C<.unload> callbacks before unloading the
+plugin.
+
+Note that it's not guaranteed this can always happen (eg. the server
+might be killed by C<SIGKILL> or segfault).
+
+See L<nbdkit_shutdown(3)> and L<nbdkit_disconnect(3)> for how to
+request server shutdown or client disconnection from within plugins.
+
 =head1 VERSION
 
 =head2 Compile-time version of nbdkit
@@ -1837,6 +1808,7 @@ L<nbdkit-filter(3)>.
 
 Utility functions provided by nbdkit for plugins and filters to use:
 
+L<nbdkit_disconnect(3)>,
 L<nbdkit_error(3)>,
 L<nbdkit_parse_bool(3)>,
 L<nbdkit_parse_int(3)>,
@@ -1853,6 +1825,7 @@ L<nbdkit_parse_uint8_t(3)>,
 L<nbdkit_parse_unsigned(3)>,
 L<nbdkit_read_password(3)>,
 L<nbdkit_set_error(3)>,
+L<nbdkit_shutdown(3)>,
 L<nbdkit_verror(3)>.
 
 Standard plugins provided by nbdkit:

@@ -67,6 +67,7 @@ EXTRA_DIST = \
 	nbdkit-release-notes-1.38.pod \
 	nbdkit-security.pod \
 	nbdkit-service.pod \
+	nbdkit_shutdown.pod \
 	nbdkit-tls.pod \
 	synopsis.txt \
 	$(NULL)
@@ -75,6 +76,7 @@ EXTRA_DIST = \
 # from pod sources.  Therefore we have to distribute them in the
 # tarball.
 non_generated_mans = \
+	nbdkit_disconnect.3 \
 	nbdkit_parse_int8_t.3 \
 	nbdkit_parse_int16_t.3 \
 	nbdkit_parse_int32_t.3 \
@@ -128,6 +130,7 @@ generated_mans = \
 	nbdkit-release-notes-1.38.1 \
 	nbdkit-security.1 \
 	nbdkit-service.1 \
+	nbdkit_shutdown.3 \
 	nbdkit-tls.1 \
 	$(NULL)
 CLEANFILES += $(generated_mans)
@@ -231,6 +234,11 @@ nbdkit-security.1: nbdkit-security.pod $(top_builddir)/podwrapper.pl
 
 nbdkit-service.1: nbdkit-service.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_shutdown.3: nbdkit_shutdown.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 
