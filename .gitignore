@@ -26,6 +26,7 @@ __pycache__
 docs/*.1
 docs/nbdkit_error.3
 docs/nbdkit-filter.3
+docs/nbdkit_parse_bool.3
 docs/nbdkit_parse_int.3
 docs/nbdkit_parse_size.3
 docs/nbdkit-plugin.3

@@ -39,6 +39,7 @@ EXTRA_DIST = \
 	nbdkit_error.pod \
 	nbdkit-filter.pod \
 	nbdkit-loop.pod \
+	nbdkit_parse_bool.pod \
 	nbdkit_parse_int.pod \
 	nbdkit_parse_size.pod \
 	nbdkit-plugin.pod \
@@ -97,6 +98,7 @@ generated_mans = \
 	nbdkit_error.3 \
 	nbdkit-filter.3 \
 	nbdkit-loop.1 \
+	nbdkit_parse_bool.3 \
 	nbdkit_parse_int.3 \
 	nbdkit_parse_size.3 \
 	nbdkit-plugin.3 \
@@ -165,6 +167,11 @@ nbdkit-filter.3: nbdkit-filter.pod filter-links.pod \
 
 nbdkit-loop.1: nbdkit-loop.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_parse_bool.3: nbdkit_parse_bool.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 
