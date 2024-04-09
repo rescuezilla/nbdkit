@@ -43,6 +43,7 @@ EXTRA_DIST = \
 	nbdkit_parse_int.pod \
 	nbdkit_parse_probability.pod \
 	nbdkit_parse_size.pod \
+	nbdkit_peer_name.pod \
 	nbdkit-plugin.pod \
 	nbdkit-probing.pod \
 	nbdkit-protocol.pod \
@@ -86,6 +87,10 @@ non_generated_mans = \
 	nbdkit_parse_uint32_t.3 \
 	nbdkit_parse_uint64_t.3 \
 	nbdkit_parse_unsigned.3 \
+	nbdkit_peer_gid.3 \
+	nbdkit_peer_pid.3 \
+	nbdkit_peer_uid.3 \
+	nbdkit_peer_security_context.3 \
 	nbdkit_set_error.3 \
 	nbdkit_verror.3 \
 	$(NULL)
@@ -106,6 +111,7 @@ generated_mans = \
 	nbdkit_parse_int.3 \
 	nbdkit_parse_probability.3 \
 	nbdkit_parse_size.3 \
+	nbdkit_peer_name.3 \
 	nbdkit-plugin.3 \
 	nbdkit-probing.1 \
 	nbdkit-protocol.1 \
@@ -194,6 +200,11 @@ nbdkit_parse_probability.3: nbdkit_parse_probability.pod \
 	    $<
 
 nbdkit_parse_size.3: nbdkit_parse_size.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_peer_name.3: nbdkit_peer_name.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<

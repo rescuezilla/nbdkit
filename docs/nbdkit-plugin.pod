@@ -612,8 +612,8 @@ B<not> been negotiated at this point.
 For security reasons (to avoid denial of service attacks) this
 callback should be written to be as fast and take as few resources as
 possible.  If you use this callback, only use it to do basic access
-control, such as checking C<nbdkit_peer_name>, C<nbdkit_peer_pid>,
-C<nbdkit_peer_uid>, C<nbdkit_peer_gid> against a list of permitted
+control, such as checking L<nbdkit_peer_name(3)>, L<nbdkit_peer_pid(3)>,
+L<nbdkit_peer_uid(3)>, L<nbdkit_peer_gid(3)> against a list of permitted
 source addresses (see L</PEER NAME> and L<nbdkit-ip-filter(1)>).  It
 may be better to do access control outside the server, for example
 using TCP wrappers or a firewall.
@@ -1510,77 +1510,12 @@ C<.open>), L<nbdkit_error(3)> is called and the call returns C<-1>.
 
 =head1 PEER NAME
 
-It is possible to get the source address of the client when you are
-running in any connected callback.
-
-=head2 C<nbdkit_peer_name>
-
- int nbdkit_peer_name (struct sockaddr *addr, socklen_t *addrlen);
-
-Return the peer (client) address, if available.  The C<addr> and
-C<addrlen> parameters behave like L<getpeername(2)>.  In particular
-you must initialize C<addrlen> with the size of the buffer pointed to
-by C<addr>, and if C<addr> is not large enough then the address will
-be truncated.
-
-In some cases this is not available or the address returned will be
-meaningless (eg. if there is a proxy between the client and nbdkit).
-This call uses thread-local magic so no parameter is required to
-specify the current connection.
-
-On success this returns C<0>.  On error, L<nbdkit_error(3)> is called and
-this call returns C<-1>.
-
-=head2 C<nbdkit_peer_pid>
-
-(nbdkit E<ge> 1.24, Linux only)
-
- int64_t nbdkit_peer_pid (void);
-
-Return the peer process ID.  This is only available when the client
-connected over a Unix domain socket.
-
-On success this returns the peer process ID.  On error,
-L<nbdkit_error(3)> is called and this call returns C<-1>.
-
-=head2 C<nbdkit_peer_uid>
-
-(nbdkit E<ge> 1.24)
-
- int64_t nbdkit_peer_uid (void);
-
-Return the peer user ID.  This is only available when the client
-connected over a Unix domain socket.
-
-On success this returns the user ID.  On error, L<nbdkit_error(3)> is
-called and this call returns C<-1>.
-
-=head2 C<nbdkit_peer_gid>
-
-(nbdkit E<ge> 1.24)
-
- int64_t nbdkit_peer_gid (void);
-
-Return the peer group ID.  This is only available when the client
-connected over a Unix domain socket.
-
-On success this returns the user ID.  On error, L<nbdkit_error(3)> is
-called and this call returns C<-1>.
-
-=head2 C<nbdkit_peer_security_context>
-
-(nbdkit E<ge> 1.36, not Windows)
-
- char *nbdkit_peer_security_context (void);
-
-Return the peer security context (usually the SELinux label, IPSEC
-label or NetLabel, see the description of C<SO_PEERSEC> in L<unix(7)>
-and L<ip(7)>.
-
-On success this returns the security context as a string.  The caller
-must free the string.  On error (which can include missing label or
-unsupported protocol), L<nbdkit_error(3)> is called and this call returns
-C<NULL>.
+In any connected callback you can get the source address of the client
+using L<nbdkit_peer_name(3)>.  If the client is connected over a Unix
+domain socket, you may also be able to get the client process ID, user
+ID, group ID and security context using: L<nbdkit_peer_pid(3)>,
+L<nbdkit_peer_uid(3)>, L<nbdkit_peer_gid(3)> and
+L<nbdkit_peer_security_context(3)>.
 
 =head1 SHUTDOWN
 
@@ -1823,6 +1758,11 @@ L<nbdkit_parse_uint32_t(3)>,
 L<nbdkit_parse_uint64_t(3)>,
 L<nbdkit_parse_uint8_t(3)>,
 L<nbdkit_parse_unsigned(3)>,
+L<nbdkit_peer_gid(3)>,
+L<nbdkit_peer_name(3)>,
+L<nbdkit_peer_pid(3)>,
+L<nbdkit_peer_security_context(3)>,
+L<nbdkit_peer_uid(3)>,
 L<nbdkit_read_password(3)>,
 L<nbdkit_set_error(3)>,
 L<nbdkit_shutdown(3)>,

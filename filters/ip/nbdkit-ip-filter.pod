@@ -246,7 +246,12 @@ L<nbdkit(1)>,
 L<nbdkit-exitlast-filter(1)>,
 L<nbdkit-exitwhen-filter(1)>,
 L<nbdkit-limit-filter(1)>,
-L<nbdkit-filter(3)>.
+L<nbdkit-filter(3)>,
+L<nbdkit_peer_name(3)>,
+L<nbdkit_peer_pid(3)>,
+L<nbdkit_peer_uid(3)>,
+L<nbdkit_peer_gid(3)>,
+L<nbdkit_peer_security_context(3)>.
 
 =head1 AUTHORS
 
