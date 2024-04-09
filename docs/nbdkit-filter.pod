@@ -291,7 +291,7 @@ Note that the semantics of the functions in C<struct nbdkit_next_ops>
 are slightly different from what a plugin implements: for example,
 when a plugin's C<.pread> returns -1 on error, the error value to
 advertise to the client is implicit (via the plugin calling
-C<nbdkit_set_error> or setting C<errno>), whereas
+L<nbdkit_set_error(3)> or setting C<errno>), whereas
 C<next-E<gt>pread> exposes this via an explicit parameter,
 allowing a filter to learn or modify this error if desired.
 
@@ -368,8 +368,8 @@ filter to parse its own command line parameters.  You should try to
 make sure that command line parameter keys that the filter uses do not
 conflict with ones that could be used by a plugin.
 
-If there is an error, C<.config> should call C<nbdkit_error> with an
-error message and return C<-1>.
+If there is an error, C<.config> should call L<nbdkit_error(3)> with
+an error message and return C<-1>.
 
 =head2 C<.config_complete>
 
@@ -379,7 +379,7 @@ This intercepts the plugin C<.config_complete> method and can be used
 to ensure that all parameters needed by the filter were supplied on
 the command line.
 
-If there is an error, C<.config_complete> should call C<nbdkit_error>
+If there is an error, C<.config_complete> should call L<nbdkit_error(3)>
 with an error message and return C<-1>.
 
 =head2 C<.config_help>
@@ -417,7 +417,7 @@ requests are issued in parallel on the same connection, similar to a
 plugin requesting C<NBDKIT_THREAD_MODEL_PARALLEL>.  This ensures the
 filter doesn't slow down other filters or plugins.
 
-If there is an error, C<.thread_model> should call C<nbdkit_error>
+If there is an error, C<.thread_model> should call L<nbdkit_error(3)>
 with an error message and return C<-1>.
 
 =head2 C<.dump_plugin>
@@ -443,7 +443,7 @@ thread model chosen by nbdkit after considering the results of
 C<.thread_model> of all filters in the chain after
 C<.config_complete>.
 
-If there is an error, C<.get_ready> should call C<nbdkit_error> with
+If there is an error, C<.get_ready> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 =head2 C<.after_fork>
@@ -456,7 +456,7 @@ exited), and can be used by the filter to start background threads.
 The C<backend> parameter is valid until C<.cleanup>, for creating manual
 contexts into the backend with C<nbdkit_next_context_open>.
 
-If there is an error, C<.after_fork> should call C<nbdkit_error> with
+If there is an error, C<.after_fork> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 =head2 C<.cleanup>
@@ -483,7 +483,7 @@ also L<nbdkit-plugin(3)/SHUTDOWN>.
 This intercepts the plugin C<.preconnect> method and can be used to
 filter access to the server.
 
-If there is an error, C<.preconnect> should call C<nbdkit_error> with
+If there is an error, C<.preconnect> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 =head2 C<.list_exports>
@@ -524,7 +524,7 @@ from the layer below.  Without error checking it would look like this:
    nbdkit_exports_free (exports2);
  }
 
-If there is an error, C<.list_exports> should call C<nbdkit_error> with
+If there is an error, C<.list_exports> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 =head3 Allocating and freeing nbdkit_exports list
@@ -537,7 +537,7 @@ the list:
 Allocates and returns a new, empty exports list.
 
 On error this function can return C<NULL>.  In this case it calls
-C<nbdkit_error> as required.  C<errno> will be set to a suitable
+L<nbdkit_error(3)> as required.  C<errno> will be set to a suitable
 value.
 
  void nbdkit_exports_free (struct nbdkit_exports *);
@@ -592,7 +592,7 @@ Note that the handle is completely opaque to nbdkit, but it must not
 be NULL.  If you don't need to use a handle, return
 C<NBDKIT_HANDLE_NOT_NEEDED> which is a static non-NULL pointer.
 
-If there is an error, C<.open> should call C<nbdkit_error> with an
+If there is an error, C<.open> should call L<nbdkit_error(3)> with an
 error message and return C<NULL>.
 
 This callback is optional, but if provided, it should call C<next>,
@@ -693,7 +693,7 @@ during C<.open>.  Finalize methods are called in the reverse order of
 prepare methods, with the outermost filter first (and matching the
 order of C<.close>), and only if the prepare method succeeded.
 
-If there is an error, both callbacks should call C<nbdkit_error> with
+If there is an error, both callbacks should call L<nbdkit_error(3)> with
 an error message and return C<-1>.  An error in C<.prepare> is
 reported to the client, but leaves the connection open (a client may
 try again with a different export name, for example); while an error
@@ -708,7 +708,7 @@ or modify the apparent size of the block device that the NBD client
 will see.
 
 The returned size must be E<ge> 0.  If there is an error, C<.get_size>
-should call C<nbdkit_error> with an error message and return C<-1>.
+should call L<nbdkit_error(3)> with an error message and return C<-1>.
 This function is only called once per connection and cached by nbdkit.
 Similarly, repeated calls to C<next-E<gt>get_size> will return a
 cached value.
@@ -806,7 +806,7 @@ all sub-requests have completed (often by passing C<NBDKIT_FLAG_FUA>
 on to only the final sub-request, or by dropping the flag and ending
 with a direct call to C<next-E<gt>flush>).
 
-If there is an error, the callback should call C<nbdkit_error> with an
+If there is an error, the callback should call L<nbdkit_error(3)> with an
 error message and return C<-1>.  These functions are called at most
 once per connection and cached by nbdkit. Similarly, repeated calls to
 any of the C<nbdkit_next> counterparts will return a cached value; by
@@ -828,7 +828,7 @@ extensions; at this time, it will be 0 on input, and the filter should
 not pass any flags to C<next-E<gt>pread>.
 
 If there is an error (including a short read which couldn't be
-recovered from), C<.pread> should call C<nbdkit_error> with an error
+recovered from), C<.pread> should call L<nbdkit_error(3)> with an error
 message B<and> return -1 with C<err> set to the positive errno value
 to return to the client.
 
@@ -852,7 +852,7 @@ C<NBDKIT_FLAG_FUA> on to C<next-E<gt>pwrite> if
 C<next-E<gt>can_fua> returned a positive value.
 
 If there is an error (including a short write which couldn't be
-recovered from), C<.pwrite> should call C<nbdkit_error> with an error
+recovered from), C<.pwrite> should call L<nbdkit_error(3)> with an error
 message B<and> return -1 with C<err> set to the positive errno value
 to return to the client.
 
@@ -872,7 +872,7 @@ The parameter C<flags> exists in case of future NBD protocol
 extensions; at this time, it will be 0 on input, and the filter should
 not pass any flags to C<next-E<gt>flush>.
 
-If there is an error, C<.flush> should call C<nbdkit_error> with an
+If there is an error, C<.flush> should call L<nbdkit_error(3)> with an
 error message B<and> return -1 with C<err> set to the positive errno
 value to return to the client.
 
@@ -894,7 +894,7 @@ on the result of C<.can_fua>.  In turn, the filter should only pass
 C<NBDKIT_FLAG_FUA> on to C<next-E<gt>trim> if
 C<next-E<gt>can_fua> returned a positive value.
 
-If there is an error, C<.trim> should call C<nbdkit_error> with an
+If there is an error, C<.trim> should call L<nbdkit_error(3)> with an
 error message B<and> return -1 with C<err> set to the positive errno
 value to return to the client.
 
@@ -927,7 +927,7 @@ function C<next-E<gt>zero> will not fail with C<err> set to
 C<ENOTSUP> or C<EOPNOTSUPP> unless C<NBDKIT_FLAG_FAST_ZERO> was used,
 because otherwise the fallback has already taken place.
 
-If there is an error, C<.zero> should call C<nbdkit_error> with an
+If there is an error, C<.zero> should call L<nbdkit_error(3)> with an
 error message B<and> return -1 with C<err> set to the positive errno
 value to return to the client.  The filter should not fail with
 C<ENOTSUP> or C<EOPNOTSUPP> unless C<flags> includes
@@ -969,7 +969,7 @@ from the layer below.  Without error checking it would look like this:
    nbdkit_extents_free (extents2);
  }
 
-If there is an error, C<.extents> should call C<nbdkit_error> with an
+If there is an error, C<.extents> should call L<nbdkit_error(3)> with an
 error message B<and> return -1 with C<err> set to the positive errno
 value to return to the client.
 
@@ -988,7 +988,7 @@ the end, but for filters which adjust offsets, they should pass in the
 adjusted offset.
 
 On error this function can return C<NULL>.  In this case it calls
-C<nbdkit_error> and/or C<nbdkit_set_error> as required.  C<errno> will
+L<nbdkit_error(3)> and/or L<nbdkit_set_error(3)> as required.  C<errno> will
 be set to a suitable value.
 
  void nbdkit_extents_free (struct nbdkit_extents *);
@@ -1032,7 +1032,7 @@ plugin returns as much information as possible (this is usually what
 you want).
 
 On error this function can return C<NULL>.  In this case it calls
-C<nbdkit_error> and/or C<nbdkit_set_error> as required.  C<*err> will
+L<nbdkit_error(3)> and/or L<nbdkit_set_error(3)> as required.  C<*err> will
 be set to a suitable value.
 
 =head3 Enforcing alignment of an nbdkit_extents list
@@ -1071,28 +1071,17 @@ The parameter C<flags> exists in case of future NBD protocol
 extensions; at this time, it will be 0 on input, and the filter should
 not pass any flags to C<next-E<gt>cache>.
 
-If there is an error, C<.cache> should call C<nbdkit_error> with an
+If there is an error, C<.cache> should call L<nbdkit_error(3)> with an
 error message B<and> return -1 with C<err> set to the positive errno
 value to return to the client.
 
 =head1 ERROR HANDLING
 
 If there is an error in the filter itself, the filter should call
-C<nbdkit_error> to report an error message.  If the callback is
+L<nbdkit_error(3)> to report an error message.  If the callback is
 involved in serving data, the explicit C<err> parameter determines the
 error code that will be sent to the client; other callbacks should
 return the appropriate error indication, eg. C<NULL> or C<-1>.
-
-C<nbdkit_error> has the following prototype and works like
-L<printf(3)>:
-
- void nbdkit_error (const char *fs, ...);
- void nbdkit_verror (const char *fs, va_list args);
-
-For convenience, C<nbdkit_error> preserves the value of C<errno>, and
-also supports the glibc extension of a single C<%m> in a format string
-expanding to C<strerror(errno)>, even on platforms that don't support
-that natively.
 
 =head1 DEBUGGING
 

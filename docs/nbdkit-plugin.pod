@@ -408,37 +408,11 @@ C<pthread_mutex_t> etc.
 =head2 Error handling
 
 If there is an error in the plugin, the plugin should call
-C<nbdkit_error> to report an error message; additionally, if the
-callback is involved in serving data, the plugin should call
-C<nbdkit_set_error> to influence the error code that will be sent to
-the client.  These two functions can be called in either order.  Then,
-the callback should return the appropriate error indication,
-eg. C<NULL> or C<-1>.
+L<nbdkit_error(3)> to report an error message.  Then, the callback
+should return the appropriate error indication, eg. C<NULL> or C<-1>.
 
-If the call to C<nbdkit_set_error> is omitted while serving data, then
-the global variable C<errno> may be used.  For plugins which have
-C<.errno_is_preserved != 0> the core code will use C<errno>.  In
-plugins written in non-C languages, we usually cannot trust that
-C<errno> will not be overwritten when returning from that language to
-C.  In that case, either the plugin must call C<nbdkit_set_error> or
-hard-coded C<EIO> is used.
-
-C<nbdkit_error> has the following prototype and works like
-L<printf(3)>:
-
- void nbdkit_error (const char *fs, ...);
- void nbdkit_verror (const char *fs, va_list args);
-
-For convenience, C<nbdkit_error> preserves the value of C<errno>, and
-also supports the glibc extension of a single C<%m> in a format string
-expanding to C<strerror(errno)>, even on platforms that don't support
-that natively.
-
-C<nbdkit_set_error> can be called at any time, but only has an impact
-during callbacks for serving data, and only when the callback returns
-an indication of failure.  It has the following prototype:
-
- void nbdkit_set_error (int err);
+More information about these functions and L<nbdkit_verror(3)> can be
+found in the separate manual page about them.
 
 =head1 CALLBACKS
 
@@ -532,7 +506,7 @@ If the C<.config> callback is not provided by the plugin, and the user
 tries to specify any C<key=value> arguments, then nbdkit will exit
 with an error.
 
-If there is an error, C<.config> should call C<nbdkit_error> with an
+If there is an error, C<.config> should call L<nbdkit_error(3)> with an
 error message and return C<-1>.
 
 =head2 C<.magic_config_key>
@@ -560,7 +534,7 @@ This optional callback is called after all the configuration has been
 passed to the plugin.  It is a good place to do checks, for example
 that the user has passed the required parameters to the plugin.
 
-If there is an error, C<.config_complete> should call C<nbdkit_error>
+If there is an error, C<.config_complete> should call L<nbdkit_error(3)>
 with an error message and return C<-1>.
 
 =head2 C<.config_help>
@@ -584,7 +558,7 @@ based on configuration, compared to C<THREAD_MODEL>.  See L</Threads>
 above for details.  Attempts to request a looser (more parallel) model
 are silently ignored.
 
-If there is an error, C<.thread_model> should call C<nbdkit_error>
+If there is an error, C<.thread_model> should call L<nbdkit_error(3)>
 with an error message and return C<-1>.
 
 =head2 C<.get_ready>
@@ -596,7 +570,7 @@ is called before the server forks or changes directory.  It is
 ordinarily the last chance to do any global preparation that is needed
 to serve connections.
 
-If there is an error, C<.get_ready> should call C<nbdkit_error> with
+If there is an error, C<.get_ready> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 =head2 C<.after_fork>
@@ -611,7 +585,7 @@ killed by fork.  However you should try to do as little as possible
 here because error reporting is difficult.  See L</Callback lifecycle>
 above.
 
-If there is an error, C<.after_fork> should call C<nbdkit_error> with
+If there is an error, C<.after_fork> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 =head2 C<.cleanup>
@@ -648,7 +622,7 @@ The C<readonly> flag informs the plugin that the server was started
 with the I<-r> flag on the command line.
 
 Returning C<0> will allow the connection to continue.  If there is an
-error or you want to deny the connection, call C<nbdkit_error> with an
+error or you want to deny the connection, call L<nbdkit_error(3)> with an
 error message and return C<-1>.
 
 =head2 C<.list_exports>
@@ -691,7 +665,7 @@ which is otherwise unused (if you don't want a description, you can
 pass this parameter as C<NULL>).  The string(s) are copied into the
 exports list so you may free them immediately after calling this
 function.  C<nbdkit_add_export> returns C<0> on success or C<-1> on
-failure; on failure C<nbdkit_error> has already been called, with
+failure; on failure L<nbdkit_error(3)> has already been called, with
 C<errno> set to a suitable value.
 
 There are also situations where a plugin may wish to duplicate the
@@ -705,13 +679,13 @@ C<nbdkit_use_default_export>.
  int nbdkit_use_default_export (struct nbdkit_export *exports);
 
 C<nbdkit_use_default_export> returns C<0> on success or C<-1> on
-failure; on failure C<nbdkit_error> has already been called, with
+failure; on failure L<nbdkit_error(3)> has already been called, with
 C<errno> set to a suitable value.
 
 The plugin may also leave the export list empty, by not calling either
 helper.  Once the plugin is happy with the list contents, returning
 C<0> will send the list of exports back to the client.  If there is an
-error, C<.list_exports> should call C<nbdkit_error> with an error
+error, C<.list_exports> should call L<nbdkit_error(3)> with an error
 message and return C<-1>.
 
 =head2 C<.default_export>
@@ -745,7 +719,7 @@ leak unintended information.
 If the plugin returns C<NULL> or an invalid string (such as longer
 than 4096 bytes), the client is not permitted to connect to the
 default export.  However, this is not an error in the protocol, so it
-is not necessary to call C<nbdkit_error>.
+is not necessary to call L<nbdkit_error(3)>.
 
 =head2 C<.open>
 
@@ -781,7 +755,7 @@ but does not require TLS, be careful that you do not allow
 unauthenticated clients to cause a denial of service against
 authentication.
 
-If there is an error, C<.open> should call C<nbdkit_error> with an
+If there is an error, C<.open> should call L<nbdkit_error(3)> with an
 error message and return C<NULL>.
 
 =head2 C<.close>
@@ -806,7 +780,7 @@ This is called during the option negotiation phase of the protocol
 to get the size (in bytes) of the block device being exported.
 
 The returned size must be E<ge> 0.  If there is an error, C<.get_size>
-should call C<nbdkit_error> with an error message and return C<-1>.
+should call L<nbdkit_error(3)> with an error message and return C<-1>.
 
 =head2 C<.export_description>
 
@@ -823,7 +797,7 @@ enforced.
 If the plugin returns C<NULL> or an invalid string (such as longer
 than 4096 bytes), or if this callback is omitted, no description is
 offered to the client.  As this is not an error in the protocol, it is
-not necessary to call C<nbdkit_error>.  If the callback will not be
+not necessary to call L<nbdkit_error(3)>.  If the callback will not be
 returning a compile-time constant string, you may find
 C<nbdkit_strdup_intern> helpful for returning a value that avoids a
 memory leak.
@@ -872,7 +846,7 @@ constraints").
 This is called during the option negotiation phase to find out if the
 handle supports writes.
 
-If there is an error, C<.can_write> should call C<nbdkit_error> with
+If there is an error, C<.can_write> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 This callback is not required.  If omitted, then we return true iff a
@@ -885,7 +859,7 @@ C<.pwrite> callback has been defined.
 This is called during the option negotiation phase to find out if the
 handle supports the flush-to-disk operation.
 
-If there is an error, C<.can_flush> should call C<nbdkit_error> with
+If there is an error, C<.can_flush> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 This callback is not required.  If omitted, then we return true iff a
@@ -900,7 +874,7 @@ backing disk is a rotational medium (like a traditional hard disk) or
 not (like an SSD).  If true, this may cause the client to reorder
 requests to make them more efficient for a slow rotating disk.
 
-If there is an error, C<.is_rotational> should call C<nbdkit_error>
+If there is an error, C<.is_rotational> should call L<nbdkit_error(3)>
 with an error message and return C<-1>.
 
 This callback is not required.  If omitted, then we return false.
@@ -913,7 +887,7 @@ This is called during the option negotiation phase to find out if the
 plugin supports the trim/discard operation for punching holes in the
 backing storage.
 
-If there is an error, C<.can_trim> should call C<nbdkit_error> with an
+If there is an error, C<.can_trim> should call L<nbdkit_error(3)> with an
 error message and return C<-1>.
 
 This callback is not required.  If omitted, then we return true iff a
@@ -931,7 +905,7 @@ serves as a way to avoid complicating the C<.zero> callback to have to
 fail with C<ENOTSUP> or C<EOPNOTSUPP> on the connections where it will
 never be more efficient than using C<.pwrite> up front.
 
-If there is an error, C<.can_zero> should call C<nbdkit_error> with an
+If there is an error, C<.can_zero> should call L<nbdkit_error(3)> with an
 error message and return C<-1>.
 
 This callback is not required.  If omitted, then for a normal zero
@@ -957,7 +931,7 @@ require that writing zeroes be fast, only that the result (whether
 success or failure) is fast, so this should be advertised when
 feasible.
 
-If there is an error, C<.can_fast_zero> should call C<nbdkit_error>
+If there is an error, C<.can_fast_zero> should call L<nbdkit_error(3)>
 with an error message and return C<-1>.
 
 This callback is not required.  If omitted, then nbdkit returns true
@@ -975,7 +949,7 @@ This is called during the option negotiation phase to find out if the
 plugin supports detecting allocated (non-sparse) regions of the disk
 with the C<.extents> callback.
 
-If there is an error, C<.can_extents> should call C<nbdkit_error> with
+If there is an error, C<.can_extents> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 This callback is not required.  If omitted, then we return true iff a
@@ -996,7 +970,7 @@ C<.zero>, and C<.trim> callbacks (if implemented) must handle the flag
 C<NBDKIT_FLAG_FUA>, by not returning until that action has landed in
 persistent storage.
 
-If there is an error, C<.can_fua> should call C<nbdkit_error> with an
+If there is an error, C<.can_fua> should call L<nbdkit_error(3)> with an
 error message and return C<-1>.
 
 This callback is not required unless a plugin wants to specifically
@@ -1030,7 +1004,7 @@ If you use Linux L<nbd-client(8)> option S<I<-C num>> with
 S<num E<gt> 1> then Linux checks this flag and will refuse to connect
 if C<.can_multi_conn> is false.
 
-If there is an error, C<.can_multi_conn> should call C<nbdkit_error>
+If there is an error, C<.can_multi_conn> should call L<nbdkit_error(3)>
 with an error message and return C<-1>.
 
 This callback is not required.  If omitted, then we return false.
@@ -1062,7 +1036,7 @@ be called if it exists, otherwise all cache requests instantly succeed.
 
 =back
 
-If there is an error, C<.can_cache> should call C<nbdkit_error> with
+If there is an error, C<.can_cache> should call L<nbdkit_error(3)> with
 an error message and return C<-1>.
 
 This callback is not required.  If omitted, then we return
@@ -1089,8 +1063,8 @@ If the whole C<count> bytes was read, the callback should return C<0>
 to indicate there was I<no> error.
 
 If there is an error (including a short read which couldn't be
-recovered from), C<.pread> should call C<nbdkit_error> with an error
-message, and C<nbdkit_set_error> to record an appropriate error
+recovered from), C<.pread> should call L<nbdkit_error(3)> with an error
+message, and L<nbdkit_set_error(3)> to record an appropriate error
 (unless C<errno> is sufficient), then return C<-1>.
 
 =head2 C<.pwrite>
@@ -1114,8 +1088,8 @@ errors).  If the whole C<count> bytes was written successfully, the
 callback should return C<0> to indicate there was I<no> error.
 
 If there is an error (including a short write which couldn't be
-recovered from), C<.pwrite> should call C<nbdkit_error> with an error
-message, and C<nbdkit_set_error> to record an appropriate error
+recovered from), C<.pwrite> should call L<nbdkit_error(3)> with an error
+message, and L<nbdkit_set_error(3)> to record an appropriate error
 (unless C<errno> is sufficient), then return C<-1>.
 
 =head2 C<.flush>
@@ -1133,8 +1107,8 @@ nbdkit if C<.can_fua> returned C<NBDKIT_FUA_EMULATE>.  The parameter
 C<flags> exists in case of future NBD protocol extensions; at this
 time, it will be 0 on input.
 
-If there is an error, C<.flush> should call C<nbdkit_error> with an
-error message, and C<nbdkit_set_error> to record an appropriate error
+If there is an error, C<.flush> should call L<nbdkit_error(3)> with an
+error message, and L<nbdkit_set_error(3)> to record an appropriate error
 (unless C<errno> is sufficient), then return C<-1>.
 
 =head2 C<.trim>
@@ -1149,8 +1123,8 @@ This function will not be called if C<.can_trim> returned false.  The
 parameter C<flags> may include C<NBDKIT_FLAG_FUA> on input based on
 the result of C<.can_fua>.
 
-If there is an error, C<.trim> should call C<nbdkit_error> with an
-error message, and C<nbdkit_set_error> to record an appropriate error
+If there is an error, C<.trim> should call L<nbdkit_error(3)> with an
+error message, and L<nbdkit_set_error(3)> to record an appropriate error
 (unless C<errno> is sufficient), then return C<-1>.
 
 =head2 C<.zero>
@@ -1173,7 +1147,7 @@ reads from the hole read as zeroes.
 If C<NBDKIT_FLAG_FAST_ZERO> is requested, the plugin must decide up
 front if the implementation is likely to be faster than a
 corresponding C<.pwrite>; if not, then it must immediately fail with
-C<ENOTSUP> or C<EOPNOTSUPP> (whether by C<nbdkit_set_error> or
+C<ENOTSUP> or C<EOPNOTSUPP> (whether by L<nbdkit_set_error(3)> or
 C<errno>) and preferably without modifying the exported image.  It is
 acceptable to always fail a fast zero request (as a fast failure is
 better than attempting the write only to find out after the fact that
@@ -1187,12 +1161,12 @@ protocol doesn't allow partial writes (instead, these would be
 errors).  If the whole C<count> bytes was written successfully, the
 callback should return C<0> to indicate there was I<no> error.
 
-If there is an error, C<.zero> should call C<nbdkit_error> with an
-error message, and C<nbdkit_set_error> to record an appropriate error
+If there is an error, C<.zero> should call L<nbdkit_error(3)> with an
+error message, and L<nbdkit_set_error(3)> to record an appropriate error
 (unless C<errno> is sufficient), then return C<-1>.
 
 If this callback is omitted, or if it fails with C<ENOTSUP> or
-C<EOPNOTSUPP> (whether by C<nbdkit_set_error> or C<errno>), then
+C<EOPNOTSUPP> (whether by L<nbdkit_set_error(3)> or C<errno>), then
 C<.pwrite> will be used as an automatic fallback except when the
 client requested a fast zero.
 
@@ -1216,8 +1190,8 @@ the range C<[offset...offset+count-1]>.  The C<extents> parameter
 points to an opaque object which the callback should fill in by
 calling C<nbdkit_add_extent>.  See L</Extents list> below.
 
-If there is an error, C<.extents> should call C<nbdkit_error> with an
-error message, and C<nbdkit_set_error> to record an appropriate error
+If there is an error, C<.extents> should call L<nbdkit_error(3)> with an
+error message, and L<nbdkit_set_error(3)> to record an appropriate error
 (unless C<errno> is sufficient), then return C<-1>.
 
 =head3 Extents list
@@ -1279,7 +1253,7 @@ guarantee that trimmed blocks read back as zeroes.
 =back
 
 C<nbdkit_add_extent> returns C<0> on success or C<-1> on failure.  On
-failure C<nbdkit_error> and/or C<nbdkit_set_error> has already been
+failure L<nbdkit_error(3)> and/or L<nbdkit_set_error(3)> has already been
 called.  C<errno> will be set to a suitable value.
 
 =head2 C<.cache>
@@ -1311,15 +1285,15 @@ this function if C<flags> includes an unrecognized flag, as that may
 indicate a requirement that the plugin must comply with to provide a
 specific caching semantic.
 
-If there is an error, C<.cache> should call C<nbdkit_error> with an
-error message, and C<nbdkit_set_error> to record an appropriate error
+If there is an error, C<.cache> should call L<nbdkit_error(3)> with an
+error message, and L<nbdkit_set_error(3)> to record an appropriate error
 (unless C<errno> is sufficient), then return C<-1>.
 
 =head2 C<.errno_is_preserved>
 
 This field defaults to 0; if non-zero, nbdkit can reliably use the
 value of C<errno> when a callback reports failure, rather than the
-plugin having to call C<nbdkit_set_error>.
+plugin having to call L<nbdkit_set_error(3)>.
 
 =head1 SHUTDOWN
 
@@ -1521,7 +1495,7 @@ checks.
 Note that this function works I<only> when used in the C<.config>,
 C<.config_complete> and C<.get_ready> callbacks.
 
-If conversion was not possible, this calls C<nbdkit_error> and returns
+If conversion was not possible, this calls L<nbdkit_error(3)> and returns
 C<NULL>.  Note that this function does not check that the file exists.
 
 The returned string must be freed by the caller.
@@ -1538,7 +1512,7 @@ or it is not possible to access to any of the components of the path.
 Note that this function works I<only> when used in the C<.config>,
 C<.config_complete> and C<.get_ready> callbacks.
 
-If the path resolution was not possible, this calls C<nbdkit_error>
+If the path resolution was not possible, this calls L<nbdkit_error(3)>
 and returns C<NULL>.
 
 The returned string must be freed by the caller.
@@ -1561,7 +1535,7 @@ which plugins and filters should use instead.
 
 The utility function C<nbdkit_nanosleep> suspends the current thread,
 and returns 0 if it slept at least as many seconds and nanoseconds as
-requested, or -1 after calling C<nbdkit_error> if there is no point in
+requested, or -1 after calling L<nbdkit_error(3)> if there is no point in
 continuing the current command.  Attempts to sleep more than
 C<INT_MAX> seconds are treated as an error.
 
@@ -1591,7 +1565,7 @@ representing a "default export" or to be used in cases where the
 export name does not make sense.  B<The export name is untrusted
 client data, be cautious when parsing it.>
 
-On error, C<nbdkit_error> is called and the call returns C<NULL>.
+On error, L<nbdkit_error(3)> is called and the call returns C<NULL>.
 
 =head1 STRING LIFETIME
 
@@ -1619,7 +1593,7 @@ triggered a connection (such as during C<.preconnect> or C<.open>),
 the lifetime will last at least through C<.close>, but the copy is not
 safe to share with other connections.
 
-On error, C<nbdkit_error> is called and the call returns C<NULL>.
+On error, L<nbdkit_error(3)> is called and the call returns C<NULL>.
 
 =head2 C<nbdkit_printf_intern>
 
@@ -1633,7 +1607,7 @@ than the current connection.  Shorthand for passing C<fmt> to
 L<asprintf(3)> on a temporary string, then passing that result to
 C<nbdkit_strdup_intern>.
 
-On error, C<nbdkit_error> is called and the call returns C<NULL>.
+On error, L<nbdkit_error(3)> is called and the call returns C<NULL>.
 
 =head1 AUTHENTICATION
 
@@ -1651,7 +1625,7 @@ Return true if the client has completed TLS authentication, or false
 if the connection is still plaintext.
 
 On error (such as calling this function outside of the context of
-C<.open>), C<nbdkit_error> is called and the call returns C<-1>.
+C<.open>), L<nbdkit_error(3)> is called and the call returns C<-1>.
 
 =head1 PEER NAME
 
@@ -1673,7 +1647,7 @@ meaningless (eg. if there is a proxy between the client and nbdkit).
 This call uses thread-local magic so no parameter is required to
 specify the current connection.
 
-On success this returns C<0>.  On error, C<nbdkit_error> is called and
+On success this returns C<0>.  On error, L<nbdkit_error(3)> is called and
 this call returns C<-1>.
 
 =head2 C<nbdkit_peer_pid>
@@ -1686,7 +1660,7 @@ Return the peer process ID.  This is only available when the client
 connected over a Unix domain socket.
 
 On success this returns the peer process ID.  On error,
-C<nbdkit_error> is called and this call returns C<-1>.
+L<nbdkit_error(3)> is called and this call returns C<-1>.
 
 =head2 C<nbdkit_peer_uid>
 
@@ -1697,7 +1671,7 @@ C<nbdkit_error> is called and this call returns C<-1>.
 Return the peer user ID.  This is only available when the client
 connected over a Unix domain socket.
 
-On success this returns the user ID.  On error, C<nbdkit_error> is
+On success this returns the user ID.  On error, L<nbdkit_error(3)> is
 called and this call returns C<-1>.
 
 =head2 C<nbdkit_peer_gid>
@@ -1709,7 +1683,7 @@ called and this call returns C<-1>.
 Return the peer group ID.  This is only available when the client
 connected over a Unix domain socket.
 
-On success this returns the user ID.  On error, C<nbdkit_error> is
+On success this returns the user ID.  On error, L<nbdkit_error(3)> is
 called and this call returns C<-1>.
 
 =head2 C<nbdkit_peer_security_context>
@@ -1724,7 +1698,7 @@ and L<ip(7)>.
 
 On success this returns the security context as a string.  The caller
 must free the string.  On error (which can include missing label or
-unsupported protocol), C<nbdkit_error> is called and this call returns
+unsupported protocol), L<nbdkit_error(3)> is called and this call returns
 C<NULL>.
 
 =head1 VERSION
@@ -1826,7 +1800,7 @@ option to create the shared library directly, for example:
  gcc -fPIC -shared myplugin.c -o myplugin.so
 
 Note that the shared library will have undefined symbols for functions
-that you call like L<nbdkit_parse_int(3)> or C<nbdkit_error>.  These will
+that you call like L<nbdkit_parse_int(3)> or L<nbdkit_error(3)>.  These will
 be resolved by the server binary when nbdkit dlopens the plugin.
 
 =head2 PKG-CONFIG/PKGCONF
@@ -1939,6 +1913,7 @@ L<nbdkit-filter(3)>.
 
 Utility functions provided by nbdkit for plugins and filters to use:
 
+L<nbdkit_error(3)>,
 L<nbdkit_parse_int(3)>,
 L<nbdkit_parse_int16_t(3)>,
 L<nbdkit_parse_int32_t(3)>,
@@ -1949,7 +1924,9 @@ L<nbdkit_parse_uint16_t(3)>,
 L<nbdkit_parse_uint32_t(3)>,
 L<nbdkit_parse_uint64_t(3)>,
 L<nbdkit_parse_uint8_t(3)>,
-L<nbdkit_parse_unsigned(3)>.
+L<nbdkit_parse_unsigned(3)>,
+L<nbdkit_set_error(3)>,
+L<nbdkit_verror(3)>.
 
 Standard plugins provided by nbdkit:
 

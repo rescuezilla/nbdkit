@@ -36,6 +36,7 @@ EXTRA_DIST = \
 	nbdkit.pod \
 	nbdkit-captive.pod \
 	nbdkit-client.pod \
+	nbdkit_error.pod \
 	nbdkit-filter.pod \
 	nbdkit-loop.pod \
 	nbdkit_parse_int.pod \
@@ -80,6 +81,8 @@ non_generated_mans = \
 	nbdkit_parse_uint32_t.3 \
 	nbdkit_parse_uint64_t.3 \
 	nbdkit_parse_unsigned.3 \
+	nbdkit_set_error.3 \
+	nbdkit_verror.3 \
 	$(NULL)
 EXTRA_DIST += $(non_generated_mans)
 
@@ -91,6 +94,7 @@ generated_mans = \
 	nbdkit.1 \
 	nbdkit-captive.1 \
 	nbdkit-client.1 \
+	nbdkit_error.3 \
 	nbdkit-filter.3 \
 	nbdkit-loop.1 \
 	nbdkit_parse_int.3 \
@@ -144,6 +148,11 @@ nbdkit-captive.1: nbdkit-captive.pod $(top_builddir)/podwrapper.pl
 
 nbdkit-client.1: nbdkit-client.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_error.3: nbdkit_error.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 
