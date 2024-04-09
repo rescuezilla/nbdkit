@@ -24,7 +24,8 @@ __pycache__
 /nbdkit-*.*/
 
 docs/*.1
-docs/*.3
+docs/nbdkit-filter.3
+docs/nbdkit-plugin.3
 filters/*/*.1
 plugins/*/*.1
 plugins/*/*.3
