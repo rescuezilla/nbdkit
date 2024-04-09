@@ -36,9 +36,9 @@ specified per line.  Each line has the format:
  offset length type
 
 The C<offset> and C<length> fields may use any format understood by
-C<nbdkit_parse_size>.  The optional C<type> field may be an integer,
-missing (same as 0), or a comma-separated list of the words C<hole>
-and C<zero>.  (The fields correspond to the inputs of the
+L<nbdkit_parse_size(3)>.  The optional C<type> field may be an
+integer, missing (same as 0), or a comma-separated list of the words
+C<hole> and C<zero>.  (The fields correspond to the inputs of the
 C<nbdkit_add_extent> function, see L<nbdkit-plugin(3)>).
 
 An example of a valid set of extents covering a C<10M> disk where the

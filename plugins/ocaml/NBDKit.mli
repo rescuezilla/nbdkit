@@ -159,10 +159,11 @@ val register_plugin :
     into [EINVAL]. *)
 val set_error : Unix.error -> unit
 
-(** Bindings for [nbdkit_parse_size], [nbdkit_parse_probability],
-    [nbdkit_parse_bool] and [nbdkit_read_password].  See
-    {{:http://libguestfs.org/nbdkit-plugin.3.html}[nbdkit-plugin(3)]}
-    for information about these functions.
+(** Bindings for
+    {{:http://libguestfs.org/nbdkit_parse_size.3.html}[nbdkit_parse_size(3)]},
+    [nbdkit_parse_probability],
+    [nbdkit_parse_bool] and
+    [nbdkit_read_password].
 
     On error these functions all raise [Invalid_argument].  The
     actual error is sent to the nbdkit error log and is not

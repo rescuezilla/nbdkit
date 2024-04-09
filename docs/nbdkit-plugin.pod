@@ -1366,6 +1366,17 @@ connection should be C<.close>.
 
 =head1 PARSING COMMAND LINE PARAMETERS
 
+nbdkit provides several functions to help plugins and filters to parse
+command line parameters.  These are documented in separate man pages:
+
+=over 4
+
+=item Parse disk sizes (eg. C<size=100M>)
+
+L<nbdkit_parse_size(3)>
+
+=back
+
 =head2 Parsing numbers
 
 There are several functions for parsing numbers.  These all deal
@@ -1411,16 +1422,6 @@ to parse, eg:
 might print an error:
 
  random seed: could not parse number: "lalala"
-
-=head2 Parsing sizes
-
-Use the C<nbdkit_parse_size> utility function to parse human-readable
-size strings such as "100M" into the size in bytes.
-
- int64_t nbdkit_parse_size (const char *str);
-
-C<str> can be a string in a number of common formats.  The function
-returns the size in bytes.  If there was an error, it returns C<-1>.
 
 =head2 Parsing booleans
 
@@ -1968,6 +1969,10 @@ L<nbdkit(1)>,
 L<nbdkit-nozero-filter(1)>,
 L<nbdkit-tls-fallback-filter(1)>,
 L<nbdkit-filter(3)>.
+
+Utility functions provided by nbdkit for plugins and filters to use:
+
+L<nbdkit_parse_size(3)>.
 
 Standard plugins provided by nbdkit:
 
