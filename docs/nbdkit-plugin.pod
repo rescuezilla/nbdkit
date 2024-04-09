@@ -1375,53 +1375,20 @@ command line parameters.  These are documented in separate man pages:
 
 L<nbdkit_parse_size(3)>
 
+=item Parse numbers
+
+L<nbdkit_parse_int(3)>
+L<nbdkit_parse_unsigned(3)>
+L<nbdkit_parse_int8_t(3)>
+L<nbdkit_parse_uint8_t(3)>
+L<nbdkit_parse_int16_t(3)>
+L<nbdkit_parse_uint16_t(3)>
+L<nbdkit_parse_int32_t(3)>
+L<nbdkit_parse_uint32_t(3)>
+L<nbdkit_parse_int64_t(3)>
+L<nbdkit_parse_uint64_t(3)>
+
 =back
-
-=head2 Parsing numbers
-
-There are several functions for parsing numbers.  These all deal
-correctly with overflow, out of range and parse errors, and you should
-use them instead of unsafe functions like L<sscanf(3)>, L<atoi(3)> and
-similar.
-
- int nbdkit_parse_int (const char *what, const char *str, int *r);
- int nbdkit_parse_unsigned (const char *what,
-                            const char *str, unsigned *r);
- int nbdkit_parse_int8_t (const char *what,
-                          const char *str, int8_t *r);
- int nbdkit_parse_uint8_t (const char *what,
-                           const char *str, uint8_t *r);
- int nbdkit_parse_int16_t (const char *what,
-                           const char *str, int16_t *r);
- int nbdkit_parse_uint16_t (const char *what,
-                            const char *str, uint16_t *r);
- int nbdkit_parse_int32_t (const char *what,
-                           const char *str, int32_t *r);
- int nbdkit_parse_uint32_t (const char *what,
-                            const char *str, uint32_t *r);
- int nbdkit_parse_int64_t (const char *what,
-                           const char *str, int64_t *r);
- int nbdkit_parse_uint64_t (const char *what,
-                            const char *str, uint64_t *r);
-
-Parse string C<str> into an integer of various types.  These functions
-parse a decimal, hexadecimal (C<"0x...">) or octal (C<"0...">) number.
-
-On success the functions return C<0> and set C<*r> to the parsed value
-(unless C<*r == NULL> in which case the result is discarded).  On
-error, C<nbdkit_error> is called and the functions return C<-1>.  On
-error C<*r> is always unchanged.
-
-The C<what> parameter is printed in error messages to provide context.
-It should usually be a short descriptive string of what you are trying
-to parse, eg:
-
- if (nbdkit_parse_int ("random seed", value, &seed) == -1)
-   return -1;
-
-might print an error:
-
- random seed: could not parse number: "lalala"
 
 =head2 Parsing booleans
 
@@ -1859,7 +1826,7 @@ option to create the shared library directly, for example:
  gcc -fPIC -shared myplugin.c -o myplugin.so
 
 Note that the shared library will have undefined symbols for functions
-that you call like C<nbdkit_parse_int> or C<nbdkit_error>.  These will
+that you call like L<nbdkit_parse_int(3)> or C<nbdkit_error>.  These will
 be resolved by the server binary when nbdkit dlopens the plugin.
 
 =head2 PKG-CONFIG/PKGCONF
@@ -1972,7 +1939,17 @@ L<nbdkit-filter(3)>.
 
 Utility functions provided by nbdkit for plugins and filters to use:
 
-L<nbdkit_parse_size(3)>.
+L<nbdkit_parse_int(3)>,
+L<nbdkit_parse_int16_t(3)>,
+L<nbdkit_parse_int32_t(3)>,
+L<nbdkit_parse_int64_t(3)>,
+L<nbdkit_parse_int8_t(3)>,
+L<nbdkit_parse_size(3)>,
+L<nbdkit_parse_uint16_t(3)>,
+L<nbdkit_parse_uint32_t(3)>,
+L<nbdkit_parse_uint64_t(3)>,
+L<nbdkit_parse_uint8_t(3)>,
+L<nbdkit_parse_unsigned(3)>.
 
 Standard plugins provided by nbdkit:
 

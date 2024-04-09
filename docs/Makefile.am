@@ -38,6 +38,7 @@ EXTRA_DIST = \
 	nbdkit-client.pod \
 	nbdkit-filter.pod \
 	nbdkit-loop.pod \
+	nbdkit_parse_int.pod \
 	nbdkit_parse_size.pod \
 	nbdkit-plugin.pod \
 	nbdkit-probing.pod \
@@ -70,6 +71,15 @@ EXTRA_DIST = \
 # from pod sources.  Therefore we have to distribute them in the
 # tarball.
 non_generated_mans = \
+	nbdkit_parse_int8_t.3 \
+	nbdkit_parse_int16_t.3 \
+	nbdkit_parse_int32_t.3 \
+	nbdkit_parse_int64_t.3 \
+	nbdkit_parse_uint8_t.3 \
+	nbdkit_parse_uint16_t.3 \
+	nbdkit_parse_uint32_t.3 \
+	nbdkit_parse_uint64_t.3 \
+	nbdkit_parse_unsigned.3 \
 	$(NULL)
 EXTRA_DIST += $(non_generated_mans)
 
@@ -83,6 +93,7 @@ generated_mans = \
 	nbdkit-client.1 \
 	nbdkit-filter.3 \
 	nbdkit-loop.1 \
+	nbdkit_parse_int.3 \
 	nbdkit_parse_size.3 \
 	nbdkit-plugin.3 \
 	nbdkit-probing.1 \
@@ -145,6 +156,11 @@ nbdkit-filter.3: nbdkit-filter.pod filter-links.pod \
 
 nbdkit-loop.1: nbdkit-loop.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_parse_int.3: nbdkit_parse_int.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 
