@@ -20,6 +20,9 @@ plugin or filter which is sleeping).  The purpose of this function is
 to provide a way for sleeps to be interrupted when nbdkit is shutting
 down.
 
+Use L<nbdkit_parse_delay(3)> to parse delays and sleeps from
+configuration parameters for use by this function.
+
 =head1 RETURN VALUE
 
 This function returns C<0> if it slept at least as many seconds and
@@ -50,7 +53,8 @@ L<nbdkit(1)>,
 L<nbdkit_shutdown(3)>,
 L<nbdkit-plugin(3)>,
 L<nbdkit-filter(3)>,
-L<nbdkit-delay-filter(1)>.
+L<nbdkit-delay-filter(1)>,
+L<nbdkit_parse_delay(3)>.
 
 =head1 AUTHORS
 
