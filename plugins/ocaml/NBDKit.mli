@@ -162,7 +162,8 @@ val set_error : Unix.error -> unit
 (** Bindings for
     {{:http://libguestfs.org/nbdkit_parse_size.3.html}[nbdkit_parse_size(3)]},
     {{:http://libguestfs.org/nbdkit_parse_probability.3.html}[nbdkit_parse_probability(3)]},
-    {{:http://libguestfs.org/nbdkit_parse_bool.3.html}[nbdkit_parse_bool(3)]}
+    {{:http://libguestfs.org/nbdkit_parse_bool.3.html}[nbdkit_parse_bool(3)]},
+    {{:http://libguestfs.org/nbdkit_parse_delay.3.html}[nbdkit_parse_delay(3)]}
     and
     {{:http://libguestfs.org/nbdkit_read_password.3.html}[nbdkit_read_password(3)]}.
 
@@ -179,6 +180,7 @@ val set_error : Unix.error -> unit
 val parse_size : string -> int64
 val parse_probability : string -> string -> float
 val parse_bool : string -> bool
+val parse_delay : string -> string -> int * int
 val read_password : string -> string
 
 (** Binding for [nbdkit_stdio_safe].

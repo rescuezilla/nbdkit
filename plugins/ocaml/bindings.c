@@ -106,6 +106,25 @@ ocaml_nbdkit_parse_bool (value strv)
 }
 
 NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_parse_delay (value whatv, value strv)
+{
+  CAMLparam2 (whatv, strv);
+  CAMLlocal1 (rv);
+  unsigned sec, nsec;
+  int r;
+
+  r = nbdkit_parse_delay (String_val (whatv), String_val (strv),
+                          &sec, &nsec);
+  if (r == -1)
+    caml_invalid_argument ("nbdkit_parse_delay");
+  rv = caml_alloc (2, 0);
+  Store_field (rv, 0, Val_int (sec));
+  Store_field (rv, 1, Val_int (nsec));
+
+  CAMLreturn (rv);
+}
+
+NBDKIT_DLL_PUBLIC value
 ocaml_nbdkit_read_password (value strv)
 {
   CAMLparam1 (strv);

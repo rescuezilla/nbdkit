@@ -193,6 +193,8 @@ external parse_size : string -> int64 = "ocaml_nbdkit_parse_size"
 external parse_probability : string -> string -> float =
   "ocaml_nbdkit_parse_probability"
 external parse_bool : string -> bool = "ocaml_nbdkit_parse_bool"
+external parse_delay : string -> string -> int * int =
+  "ocaml_nbdkit_parse_delay"
 external read_password : string -> string = "ocaml_nbdkit_read_password"
 external stdio_safe : unit -> bool = "ocaml_nbdkit_stdio_safe"
 external realpath : string -> string = "ocaml_nbdkit_realpath"
