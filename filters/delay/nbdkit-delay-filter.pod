@@ -4,32 +4,28 @@ nbdkit-delay-filter - nbdkit delay filter
 
 =head1 SYNOPSIS
 
- nbdkit --filter=delay plugin rdelay=SECS wdelay=SECS [plugin-args...]
-
-=for paragraph
-
- nbdkit --filter=delay plugin rdelay=NNms wdelay=NNms [plugin-args...]
-
-=for paragraph
-
  nbdkit --filter=delay plugin [plugin-args ...]
-          delay-read=(SECS|NNms)
-          delay-write=(SECS|NNms)
-          delay-zero=(SECS|NNms)
-          delay-trim=(SECS|NNms)
-          delay-extents=(SECS|NNms)
-          delay-cache=(SECS|NNms)
+          delay-read=DELAY
+          delay-write=DELAY
+          delay-zero=DELAY
+          delay-trim=DELAY
+          delay-extents=DELAY
+          delay-cache=DELAY
+          delay-open=DELAY
+          delay-close=DELAY
           delay-fast-zero=BOOL
-          delay-open=(SECS|NNms)
-          delay-close=(SECS|NNms)
+
+=for paragraph
+
+ nbdkit --filter=delay plugin rdelay=DELAY wdelay=DELAY [plugin-args...]
 
 =head1 DESCRIPTION
 
-C<nbdkit-delay-filter> is a filter that delays read and write requests
-by some seconds or milliseconds.  This is used to simulate a slow or
-remote server, or to test certain kinds of race conditions in Linux.
-To limit server bandwidth use L<nbdkit-rate-filter(1)> instead.  To
-simulate a spinning disk see L<nbdkit-spinning-filter(1)>.
+C<nbdkit-delay-filter> is a filter for L<nbdkit(1)> that delays read
+and write requests.  This is used to simulate a slow or remote server,
+or to test certain kinds of race conditions in Linux.  To limit server
+bandwidth use L<nbdkit-rate-filter(1)> instead.  To simulate a
+spinning disk see L<nbdkit-spinning-filter(1)>.
 
 =head1 EXAMPLES
 
@@ -41,69 +37,69 @@ Delay only zero operations by 1 second, nothing else is affected:
 
  nbdkit --filter=delay file disk.img delay-zero=1
 
+=head1 DELAY FORMAT
+
+In nbdkit E<ge> 1.40, L<nbdkit_parse_delay(3)> is used to parse the
+delay parameters, so a wide variety of formats are accepted, such as:
+
+=over 4
+
+=item delay-read=1.5
+
+=item delay-write=100ms
+
+=item delay-zero=1.2μs
+
+=item delay-trim=1000ns
+
+=back
+
+In nbdkit E<le> 1.38, only a whole number of seconds, or a whole
+number of milliseconds (if suffixed by C<ms>) were allowed.
+
 =head1 PARAMETERS
 
 =over 4
 
-=item B<rdelay=>SECS
+=item B<rdelay=>DELAY
 
-=item B<rdelay=>NNB<ms>
+=item B<delay-read=>DELAY
 
-=item B<delay-read=>SECS
-
-=item B<delay-read=>NNB<ms>
-
-Delay read operations by C<SECS> seconds or C<NN> milliseconds.
+Delay read operations by C<DELAY>.
 
 The two forms C<rdelay> and C<delay-read> work identically.
 
-=item B<delay-write=>SECS
+=item B<delay-write=>DELAY
 
-=item B<delay-write=>NNB<ms>
+Delay write operations by C<DELAY>.
 
-Delay write operations by C<SECS> seconds or C<NN> milliseconds.
-
-=item B<delay-zero=>SECS
-
-=item B<delay-zero=>NNB<ms>
+=item B<delay-zero=>DELAY
 
 (nbdkit E<ge> 1.10)
 
-Delay zero operations by C<SECS> seconds or C<NN> milliseconds.  See
-also B<delay-fast-zero>.
+Delay zero operations by C<DELAY>.  See also B<delay-fast-zero>.
 
-=item B<delay-trim=>SECS
-
-=item B<delay-trim=>NNB<ms>
+=item B<delay-trim=>DELAY
 
 (nbdkit E<ge> 1.10)
 
-Delay trim/discard operations by C<SECS> seconds or C<NN> milliseconds.
+Delay trim/discard operations by C<DELAY>.
 
-=item B<delay-extents=>SECS
-
-=item B<delay-extents=>NNB<ms>
+=item B<delay-extents=>DELAY
 
 (nbdkit E<ge> 1.12)
 
-Delay block status (extents) operations by C<SECS> seconds or C<NN>
-milliseconds.
+Delay block status (extents) operations by C<DELAY>.
 
-=item B<delay-cache=>SECS
-
-=item B<delay-cache=>NNB<ms>
+=item B<delay-cache=>DELAY
 
 (nbdkit E<ge> 1.14)
 
-Delay advisory cache operations by C<SECS> seconds or C<NN>
-milliseconds.
+Delay advisory cache operations by C<DELAY>.
 
-=item B<wdelay=>SECS
+=item B<wdelay=>DELAY
 
-=item B<wdelay=>NNB<ms>
-
-Delay write, zero and trim operations by C<SECS> seconds or C<NN>
-milliseconds.
+Delay write, zero and trim operations by C<DELAY>.
 
 =item B<delay-fast-zero=>BOOL
 
@@ -118,27 +114,21 @@ delay as any other zero request; but setting this parameter to false
 instantly fails a fast zero response without waiting for or consulting
 the plugin.
 
-=item B<delay-open=>SECS
-
-=item B<delay-open=>NNB<ms>
+=item B<delay-open=>DELAY
 
 (nbdkit E<ge> 1.28)
 
-Delay open (client connection) by C<SECS> seconds or C<NN>
-milliseconds.
+Delay open (client connection) by C<DELAY>.
 
-=item B<delay-close=>SECS
-
-=item B<delay-close=>NNB<ms>
+=item B<delay-close=>DELAY
 
 (nbdkit E<ge> 1.28)
 
-Delay close (client disconnection) by C<SECS> seconds or C<NN>
-milliseconds.  This can also cause server shutdown to be delayed if
-clients are connected at the time.  This only affects clients that
-gracefully disconnect (using C<NBD_CMD_DISC> / libnbd function
-L<nbd_shutdown(3)>).  Clients that abruptly disconnect from the server
-cannot be delayed.
+Delay close (client disconnection) by C<DELAY>.  This can also cause
+server shutdown to be delayed if clients are connected at the time.
+This only affects clients that gracefully disconnect (using
+C<NBD_CMD_DISC> / libnbd function L<nbd_shutdown(3)>).  Clients that
+abruptly disconnect from the server cannot be delayed.
 
 =back
 
@@ -165,7 +155,8 @@ L<nbdkit(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-pause-filter(1)>,
 L<nbdkit-rate-filter(1)>,
-L<nbdkit-spinning-filter(1)>.
+L<nbdkit-spinning-filter(1)>,
+L<nbdkit_parse_delay(3)>.
 
 =head1 AUTHORS
 
