@@ -46,7 +46,7 @@
 #include "windows-compat.h"
 
 static unsigned retries = 2;    /* 0 = filter is disabled */
-static unsigned delay = 2;
+static unsigned delay_sec = 2, delay_nsec = 0;
 static bool retry_open_call = true;
 
 static int
@@ -71,9 +71,10 @@ retry_request_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
     return 0;
   }
   else if (strcmp (key, "retry-request-delay") == 0) {
-    if (nbdkit_parse_unsigned ("retry-request-delay", value, &delay) == -1)
+    if (nbdkit_parse_delay ("retry-request-delay", value,
+                            &delay_sec, &delay_nsec) == -1)
       return -1;
-    if (delay == 0) {
+    if (delay_sec == 0 && delay_nsec == 0) {
       nbdkit_error ("retry-request-delay cannot be 0");
       return -1;
     }
@@ -107,9 +108,9 @@ retry_request_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
     r = -1;                                                             \
     for (i = 0; r == -1 && i <= retries; ++i) {                         \
       if (i > 0) {                                                      \
-        nbdkit_debug ("retry %u: waiting %u seconds before retrying %s",\
-                      i, delay, what);                                  \
-        if (nbdkit_nanosleep (delay, 0) == -1) {                        \
+        nbdkit_debug ("retry %u: waiting %u sec %u nsec before retrying %s",\
+                      i, delay_sec, delay_nsec, what);                  \
+        if (nbdkit_nanosleep (delay_sec, delay_nsec) == -1) {           \
           if (*err == 0)                                                \
             *err = errno;                                               \
           break;                                                        \

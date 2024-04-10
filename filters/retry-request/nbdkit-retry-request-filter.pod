@@ -30,10 +30,10 @@ always reopens the whole plugin connection on failure.
 The number of times any single request will be retried before we give
 up and fail the operation.  The default is 2.
 
-=item B<retry-request-delay=>N
+=item B<retry-request-delay=>DELAY
 
-The number of seconds to wait before retrying.  The default is 2
-seconds.
+The time to wait before retrying.  The default is 2 seconds.  Any
+format supported by L<nbdkit_parse_delay(3)> is allowed here.
 
 =item B<retry-request-open=false>
 
@@ -63,7 +63,8 @@ C<nbdkit-retry-filter> first appeared in nbdkit 1.30.
 L<nbdkit(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-readahead-filter(1)>,
-L<nbdkit-retry-filter(1)>.
+L<nbdkit-retry-filter(1)>,
+L<nbdkit_parse_delay(3)>.
 
 =head1 AUTHORS
 
