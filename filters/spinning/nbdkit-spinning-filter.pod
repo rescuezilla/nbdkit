@@ -88,9 +88,9 @@ to exaggerate the effect for testing purposes.
 You can adjust the time taken to seek across the whole disk
 (C<max-seek-time>), across half of the disk (C<half-seek-time>), and
 from one track to an adjacent track (C<min-seek-time>) in order to
-change this curve.  All settings are in seconds.  For example, setting
-C<half-seek-time=0.5 max-seek-time=1.0> will make seek times twice as
-slow as the default and approximately linear with distance.
+change this curve.  For example, setting C<half-seek-time=500ms
+max-seek-time=1000ms> will make seek times twice as slow as the
+default and approximately linear with distance.
 
 =head1 PARAMETERS
 
@@ -116,8 +116,11 @@ above.  The default is C<false>.
 
 Adjust the time taken to seek to an adjacent track, seek across half
 of the disk, and seek across the whole disk.  All numbers are in
-seconds.  The defaults are C<min-seek-time=0.01>,
-C<half-seek-time=0.2> and C<max-seek-time=0.5>.
+seconds.  The defaults are C<min-seek-time=10ms>,
+C<half-seek-time=200ms> and C<max-seek-time=500ms>.
+
+See L<nbdkit_parse_delay(3)> for the precise format of these
+parameters.
 
 =back
 
@@ -146,6 +149,7 @@ L<nbdkit-rotational-filter(1)>,
 L<nbdkit-memory-plugin(1)>,
 L<nbdinfo(1)>,
 L<nbdkit-filter(3)>,
+L<nbdkit_parse_delay(3)>,
 L<https://en.wikipedia.org/wiki/Hard_disk_drive>,
 L<https://en.wikipedia.org/wiki/Hard_disk_drive_performance_characteristics>.
 

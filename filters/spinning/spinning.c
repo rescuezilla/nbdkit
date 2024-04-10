@@ -69,6 +69,21 @@ seek_time (double x)
   return a * x * x + b * x + c;
 }
 
+/* Parse seek times using nbdkit_parse_delay, but convert it back to a
+ * double for curve calculations.
+ */
+static int
+parse_seek_time (const char *what, const char *str, double *r)
+{
+  unsigned sec, nsec;
+
+  if (nbdkit_parse_delay (what, str, &sec, &nsec) == -1)
+    return -1;
+
+  *r = sec + nsec / 1000000000.;
+  return 0;
+}
+
 static int
 spinning_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
                  const char *key, const char *value)
@@ -93,30 +108,18 @@ spinning_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
     return 0;
   }
   else if (strcmp (key, "min-seek-time") == 0) {
-    if (sscanf (value, "%lf", &min_seek_time) != 1 ||
-        min_seek_time < 0) {
-      nbdkit_error ("min-seek-time must be a number >= 0 (was: \"%s\")",
-                    value);
+    if (parse_seek_time (key, value, &min_seek_time) == -1)
       return -1;
-    }
     return 0;
   }
   else if (strcmp (key, "half-seek-time") == 0) {
-    if (sscanf (value, "%lf", &half_seek_time) != 1 ||
-        half_seek_time < 0) {
-      nbdkit_error ("half-seek-time must be a number >= 0 (was: \"%s\")",
-                    value);
+    if (parse_seek_time (key, value, &half_seek_time) == -1)
       return -1;
-    }
     return 0;
   }
   else if (strcmp (key, "max-seek-time") == 0) {
-    if (sscanf (value, "%lf", &max_seek_time) != 1 ||
-        max_seek_time < 0) {
-      nbdkit_error ("max-seek-time must be a number >= 0 (was: \"%s\")",
-                    value);
+    if (parse_seek_time (key, value, &max_seek_time) == -1)
       return -1;
-    }
     return 0;
   }
 
