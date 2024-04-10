@@ -19,6 +19,8 @@ The C<str> parameter is a string in one of the following formats:
 
 =over 4
 
+=item C<1>
+
 =item C<1.2>
 
 =item C<1.2s>
@@ -27,11 +29,15 @@ Seconds
 
 =item C<1.2ms>
 
+=item C<120ms>
+
 Milliseconds
 
 =item C<1.2us>
 
 =item C<1.2μs>
+
+=item C<120μs>
 
 Microseconds
 
@@ -43,13 +49,16 @@ Nanoseconds, the smallest possible time division for this function.
 
 The C<what> parameter is printed in error messages to provide context.
 
+The output (C<sec>, C<nsec>) can be passed straight to
+L<nbdkit_nanosleep(3)>.
+
 =head1 RETURN VALUE
 
 On success the function returns C<0> and sets C<*sec> and C<*nsec> to
 the seconds and nanoseconds parsed.
 
 If there is an error it calls L<nbdkit_error(3)> and returns C<-1>.
-In this case, C<*sec> and C<*nsec> and not touched.
+In this case, C<*sec> and C<*nsec> are not touched.
 
 =head1 LANGUAGE BINDINGS
 
