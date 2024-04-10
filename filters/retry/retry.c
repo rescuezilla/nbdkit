@@ -46,7 +46,7 @@
 #include "windows-compat.h"
 
 static unsigned retries = 5;    /* 0 = filter is disabled */
-static unsigned initial_delay = 2;
+static unsigned initial_delay_sec = 2, initial_delay_nsec = 0;
 static bool exponential_backoff = true;
 static bool force_readonly = false;
 
@@ -73,9 +73,10 @@ retry_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
     return 0;
   }
   else if (strcmp (key, "retry-delay") == 0) {
-    if (nbdkit_parse_unsigned ("retry-delay", value, &initial_delay) == -1)
+    if (nbdkit_parse_delay ("retry-delay", value,
+                            &initial_delay_sec, &initial_delay_nsec) == -1)
       return -1;
-    if (initial_delay == 0) {
+    if (initial_delay_sec == 0 && initial_delay_nsec == 0) {
       nbdkit_error ("retry-delay cannot be 0");
       return -1;
     }
@@ -119,8 +120,8 @@ struct retry_handle {
  * retries within the same command, and is initialized to zero.
  */
 struct retry_data {
-  int retry;                    /* Retry number (0 = first time). */
-  int delay;                    /* Seconds to wait before retrying. */
+  int retry;                      /* Retry number (0 = first time). */
+  unsigned delay_sec, delay_nsec; /* Delay before retrying. */
 };
 
 static bool
@@ -141,8 +142,10 @@ do_retry (struct retry_handle *h, struct retry_data *data,
   nbdkit_next *new_next, *old_next;
 
   /* If it's the first retry, initialize the other fields in *data. */
-  if (data->retry == 0)
-    data->delay = initial_delay;
+  if (data->retry == 0) {
+    data->delay_sec = initial_delay_sec;
+    data->delay_nsec = initial_delay_nsec;
+  }
 
  again:
   if (data->retry >= retries) {
@@ -153,9 +156,9 @@ do_retry (struct retry_handle *h, struct retry_data *data,
   /* Since we will retry, log the original errno otherwise it will be lost. */
   nbdkit_debug ("%s failed: original errno = %d", method, *err);
 
-  nbdkit_debug ("retry %d: waiting %d seconds before retrying",
-                data->retry+1, data->delay);
-  if (nbdkit_nanosleep (data->delay, 0) == -1) {
+  nbdkit_debug ("retry %d: waiting %u sec %u nsec before retrying",
+                data->retry+1, data->delay_sec, data->delay_nsec);
+  if (nbdkit_nanosleep (data->delay_sec, data->delay_nsec) == -1) {
     /* We could do this but it would overwrite the more important
      * errno from the underlying data call.
      */
@@ -166,8 +169,14 @@ do_retry (struct retry_handle *h, struct retry_data *data,
 
   /* Update *data in case we are called again. */
   data->retry++;
-  if (exponential_backoff)
-    data->delay *= 2;
+  if (exponential_backoff) {
+    data->delay_nsec *= 2;
+    data->delay_sec *= 2;
+    if (data->delay_nsec > 1000000000) {
+      data->delay_sec++;
+      data->delay_nsec -= 1000000000;
+    }
+  }
 
   /* Close the old connection. */
   h->reopens++;
