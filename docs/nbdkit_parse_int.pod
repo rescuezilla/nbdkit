@@ -60,7 +60,7 @@ On error C<*r> is always unchanged.
 
 =head1 HISTORY
 
-C<nbdkit_parse_size> was added in nbdkit 1.16.
+C<nbdkit_parse_int> and the others were added in nbdkit 1.16.
 
 =head1 SEE ALSO
 
