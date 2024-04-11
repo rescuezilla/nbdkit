@@ -34,6 +34,7 @@ package main
 
 import (
 	"C"
+	"fmt"
 	"io/ioutil"
 	"libguestfs.org/nbdkit"
 	"os"
@@ -66,6 +67,7 @@ func (p *DiskPlugin) Config(key string, value string) error {
 			return err
 		}
 		size_set = true
+		nbdkit.Debug(fmt.Sprintf("debugging: size = %d", size))
 		return nil
 	} else {
 		return nbdkit.PluginError{Errmsg: "unknown parameter"}

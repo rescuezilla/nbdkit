@@ -31,7 +31,8 @@ support that natively.
 
 In L<nbdkit-golang-plugin(3)>:
 
- Debug(msg)
+ import "libguestfs.org/nbdkit"
+ nbdkit.Debug(msg)
 
 In L<nbdkit-ocaml-plugin(3)>:
 
