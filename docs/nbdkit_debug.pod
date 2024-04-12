@@ -40,7 +40,7 @@ In L<nbdkit-ocaml-plugin(3)>:
 
 In L<nbdkit-perl-plugin(3)>:
 
- Nbdkit::debug ($msg)
+ Nbdkit::debug ($msg);
 
 In L<nbdkit-python-plugin(3)>:
 
