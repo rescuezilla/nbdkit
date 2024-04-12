@@ -50,7 +50,7 @@ In L<nbdkit-python-plugin(3)>:
 In L<nbdkit-rust-plugin(3)>:
 
  use nbdkit::*;
- debug!(fs, ...)
+ debug!(fs, ...);
 
 =head1 HISTORY
 

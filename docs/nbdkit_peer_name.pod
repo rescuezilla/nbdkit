@@ -89,6 +89,7 @@ In L<nbdkit-python-plugin(3)>:
 
 In L<nbdkit-rust-plugin(3)>:
 
+ use nbdkit::*;
  pub fn peername<T: SockaddrLike>() ->
          std::result::Result<T, Box<dyn error::Error>>
 

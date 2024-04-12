@@ -62,6 +62,7 @@ In L<nbdkit-python-plugin(3)>:
 
 In L<nbdkit-rust-plugin(3)>:
 
+ use nbdkit::*;
  pub fn shutdown()
  pub fn disconnect(force: bool)
 

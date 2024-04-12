@@ -28,6 +28,7 @@ In L<nbdkit-ocaml-plugin(3)>:
 
 In L<nbdkit-rust-plugin(3)>:
 
+ use nbdkit::*;
  pub fn parse_bool(s: &str) -> Result<bool>
 
 =head1 HISTORY

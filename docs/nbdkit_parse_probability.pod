@@ -42,6 +42,7 @@ In L<nbdkit-python-plugin(3)>:
 
 In L<nbdkit-rust-plugin(3)>:
 
+ use nbdkit::*;
  pub fn parse_probability(what: &str, s: &str) -> Result<f64>
 
 =head1 HISTORY
