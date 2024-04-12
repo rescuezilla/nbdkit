@@ -53,6 +53,7 @@ C<nbdkit_parse_probability> was added in nbdkit 1.36.
 
 L<nbdkit(1)>,
 L<nbdkit_parse_bool(3)>,
+L<nbdkit_parse_delay(3)>,
 L<nbdkit_parse_int(3)>,
 L<nbdkit_parse_size(3)>,
 L<nbdkit-plugin(3)>,

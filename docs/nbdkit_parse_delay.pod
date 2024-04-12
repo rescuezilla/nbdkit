@@ -73,6 +73,9 @@ C<nbdkit_parse_delay> was added in nbdkit 1.40.
 =head1 SEE ALSO
 
 L<nbdkit(1)>,
+L<nbdkit_parse_bool(3)>,
+L<nbdkit_parse_int(3)>,
+L<nbdkit_parse_probability(3)>,
 L<nbdkit_parse_size(3)>,
 L<nbdkit_nanosleep(3)>,
 L<nbdkit-plugin(3)>,
