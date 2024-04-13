@@ -56,19 +56,34 @@ class TestAPI(unittest.TestCase):
             nbdkit.parse_size('foo')
 
     def test_parse_probability(self):
-        self.assertEqual(nbdkit.parse_probability('test', '1:10'), 0.1)
-        self.assertEqual(nbdkit.parse_probability('test', '100%'), 1)
-        self.assertEqual(nbdkit.parse_probability('test', '0'), 0)
+        test = "test_parse_probability"
+
+        self.assertEqual(nbdkit.parse_probability(test, '1:10'), 0.1)
+        self.assertEqual(nbdkit.parse_probability(test, '100%'), 1)
+        self.assertEqual(nbdkit.parse_probability(test, '0'), 0)
 
         with self.assertRaises(TypeError):
-            nbdkit.parse_probability('test', 17)
+            nbdkit.parse_probability(test, 17)
 
         with self.assertRaises(ValueError):
-            nbdkit.parse_probability('test', 'bar')
+            nbdkit.parse_probability(test, 'bar')
+
+    def test_parse_delay(self):
+        test = "test_parse_delay"
+
+        self.assertEqual(nbdkit.parse_delay(test, '10ms'), (0, 10000000))
+        self.assertEqual(nbdkit.parse_delay(test, '1.5'), (1, 500000000))
+
+        with self.assertRaises(TypeError):
+            nbdkit.parse_delay(test, 17)
+
+        with self.assertRaises(ValueError):
+            nbdkit.parse_delay(test, 'bar')
 
 
 TestAPI().test_parse_size()
 TestAPI().test_parse_probability()
+TestAPI().test_parse_delay()
 
 
 def config(k, v):

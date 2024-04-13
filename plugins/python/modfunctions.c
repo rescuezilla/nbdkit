@@ -142,6 +142,25 @@ parse_probability (PyObject *self, PyObject *args)
   return PyFloat_FromDouble (d);
 }
 
+/* nbdkit.parse_delay */
+static PyObject *
+parse_delay (PyObject *self, PyObject *args)
+{
+  const char *what, *str;
+  unsigned sec, nsec;
+
+  if (!PyArg_ParseTuple (args, "ss:parse_delay", &what, &str))
+    return NULL;
+
+  if (nbdkit_parse_delay (what, str, &sec, &nsec) == -1) {
+    PyErr_SetString (PyExc_ValueError,
+                     "Unable to parse string as delay");
+    return NULL;
+  }
+
+  return Py_BuildValue ("(II)", sec, nsec);
+}
+
 /* nbdkit.stdio_safe */
 static PyObject *
 do_stdio_safe (PyObject *self, PyObject *args)
@@ -265,6 +284,8 @@ static PyMethodDef NbdkitMethods[] = {
     "Return True if the client completed TLS authentication" },
   { "nanosleep", do_nanosleep, METH_VARARGS,
     "Sleep for seconds and nanoseconds" },
+  { "parse_delay", parse_delay, METH_VARARGS,
+    "Parse delay and sleep strings into (sec, nsec) pair" },
   { "parse_probability", parse_probability, METH_VARARGS,
     "Parse probability strings into floating point number" },
   { "parse_size", parse_size, METH_VARARGS,

@@ -139,6 +139,11 @@ C<False> if the connection is plaintext.
 
 Sleep for seconds and nanoseconds.
 
+=head3 C<nbdkit.parse_delay(what, str)>
+
+Parse a delay or sleep (such as "10ms") into a pair (sec, nsec).
+Wraps the L<nbdkit_parse_delay(3)> function.
+
 =head3 C<nbdkit.parse_size(str)>
 
 Parse a string (such as "100M") into a size in bytes.  Wraps the
