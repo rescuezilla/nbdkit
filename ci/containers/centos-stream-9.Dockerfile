@@ -26,6 +26,7 @@ RUN dnf distro-sync -y && \
         gawk \
         gcc \
         gcc-c++ \
+        genisoimage \
         git \
         glibc-langpack-en \
         gnutls-devel \
@@ -67,6 +68,7 @@ RUN dnf distro-sync -y && \
         zlib-devel && \
     dnf autoremove -y && \
     dnf clean all -y && \
+    rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED && \
     rpm -qa | sort > /packages.txt && \
     mkdir -p /usr/libexec/ccache-wrappers && \
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++ && \
