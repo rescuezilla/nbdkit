@@ -11,7 +11,7 @@ function install_buildenv() {
         autoconf \
         automake \
         bash \
-        bash-completion \
+        bash-completion-devel \
         ca-certificates \
         cargo \
         ccache \
@@ -62,6 +62,7 @@ function install_buildenv() {
         xz \
         xz-devel \
         zlib-devel
+    rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED
     rpm -qa | sort > /packages.txt
     mkdir -p /usr/libexec/ccache-wrappers
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++
