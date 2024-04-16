@@ -68,7 +68,6 @@ lang_plugins="\
         ocaml \
         perl \
         python \
-        ruby \
         rust \
         sh \
         tcl \
@@ -1077,24 +1076,6 @@ AS_IF([test "x$have_rust" = "xyes"], [
     printf "rustc version: "; $RUSTC --version
 ])
 
-dnl Check for Ruby, for embedding in the Ruby plugin.
-AC_CHECK_PROG([RUBY],[ruby],[ruby],[no])
-AC_ARG_ENABLE([ruby],
-    [AS_HELP_STRING([--disable-ruby], [disable Ruby plugin])],
-    [],
-    [enable_ruby=yes])
-AS_IF([test "x$RUBY" != "xno" && test "x$enable_ruby" != "xno"],[
-    PKG_CHECK_MODULES([RUBY], [ruby], [
-        AC_SUBST([RUBY_CFLAGS])
-        AC_SUBST([RUBY_LIBS])
-    ],[
-        AC_MSG_WARN([ruby not found])
-        enable_ruby=no
-    ])
-])
-AM_CONDITIONAL([HAVE_RUBY],[test "x$RUBY" != "xno" &&
-                            test "x$enable_ruby" = "xyes"])
-
 dnl Check for Tcl, for embedding in the Tcl plugin.
 AC_ARG_ENABLE([tcl],
     [AS_HELP_STRING([--disable-tcl], [disable Tcl plugin])],
@@ -1617,7 +1598,6 @@ AC_CONFIG_FILES([Makefile
                  plugins/perl/Makefile
                  plugins/python/Makefile
                  plugins/random/Makefile
-                 plugins/ruby/Makefile
                  plugins/rust/Makefile
                  plugins/S3/Makefile
                  plugins/sh/Makefile
@@ -1747,7 +1727,6 @@ feature "lua"                 test "x$HAVE_LUA_TRUE" = "x"
 feature "ocaml"               test "x$HAVE_OCAML_TRUE" = "x"
 feature "perl"                test "x$HAVE_PERL_TRUE" = "x"
 feature "python"              test "x$HAVE_PYTHON_TRUE" = "x"
-feature "ruby"                test "x$HAVE_RUBY_TRUE" = "x"
 feature "rust"                test "x$HAVE_RUST_TRUE" = "x"
 feature "tcl"                 test "x$HAVE_TCL_TRUE" = "x"
 

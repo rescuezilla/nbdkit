@@ -83,7 +83,6 @@ main() {
 --disable-libfuzzer
 --enable-plugins
 --enable-python
---enable-ruby
 --enable-tcl
 --enable-lua
 --enable-torrent

@@ -12,7 +12,7 @@ The key features of nbdkit are:
   libraries or included in proprietary code.
 * Well-documented, simple plugin API with a stable ABI guarantee.
   Lets you export “unconventional” block devices easily.
-* You can write plugins in C/C++, Go, Lua, Perl, Python, OCaml, Ruby,
+* You can write plugins in C/C++, Go, Lua, Perl, Python, OCaml,
   Rust, shell script or Tcl.
 * Filters can be stacked in front of plugins to transform the output.
 

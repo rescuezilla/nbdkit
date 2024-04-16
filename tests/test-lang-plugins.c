@@ -55,9 +55,7 @@ main (int argc, char *argv[])
    * valgrind, so skip them.
    */
   s = getenv ("NBDKIT_VALGRIND");
-  if (s && strcmp (s, "1") == 0 &&
-      (strcmp (LANG, "ruby") == 0 ||
-       strcmp (LANG, "tcl") == 0)) {
+  if (s && strcmp (s, "1") == 0 && strcmp (LANG, "tcl") == 0) {
     fprintf (stderr, "%s test skipped under valgrind.\n", LANG);
     exit (77);                  /* Tells automake to skip the test. */
   }

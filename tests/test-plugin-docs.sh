@@ -94,7 +94,7 @@ run_test ()
 do_test ()
 {
     case "$1" in
-        cc|eval|golang|lua|ocaml|perl|python|ruby|rust|sh|tcl)
+        cc|eval|golang|lua|ocaml|perl|python|rust|sh|tcl)
             # Skip all language plugins as this test doesn't
             # make sense for these.
             ;;

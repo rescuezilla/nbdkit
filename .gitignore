@@ -172,7 +172,6 @@ plugins/*/*.3
 /tests/test-random
 /tests/test-readahead
 /tests/test-retry-request-mirror
-/tests/test-ruby
 /tests/test-shell
 /tests/test-shell.img
 /tests/test-socket-activation

@@ -1314,34 +1314,6 @@ EXTRA_DIST += \
 
 endif HAVE_PYTHON
 
-# Ruby plugin test.
-EXTRA_DIST += \
-	shebang.rb \
-	test.rb \
-	test-shebang-ruby.sh \
-	$(NULL)
-
-if HAVE_RUBY
-
-# Ruby tests are disabled.  See "WARNING" section in
-# plugins/ruby/nbdkit-ruby-plugin.pod
-
-#LIBGUESTFS_TESTS += \
-#	test-ruby \
-#	$(NULL)
-#TESTS += test-shebang-ruby.sh
-EXTRA_PROGRAMS += test-ruby
-
-test_ruby_SOURCES = test-lang-plugins.c test.h
-test_ruby_CFLAGS = \
-	-DLANG='"ruby"' -DSCRIPT='"$(srcdir)/test.rb"' \
-	$(WARNINGS_CFLAGS) \
-	$(LIBGUESTFS_CFLAGS) \
-	$(NULL)
-test_ruby_LDADD = libtest.la $(LIBGUESTFS_LIBS)
-
-endif HAVE_RUBY
-
 # Shell (sh) plugin test.
 LIBGUESTFS_TESTS += test-shell
 check_DATA += test-shell.img
