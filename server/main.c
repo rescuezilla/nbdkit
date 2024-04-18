@@ -1022,8 +1022,11 @@ failed_to_load_error (const char *what,
                       const char *filename,
                       const char *short_name)
 {
-  fprintf (stderr, "%s: error: cannot open %s '%s': %s\n",
-           program_name, what, filename, dlerror ());
+  fprintf (stderr, "%s: error: cannot open %s \"", program_name, what);
+  c_string_quote (filename, stderr);
+  fprintf (stderr, "\": ");
+  c_string_quote (dlerror (), stderr);
+  fprintf (stderr, "\n");
   if (short_name && is_possible_package_name (short_name)) {
     fprintf (stderr,
              "\n"
