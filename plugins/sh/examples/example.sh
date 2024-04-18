@@ -6,11 +6,11 @@
 #
 # Run it from the build directory like this:
 #
-#   ./nbdkit -f -v sh ./plugins/sh/example.sh file=disk.img
+#   ./nbdkit -f -v sh ./plugins/sh/examples/example.sh file=disk.img
 #
 # Or run it after installing nbdkit like this:
 #
-#   nbdkit -f -v sh ./plugins/sh/example.sh file=disk.img
+#   nbdkit -f -v sh ./plugins/sh/examples/example.sh file=disk.img
 #
 # The file= prefix is optional: see nbdkit(1) section "Magic
 # parameters" and the magic_config_key setting below.

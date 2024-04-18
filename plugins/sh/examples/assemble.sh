@@ -8,7 +8,7 @@
 #
 # Run it from the build directory like this:
 #
-#   ./nbdkit sh ./plugins/sh/assemble.sh input.asm \
+#   ./nbdkit sh ./plugins/sh/examples/assemble.sh input.asm \
 #       --run 'qemu-system-i386 -hda $nbd'
 #
 # For some assembler files to use as input, see
