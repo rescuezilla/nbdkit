@@ -63,6 +63,7 @@
 
 #include <dlfcn.h>
 
+#include "ascii-ctype.h"
 #include "ascii-string.h"
 #include "exit-with-parent.h"
 #include "nbd-protocol.h"
@@ -982,6 +983,27 @@ make_uri (void)
   return r;
 }
 
+/* Is it the name of a possible nbdkit-<name>-plugin or
+ * nbdkit-<name>-filter that might be a Fedora or Debian package?
+ * This matches more than all possible names, but it's just a guide
+ * for help output.
+ */
+static int
+is_possible_package_name (const char *name)
+{
+  size_t i, n = strlen (name);
+
+  for (i = 0; i < n; ++i) {
+    char c = name[i];
+    if (ascii_isalnum (c))
+      continue;
+    if (c == '-' || c == '_' || c == '.')
+      continue;
+    return 0;
+  }
+  return 1;
+}
+
 /* Common error handling for dlopen(3) failures in open_plugin_so or
  * open_filter_so.
  *
@@ -1002,13 +1024,14 @@ failed_to_load_error (const char *what,
 {
   fprintf (stderr, "%s: error: cannot open %s '%s': %s\n",
            program_name, what, filename, dlerror ());
-  if (short_name)
+  if (short_name && is_possible_package_name (short_name)) {
     fprintf (stderr,
              "\n"
              "To add this functionality you might need to install a separate\n"
              "%s package such as nbdkit-%s-%s (Fedora) or\n"
              "nbdkit-%s-%s (Debian).\n",
              what, short_name, what, what, short_name);
+  }
   fprintf (stderr,
            "\n"
            "Use '%s --help' or "
