@@ -1287,6 +1287,7 @@ TESTS += \
 	test-python-peer.sh \
 	test-python-thread-model.sh \
 	test-shebang-python.sh \
+	test-shebang-crlf.sh \
 	$(NULL)
 EXTRA_DIST += \
 	python-error.py \
@@ -1309,8 +1310,20 @@ EXTRA_DIST += \
 	test-python-thread-model.sh \
 	test-python.sh \
 	test-shebang-python.sh \
+	test-shebang-crlf.sh \
 	test_python.py \
 	$(NULL)
+
+# We can't trust that git will preserve the line endings accurately in
+# shebang-crlf.py (see core.autocrlf feature).  So we generate it
+# before the test is run.
+test-shebang-crlf.sh: shebang-crlf.py
+shebang-crlf.py:
+	rm -f $@-t $@
+	printf '#!../nbdkit python\r\n' > $@-t
+	chmod +x $@-t
+	mv $@-t $@
+DISTCLEANFILES += shebang-crlf.py
 
 endif HAVE_PYTHON
 
