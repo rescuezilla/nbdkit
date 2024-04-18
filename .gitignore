@@ -132,6 +132,7 @@ plugins/*/*.3
 /tests/nbdkit
 /tests/partition-disk
 /tests/pki
+/tests/shebang-crlf.py
 /tests/split1
 /tests/split2
 /tests/split3
