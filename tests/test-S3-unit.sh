@@ -39,6 +39,8 @@ requires $PYTHON --version
 requires $PYTHON -c 'import unittest'
 skip_if_valgrind "because Python code leaks memory"
 
-export PYTHONPATH=$srcdir/../plugins/S3:$srcdir/test-S3:$PYTHONPATH
+prepend PYTHONPATH "$srcdir/../plugins/S3"
+prepend PYTHONPATH "$srcdir/test-S3"
+export PYTHONPATH
 
 $PYTHON -m unittest S3

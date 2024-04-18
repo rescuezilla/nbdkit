@@ -178,6 +178,16 @@ kill_nbdkit ()
 }
 
 #----------------------------------------------------------------------
+# Safely prepend on a colon-separated path variable
+# eg:
+# prepend PATH "$srcdir/foo"
+
+prepend()
+{
+    eval $1="$2\${$1:+:\$$1}"
+}
+
+#----------------------------------------------------------------------
 # Test prerequisites.
 #
 # Various 'requires' and related functions that can be used at the top

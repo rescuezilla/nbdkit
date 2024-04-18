@@ -43,8 +43,9 @@ skip_if_valgrind "because Python code leaks memory"
 
 # There is a fake google-cloud-storage module in test-gcs/ which
 # we use as a test harness for the plugin.
-requires test -d test-gcs
-export PYTHONPATH=$srcdir/test-gcs:$PYTHONPATH
+requires test -d "$srcdir/test-gcs"
+prepend PYTHONPATH "$srcdir/test-gcs"
+export PYTHONPATH
 
 file=gcs.out
 rm -f $file
