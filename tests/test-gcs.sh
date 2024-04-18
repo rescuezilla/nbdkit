@@ -52,7 +52,7 @@ rm -f $file
 cleanup_fn rm -f $file
 
 # The fake module checks the parameters have these particular values.
-nbdkit gcs \
+nbdkit -v gcs \
        json-credentials=TEST_JSON_CREDENTIALS \
        bucket=MY_FILES \
        key=MY_KEY \
