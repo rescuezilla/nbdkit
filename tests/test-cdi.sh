@@ -71,8 +71,8 @@ case "$1" in
 esac
 EOF
 chmod +x cdi/podman
-export PATH=$PWD/cdi:$PATH
-export TRUNCATE
+prepend PATH "$PWD/cdi"
+export PATH TRUNCATE
 
 # Start nbdkit.  It should export the 1M raw file "layer".
 start_nbdkit -P cdi.pid -U $sock cdi ignored_parameter

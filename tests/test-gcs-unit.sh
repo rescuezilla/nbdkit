@@ -39,6 +39,8 @@ requires $PYTHON --version
 requires $PYTHON -c 'import unittest'
 skip_if_valgrind "because Python code leaks memory"
 
-export PYTHONPATH=$srcdir/../plugins/gcs:$srcdir/test-gcs:$PYTHONPATH
+prepend PYTHONPATH "$srcdir/../plugins/gcs"
+prepend PYTHONPATH "$srcdir/test-gcs"
+export PYTHONPATH
 
 $PYTHON -m unittest gcs
