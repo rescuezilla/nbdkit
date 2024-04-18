@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # nbdkit
 # Copyright Red Hat
 #
@@ -29,57 +30,21 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-include $(top_srcdir)/common-rules.mk
+# Test plugins/sh/examples/example.sh --dump-plugin output.
 
-EXTRA_DIST = \
-	nbdkit-sh-plugin.pod \
-	examples/assemble.sh \
-	examples/example.sh \
-	$(NULL)
+source ./functions.sh
+set -e
+set -x
 
-# Disabled on Windows because no bash scripting.
-if !IS_WINDOWS
+requires_plugin sh
 
-plugin_LTLIBRARIES = nbdkit-sh-plugin.la
+script=$abs_top_srcdir/plugins/sh/examples/example.sh
+requires test -x "$script"
 
-nbdkit_sh_plugin_la_SOURCES = \
-	call.c \
-	call.h \
-	methods.c \
-	methods.h \
-	sh.c \
-	$(top_srcdir)/include/nbdkit-plugin.h \
-	$(NULL)
+out="test-sh-example.out"
+rm -f $out
+cleanup_fn rm -f $out
 
-nbdkit_sh_plugin_la_CPPFLAGS = \
-	-I$(top_srcdir)/include \
-	-I$(top_builddir)/include \
-	-I$(top_srcdir)/common/include \
-	-I$(top_srcdir)/common/utils \
-	$(NULL)
-nbdkit_sh_plugin_la_CFLAGS = $(WARNINGS_CFLAGS)
-nbdkit_sh_plugin_la_LIBADD = \
-	$(top_builddir)/common/utils/libutils.la \
-	$(IMPORT_LIBRARY_ON_WINDOWS) \
-	$(NULL)
-nbdkit_sh_plugin_la_LDFLAGS = \
-	-module -avoid-version -shared $(NO_UNDEFINED_ON_WINDOWS) \
-	$(NULL)
-if USE_LINKER_SCRIPT
-nbdkit_sh_plugin_la_LDFLAGS += \
-	-Wl,--version-script=$(top_srcdir)/plugins/plugins.syms
-endif
-
-if HAVE_POD
-
-man_MANS = nbdkit-sh-plugin.3
-CLEANFILES += $(man_MANS)
-
-nbdkit-sh-plugin.3: nbdkit-sh-plugin.pod \
-		$(top_builddir)/podwrapper.pl
-	$(PODWRAPPER) --section=3 --man $@ \
-	    --html $(top_builddir)/html/$@.html \
-	    $<
-
-endif HAVE_POD
-endif !IS_WINDOWS
+nbdkit sh "$script" --dump-plugin > $out
+cat $out
+grep example_sh=1 $out

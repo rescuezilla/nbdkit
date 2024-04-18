@@ -56,8 +56,8 @@ an inline script from stdin is incompatible with the I<-s>
 
 =head1 WRITING AN NBDKIT SH PLUGIN
 
-For an example plugin written in Bash, see:
-L<https://gitlab.com/nbdkit/nbdkit/blob/master/plugins/sh/example.sh>
+For example plugins written in Bash, see:
+L<https://gitlab.com/nbdkit/nbdkit/blob/master/plugins/sh/examples/>
 
 Broadly speaking, nbdkit shell plugins work like C ones, so you should
 read L<nbdkit-plugin(3)> first.
