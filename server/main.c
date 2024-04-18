@@ -982,19 +982,33 @@ make_uri (void)
   return r;
 }
 
+/* Common error handling for dlopen(3) failures in open_plugin_so or
+ * open_filter_so.
+ *
+ * The error message is held implicitly in dlerror(3).
+ *
+ * 'what' == "plugin" | "filter"
+ *
+ * 'filename' is the file we were trying to dlopen.
+ *
+ * 'short_name' is the plugin/filter short name that was passed on the
+ * nbdkit command line, or NULL if a short name was used (eg the
+ * plugin was opened using a full path).
+ */
 static void
 failed_to_load_error (const char *what,
-                      const char *orig_name, const char *name, int short_name)
+                      const char *filename,
+                      const char *short_name)
 {
   fprintf (stderr, "%s: error: cannot open %s '%s': %s\n",
-           program_name, what, name, dlerror ());
+           program_name, what, filename, dlerror ());
   if (short_name)
     fprintf (stderr,
              "\n"
              "To add this functionality you might need to install a separate\n"
              "%s package such as nbdkit-%s-%s (Fedora) or\n"
              "nbdkit-%s-%s (Debian).\n",
-             what, orig_name, what, what, orig_name);
+             what, short_name, what, what, short_name);
   fprintf (stderr,
            "\n"
            "Use '%s --help' or "
@@ -1026,7 +1040,7 @@ open_plugin_so (size_t i, const char *name, int short_name)
 
   dl = dlopen (filename, RTLD_NOW|RTLD_GLOBAL);
   if (dl == NULL)
-    failed_to_load_error ("plugin", orig_name, name, short_name);
+    failed_to_load_error ("plugin", filename, short_name ? orig_name : NULL);
 
   /* Initialize the plugin.  See dlopen(3) to understand C weirdness. */
   dlerror ();
@@ -1073,7 +1087,7 @@ open_filter_so (struct backend *next, size_t i,
 
   dl = dlopen (filename, RTLD_NOW|RTLD_GLOBAL);
   if (dl == NULL)
-    failed_to_load_error ("filter", orig_name, name, short_name);
+    failed_to_load_error ("filter", filename, short_name ? orig_name : NULL);
 
   /* Initialize the filter.  See dlopen(3) to understand C weirdness. */
   dlerror ();
