@@ -248,6 +248,8 @@ TESTS += \
 	test-probe-plugin.sh \
 	test-probe-filter-dump-plugin.sh \
 	test-no-parameters.sh \
+	test-bad-plugin-name.sh \
+	test-bad-filter-name.sh \
 	test-start.sh \
 	test-single.sh \
 	test-single-from-file.sh \
@@ -283,6 +285,8 @@ TESTS += \
 	$(NULL)
 endif
 EXTRA_DIST += \
+	test-bad-filter-name.sh \
+	test-bad-plugin-name.sh \
 	test-captive.sh \
 	test-captive-tls.sh \
 	test-debug-flags.sh \
