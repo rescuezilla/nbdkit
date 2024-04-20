@@ -44,7 +44,7 @@ source ./functions.sh
 set -e
 set -x
 
-script=$abs_top_srcdir/tests/shebang-crlf.py
+script=./shebang-crlf.py
 if test ! -x "$script"; then
     echo "$0: could not locate $script or not executable"
     exit 1
