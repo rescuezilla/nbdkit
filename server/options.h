@@ -117,7 +117,29 @@ static const struct option long_options[] = {
 static inline bool
 is_short_name (const char *filename)
 {
-  return strchr (filename, '.') == NULL && strchr (filename, '/') == NULL;
+  const size_t n = strlen (filename);
+  size_t i;
+
+  for (i = 0; i < n; ++i) {
+    switch (filename[i]) {
+    case '/': case '\\':        /* directory separators */
+    case ':': case ';':         /* path separators */
+    case ' ':
+    case '.':
+    case ',':
+    case '=':                   /* nbdkit parameter separator */
+      return false;
+
+      /* non-printable ASCII */
+    case 127:
+      return false;
+    default:
+      if ((unsigned)filename[i] <= 31)
+        return false;
+    }
+  }
+
+  return strstr (filename, DIR_SEPARATOR_STR) == NULL;
 }
 
 #endif /* NBDKIT_OPTIONS_H */
