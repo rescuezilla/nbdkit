@@ -12,7 +12,7 @@ RUN zypper dist-upgrade -y && \
            automake \
            awk \
            bash \
-           bash-completion \
+           bash-completion-devel \
            ca-certificates \
            cargo \
            ccache \
@@ -59,6 +59,7 @@ RUN zypper dist-upgrade -y && \
            xz-devel \
            zlib-devel && \
     zypper clean --all && \
+    rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED && \
     rpm -qa | sort > /packages.txt && \
     mkdir -p /usr/libexec/ccache-wrappers && \
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++ && \

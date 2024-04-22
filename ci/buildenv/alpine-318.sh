@@ -55,7 +55,8 @@ function install_buildenv() {
         xz-dev \
         zlib-dev \
         zstd-dev
-    apk list | sort > /packages.txt
+    rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED
+    apk list --installed | sort > /packages.txt
     mkdir -p /usr/libexec/ccache-wrappers
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/cc
