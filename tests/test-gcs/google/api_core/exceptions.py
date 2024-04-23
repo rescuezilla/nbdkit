@@ -33,6 +33,11 @@
 # This fake google-cloud-storage module is used to test the gcs plugin.  See
 # also tests/test-gcs.sh
 
+import nbdkit
+
+
+nbdkit.debug("loaded mocked google.api_core.exceptions module for tests")
+
 
 class NotFound(RuntimeError):
     pass
