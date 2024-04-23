@@ -39,6 +39,12 @@ requires $PYTHON --version
 requires $PYTHON -c 'import unittest'
 skip_if_valgrind "because Python code leaks memory"
 
+# Skip this test if the real google-cloud-storage module is installed,
+# since that module abuses pth files to insert itself into the module
+# system above any path or precedence we can override using
+# PYTHONPATH.
+requires_not $PYTHON -c 'import google.cloud.storage'
+
 prepend PYTHONPATH "$srcdir/../plugins/gcs"
 prepend PYTHONPATH "$srcdir/test-gcs"
 export PYTHONPATH

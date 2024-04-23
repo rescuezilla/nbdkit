@@ -41,6 +41,12 @@ requires_nbdcopy
 requires_plugin python
 skip_if_valgrind "because Python code leaks memory"
 
+# Skip this test if the real google-cloud-storage module is installed,
+# since that module abuses pth files to insert itself into the module
+# system above any path or precedence we can override using
+# PYTHONPATH.
+requires_not $PYTHON -c 'import google.cloud.storage'
+
 # There is a fake google-cloud-storage module in test-gcs/ which
 # we use as a test harness for the plugin.
 requires test -d "$srcdir/test-gcs"
