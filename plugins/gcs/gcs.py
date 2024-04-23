@@ -41,11 +41,14 @@ from contextlib import contextmanager
 from typing import Optional, Union, List
 from unittest.mock import patch
 
+import nbdkit
+
 from google.api_core.exceptions import NotFound, GatewayTimeout, \
     DeadlineExceeded
 from google.cloud import storage as gcs
 
-import nbdkit
+
+nbdkit.debug("gcs: imported google.cloud.storage from %s" % gcs.__file__)
 
 API_VERSION = 2
 BinaryData = Union[bytes, bytearray, memoryview]

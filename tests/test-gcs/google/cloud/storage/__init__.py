@@ -36,7 +36,7 @@
 import nbdkit
 
 
-nbdkit.debug("loaded fake google-cloud-storage module for tests")
+nbdkit.debug("loaded mocked google.cloud.storage module for tests")
 
 buf = b'x'*4096 + b'y'*2048 + b'z'*2048
 
