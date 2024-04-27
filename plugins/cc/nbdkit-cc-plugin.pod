@@ -208,8 +208,8 @@ C<nbdkit-cc-plugin> first appeared in nbdkit 1.22.
 
 L<nbdkit(1)>,
 L<nbdkit-plugin(3)>,
-L<nbdkit-eval-plugin(3)>.
-L<nbdkit-ocaml-plugin(3)>.
+L<nbdkit-eval-plugin(3)>,
+L<nbdkit-ocaml-plugin(3)>,
 L<nbdkit-sh-plugin(3)>.
 
 =head1 AUTHORS
