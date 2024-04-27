@@ -81,7 +81,7 @@ control transport compression.
 L<nbdkit-vddk-plugin(1)> is no longer compiled on non-x86 platforms
 since VMware has only ever shipped VDDK on x86.
 
-L<nbdkit-sh-plugin(1)> scripts can now see the client exportname and
+L<nbdkit-sh-plugin(3)> scripts can now see the client exportname and
 can use the C<magic_config_key> feature.
 
 =head2 Filters

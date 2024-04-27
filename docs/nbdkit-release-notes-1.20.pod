@@ -95,7 +95,7 @@ Fixed a rare hang when closing a connection in L<nbdkit-nbd-plugin(1)>
 
 Fix compilation on certain platforms with clang (Khem Raj).
 
-Don’t leak C<$tmpdir> from L<nbdkit-sh-plugin(1)> into the I<--run>
+Don’t leak C<$tmpdir> from L<nbdkit-sh-plugin(3)> into the I<--run>
 subcommand.
 
 nbdkit now correctly sets C<FD_CLOEXEC> when using systemd socket

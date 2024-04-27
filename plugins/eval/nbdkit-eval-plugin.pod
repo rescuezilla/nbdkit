@@ -12,9 +12,9 @@ C<nbdkit-eval-plugin> is an L<nbdkit(1)> plugin which allows you to
 write custom plugins as shell scripts snippets ‘eval’d on the command
 line.
 
-A common alternative to this plugin is L<nbdkit-sh-plugin(1)>.  Both
+A common alternative to this plugin is L<nbdkit-sh-plugin(3)>.  Both
 plugins share the same source code and work in almost the same way.
-You should read L<nbdkit-sh-plugin(1)> first.  It is easier to
+You should read L<nbdkit-sh-plugin(3)> first.  It is easier to
 describe the differences between the two plugins and look at the
 examples below.
 
@@ -22,13 +22,13 @@ examples below.
 
 =item *
 
-L<nbdkit-sh-plugin(1)> plugins are written as a single script in a
+L<nbdkit-sh-plugin(3)> plugins are written as a single script in a
 separate file.  Eval plugins are shell script fragments written on the
 nbdkit command line — there is no separate script file.
 
 =item *
 
-L<nbdkit-sh-plugin(1)> has no way to know if a method is missing or
+L<nbdkit-sh-plugin(3)> has no way to know if a method is missing or
 not and so each C<can_*> method (eg. C<can_write>) must be written
 explicitly.  In eval plugins you have the option of omitting C<can_*>
 methods if the associated callback (eg. C<pwrite>) is defined.  In
@@ -37,7 +37,7 @@ this way eval plugins work more like regular nbdkit plugins.
 =item *
 
 Eval plugins can only use F</bin/sh> to run the script snippets, but
-L<nbdkit-sh-plugin(1)> (in spite of the name) can run any executable.
+L<nbdkit-sh-plugin(3)> (in spite of the name) can run any executable.
 
 =item *
 
@@ -143,7 +143,7 @@ quoting.  Normally you will need to enclose C<SCRIPT> in C<'...'>
 (single quotes) to prevent it from being modified by your shell.
 
 The script fragment behaves the same way as the corresponding method
-in L<nbdkit-sh-plugin(1)>.  In particular, parameters are identical,
+in L<nbdkit-sh-plugin(3)>.  In particular, parameters are identical,
 C<$tmpdir> is present and used in the same way, the exit code must be
 one of the valid exit codes described in that manual page, and error
 handling works the same way too.  Likewise, B<nbdkit --dump-plugin
@@ -200,7 +200,7 @@ C<nbdkit-eval-plugin> first appeared in nbdkit 1.18.
 
 L<nbdkit(1)>,
 L<nbdkit-plugin(3)>,
-L<nbdkit-sh-plugin(1)>,
+L<nbdkit-sh-plugin(3)>,
 L<nbdkit-cc-plugin(1)>.
 
 =head1 AUTHORS
