@@ -48,6 +48,9 @@ nbdkit_sh_plugin_la_SOURCES = \
 	methods.c \
 	methods.h \
 	sh.c \
+	subplugin.h \
+	tmpdir.c \
+	tmpdir.h \
 	$(top_srcdir)/include/nbdkit-plugin.h \
 	$(NULL)
 

@@ -30,19 +30,16 @@
  * SUCH DAMAGE.
  */
 
-#ifndef NBDKIT_CALL_H
-#define NBDKIT_CALL_H
+#ifndef NBDKIT_TMPDIR_H
+#define NBDKIT_TMPDIR_H
 
-#include "nbdkit-string.h"
+/* Temporary directory for scripts to use. */
+extern char tmpdir[];
 
-#include "subplugin.h"
+/* Copy of environ, with $tmpdir added. */
+extern char **env;
 
-extern exit_code call (const char **argv)
-  __attribute__ ((__nonnull__ (1)));
-extern exit_code call_read (string *rbuf, const char **argv)
-  __attribute__ ((__nonnull__ (1, 2)));
-extern exit_code call_write (const char *wbuf, size_t wbuflen,
-                             const char **argv)
-  __attribute__ ((__nonnull__ (1, 3)));
+extern void tmpdir_load (void);
+extern void tmpdir_unload (void);
 
-#endif /* NBDKIT_CALL_H */
+#endif /* NBDKIT_TMPDIR_H */

@@ -50,6 +50,8 @@
 
 #include "call.h"
 #include "methods.h"
+#include "subplugin.h"
+#include "tmpdir.h"
 
 static char *missing;
 
@@ -141,7 +143,7 @@ insert_method_script (const char *method, char *script)
 }
 
 /* This is called back by methods.c to get the current script name. */
-const char *
+static const char *
 get_script (const char *method)
 {
   struct method_script *p;
@@ -208,10 +210,18 @@ create_script (const char *method, const char *value)
   return script;
 }
 
+/* This abstracts the nbdkit-eval-plugin sub-plugin. */
+struct subplugin sub = {
+  get_script,
+  call,
+  call_read,
+  call_write,
+};
+
 static void
 eval_load (void)
 {
-  call_load ();
+  tmpdir_load ();
 
   /* To make things easier, create a "missing" script which always
    * exits with code 2.  If a method is missing we call this script
@@ -232,16 +242,16 @@ static void
 eval_unload (void)
 {
   const char *method = "unload";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
 
   /* Run the unload method.  Ignore all errors. */
   if (script) {
     const char *args[] = { script, method, NULL };
 
-    call (args);
+    sub.call (args);
   }
 
-  call_unload ();
+  tmpdir_unload ();
   method_script_list_iter (&method_scripts, free_method_script);
   free (method_scripts.ptr);
   free (missing);
@@ -254,7 +264,7 @@ add_method (const char *key, const char *value)
   char *tmp = missing; /* Needed to allow user override of missing */
 
   missing = NULL;
-  if (get_script (key) != NULL) {
+  if (sub.get_script (key) != NULL) {
     missing = tmp;
     nbdkit_error ("method %s defined more than once on the command line", key);
     return -1;
@@ -294,10 +304,10 @@ eval_config (const char *key, const char *value)
 
   /* User parameter, so call config. */
   const char *method = "config";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, key, value, NULL };
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
     return 0;
 
@@ -326,8 +336,8 @@ create_can_wrapper (const char *test_method, const char *can_method,
 {
   char *can_script;
 
-  if (get_script (test_method) != missing &&
-      get_script (can_method) == missing) {
+  if (sub.get_script (test_method) != missing &&
+      sub.get_script (can_method) == missing) {
     can_script = create_script (can_method, content);
     if (!can_script)
       return -1;
@@ -341,7 +351,7 @@ static int
 eval_config_complete (void)
 {
   const char *method = "config_complete";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, NULL };
 
   /* Check we have get_size.  This is required in order for clients to
@@ -349,7 +359,7 @@ eval_config_complete (void)
    * possible to connect and disconnect without this, and some tests
    * do that.
    */
-  if (get_script ("get_size") == missing) {
+  if (sub.get_script ("get_size") == missing) {
     nbdkit_error ("'get_size' method is required");
     return -1;
   }
@@ -366,7 +376,7 @@ eval_config_complete (void)
     return -1;
 
   /* Call config_complete. */
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
   case MISSING:
     return 0;

@@ -45,10 +45,13 @@ plugin_LTLIBRARIES = nbdkit-eval-plugin.la
 BUILT_SOURCES = \
 	call.c \
 	methods.c \
+	tmpdir.c \
 	$(NULL)
 call.c: $(srcdir)/../sh/call.c
 	ln -f -s $(srcdir)/../sh/$@
 methods.c: $(srcdir)/../sh/methods.c
+	ln -f -s $(srcdir)/../sh/$@
+tmpdir.c: $(srcdir)/../sh/tmpdir.c
 	ln -f -s $(srcdir)/../sh/$@
 CLEANFILES += $(BUILT_SOURCES)
 
@@ -57,6 +60,7 @@ nbdkit_eval_plugin_la_SOURCES = \
 	$(BUILT_SOURCES) \
 	$(srcdir)/../sh/call.h \
 	$(srcdir)/../sh/methods.h \
+	$(srcdir)/../sh/subplugin.h \
 	$(top_srcdir)/include/nbdkit-plugin.h \
 	$(NULL)
 nbdkit_eval_plugin_la_CPPFLAGS = \
