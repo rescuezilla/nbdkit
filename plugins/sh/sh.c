@@ -49,23 +49,30 @@
 
 #include "call.h"
 #include "methods.h"
+#include "subplugin.h"
+#include "tmpdir.h"
 
 static char *script;
 static char *magic_config_key;
 
-/* This is called back by methods.c to get the current script name (if
- * set).  The method parameter is ignored by nbdkit-sh-plugin.
- */
-const char *
+static const char *
 get_script (const char *method)
 {
   return script;
 }
 
+/* This abstracts the nbdkit-sh-plugin sub-plugin. */
+struct subplugin sub = {
+  get_script,
+  call,
+  call_read,
+  call_write,
+};
+
 static void
 sh_load (void)
 {
-  call_load ();
+  tmpdir_load ();
 }
 
 static void
@@ -77,10 +84,10 @@ sh_unload (void)
   if (script) {
     const char *args[] = { script, method, NULL };
 
-    call (args);
+    sub.call (args);
   }
 
-  call_unload ();
+  tmpdir_unload ();
   free (script);
   free (magic_config_key);
 }
@@ -155,7 +162,7 @@ sh_config (const char *key, const char *value)
 
     /* Call the load method. */
     const char *args[] = { script, "load", NULL };
-    switch (call (args)) {
+    switch (sub.call (args)) {
     case OK:
     case MISSING:
       break;
@@ -175,7 +182,7 @@ sh_config (const char *key, const char *value)
     /* Call the magic_config_key method if it exists. */
     const char *args2[] = { script, "magic_config_key", NULL };
     CLEANUP_FREE_STRING string s = empty_vector;
-    switch (call_read (&s, args2)) {
+    switch (sub.call_read (&s, args2)) {
     case OK:
       if (s.len > 0 && s.ptr[s.len-1] == '\n')
         s.ptr[s.len-1] = '\0';
@@ -221,7 +228,7 @@ sh_config (const char *key, const char *value)
     }
 
     const char *args[] = { script, "config", key, value, NULL };
-    switch (call (args)) {
+    switch (sub.call (args)) {
     case OK:
       return 0;
 
@@ -257,7 +264,7 @@ sh_config_complete (void)
     return -1;
   }
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
   case MISSING:
     return 0;

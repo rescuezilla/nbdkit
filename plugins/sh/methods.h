@@ -33,12 +33,6 @@
 #ifndef NBDKIT_METHODS_H
 #define NBDKIT_METHODS_H
 
-/* Defined by the plugin, returns the script name.  For sh_dump_plugin
- * and sh_thread_model ONLY it is possible for this function to return
- * NULL.  From all other contexts it must return a script name.
- */
-extern const char *get_script (const char *method);
-
 extern void sh_dump_plugin (void);
 extern int sh_thread_model (void);
 extern int sh_get_ready (void);

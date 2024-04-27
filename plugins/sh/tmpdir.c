@@ -30,19 +30,59 @@
  * SUCH DAMAGE.
  */
 
-#ifndef NBDKIT_CALL_H
-#define NBDKIT_CALL_H
+#include <config.h>
 
-#include "nbdkit-string.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
-#include "subplugin.h"
+#include <nbdkit-plugin.h>
 
-extern exit_code call (const char **argv)
-  __attribute__ ((__nonnull__ (1)));
-extern exit_code call_read (string *rbuf, const char **argv)
-  __attribute__ ((__nonnull__ (1, 2)));
-extern exit_code call_write (const char *wbuf, size_t wbuflen,
-                             const char **argv)
-  __attribute__ ((__nonnull__ (1, 3)));
+#include "cleanup.h"
+#include "utils.h"
 
-#endif /* NBDKIT_CALL_H */
+#include "tmpdir.h"
+
+#ifndef HAVE_ENVIRON_DECL
+extern char **environ;
+#endif
+
+char tmpdir[] = "/tmp/nbdkitXXXXXX";
+char **env;
+
+void
+tmpdir_load (void)
+{
+  /* Create the temporary directory for the shell script to use. */
+  if (mkdtemp (tmpdir) == NULL) {
+    nbdkit_error ("mkdtemp: /tmp: %m");
+    exit (EXIT_FAILURE);
+  }
+
+  nbdkit_debug ("load: tmpdir: %s", tmpdir);
+
+  /* Copy the environment, and add $tmpdir. */
+  env = copy_environ (environ, "tmpdir", tmpdir, NULL);
+  if (env == NULL)
+    exit (EXIT_FAILURE);
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
+void
+tmpdir_unload (void)
+{
+  CLEANUP_FREE char *cmd = NULL;
+  size_t i;
+
+  /* Delete the temporary directory.  Ignore all errors. */
+  if (asprintf (&cmd, "rm -rf %s", tmpdir) >= 0)
+    system (cmd);
+
+  /* Free the private copy of environ. */
+  for (i = 0; env[i] != NULL; ++i)
+    free (env[i]);
+  free (env);
+}
+#pragma GCC diagnostic pop

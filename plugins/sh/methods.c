@@ -47,14 +47,14 @@
 #include "cleanup.h"
 #include "ascii-string.h"
 
-#include "call.h"
+#include "subplugin.h"
 #include "methods.h"
 
 void
 sh_dump_plugin (void)
 {
   const char *method = "dump_plugin";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, NULL };
   CLEANUP_FREE_STRING string o = empty_vector;
 
@@ -64,7 +64,7 @@ sh_dump_plugin (void)
   /* Dump any additional information from the script */
   if (script) {
     /* Call dump_plugin method. */
-    switch (call_read (&o, args)) {
+    switch (sub.call_read (&o, args)) {
     case OK:
       printf ("%s", o.ptr);
       break;
@@ -91,7 +91,7 @@ int
 sh_thread_model (void)
 {
   const char *method = "thread_model";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
   int r;
@@ -104,7 +104,7 @@ sh_thread_model (void)
   if (!script)
     return NBDKIT_THREAD_MODEL_PARALLEL;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     if (s.len > 0 && s.ptr[s.len-1] == '\n')
       s.ptr[s.len-1] = '\0';
@@ -146,10 +146,10 @@ int
 sh_get_ready (void)
 {
   const char *method = "get_ready";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, NULL };
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
   case MISSING:
     return 0;
@@ -171,10 +171,10 @@ int
 sh_after_fork (void)
 {
   const char *method = "after_fork";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, NULL };
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
   case MISSING:
     return 0;
@@ -196,13 +196,13 @@ int
 sh_preconnect (int readonly)
 {
   const char *method = "preconnect";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] =
     { script, method,
       readonly ? "true" : "false",
       NULL };
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
   case MISSING:
     return 0;
@@ -307,12 +307,12 @@ int
 sh_list_exports (int readonly, int is_tls, struct nbdkit_exports *exports)
 {
   const char *method = "list_exports";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, readonly ? "true" : "false",
                          is_tls ? "true" : "false", NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     return parse_exports (script, s.ptr, s.len, exports);
 
@@ -336,13 +336,13 @@ const char *
 sh_default_export (int readonly, int is_tls)
 {
   const char *method = "default_export";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] = { script, method, readonly ? "true" : "false",
                          is_tls ? "true" : "false", NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
   const char *p, *n;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     /* The first line determines how to parse the rest of s.  For now,
      * all export modes treat the next line as the first export.
@@ -376,7 +376,7 @@ void *
 sh_open (int readonly)
 {
   const char *method = "open";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   const char *args[] =
     { script, method,
       readonly ? "true" : "false",
@@ -393,7 +393,7 @@ sh_open (int readonly)
   h->can_zero = -1;
 
   /* We store the string returned by open in the handle. */
-  switch (call_read (&h->h, args)) {
+  switch (sub.call_read (&h->h, args)) {
   case OK:
     /* Remove final newline if present. */
     if (h->h.len > 0 && h->h.ptr[h->h.len-1] == '\n')
@@ -405,7 +405,7 @@ sh_open (int readonly)
   case MISSING:
     /* Unlike regular C plugins, open is not required.  If it is
      * missing then we return "" as the handle.  Allocate a new string
-     * for it because we don't know what call_read returned here.
+     * for it because we don't know what sub.call_read returned here.
      */
     string_reset (&h->h);
     if (string_reserve_exactly (&h->h, 1) == -1) {
@@ -437,11 +437,11 @@ void
 sh_close (void *handle)
 {
   const char *method = "close";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
   case MISSING:
   case ERROR:
@@ -457,12 +457,12 @@ const char *
 sh_export_description (void *handle)
 {
   const char *method = "export_description";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     if (s.len > 0 && s.ptr[s.len-1] == '\n')
       s.ptr[s.len-1] = '\0';
@@ -488,13 +488,13 @@ int64_t
 sh_get_size (void *handle)
 {
   const char *method = "get_size";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
   int64_t r;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     if (s.len > 0 && s.ptr[s.len-1] == '\n')
       s.ptr[s.len-1] = '\0';
@@ -526,7 +526,7 @@ sh_block_size (void *handle,
                uint32_t *minimum, uint32_t *preferred, uint32_t *maximum)
 {
   const char *method = "block_size";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
@@ -534,7 +534,7 @@ sh_block_size (void *handle,
   char *sp, *p;
   int64_t r;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     if ((p = strtok_r (s.ptr, delim, &sp)) == NULL) {
     parse_error:
@@ -591,7 +591,7 @@ sh_pread (void *handle, void *buf, uint32_t count, uint64_t offset,
           uint32_t flags)
 {
   const char *method = "pread";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   char cbuf[32], obuf[32];
   const char *args[] = { script, method, h->h.ptr, cbuf, obuf, NULL };
@@ -600,7 +600,7 @@ sh_pread (void *handle, void *buf, uint32_t count, uint64_t offset,
   snprintf (cbuf, sizeof cbuf, "%" PRIu32, count);
   snprintf (obuf, sizeof obuf, "%" PRIu64, offset);
 
-  switch (call_read (&data, args)) {
+  switch (sub.call_read (&data, args)) {
   case OK:
     if (count != data.len) {
       nbdkit_error ("%s: incorrect amount of data read: "
@@ -678,7 +678,7 @@ sh_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset,
            uint32_t flags)
 {
   const char *method = "pwrite";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   char cbuf[32], obuf[32], fbuf[32];
   const char *args[] = { script, method, h->h.ptr, cbuf, obuf, fbuf, NULL };
@@ -687,7 +687,7 @@ sh_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset,
   snprintf (obuf, sizeof obuf, "%" PRIu64, offset);
   flags_string (flags, fbuf, sizeof fbuf);
 
-  switch (call_write (buf, count, args)) {
+  switch (sub.call_write (buf, count, args)) {
   case OK:
     return 0;
 
@@ -716,7 +716,7 @@ boolean_method (const char *script, const char *method,
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:                      /* true */
     return 1;
   case RET_FALSE:               /* false */
@@ -733,7 +733,7 @@ int
 sh_can_write (void *handle)
 {
   const char *method = "can_write";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   return boolean_method (script, method, handle, 0);
 }
 
@@ -747,7 +747,7 @@ sh_can_flush (void *handle)
   if (h->can_flush >= 0)
     return h->can_flush;
 
-  script = get_script (method);
+  script = sub.get_script (method);
   return h->can_flush = boolean_method (script, method, handle, 0);
 }
 
@@ -755,7 +755,7 @@ int
 sh_is_rotational (void *handle)
 {
   const char *method = "is_rotational";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   return boolean_method (script, method, handle, 0);
 }
 
@@ -763,7 +763,7 @@ int
 sh_can_trim (void *handle)
 {
   const char *method = "can_trim";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   return boolean_method (script, method, handle, 0);
 }
 
@@ -777,7 +777,7 @@ sh_can_zero (void *handle)
   if (h->can_zero >= 0)
     return h->can_zero;
 
-  script = get_script (method);
+  script = sub.get_script (method);
   return h->can_zero = boolean_method (script, method, handle, 0);
 }
 
@@ -785,7 +785,7 @@ int
 sh_can_extents (void *handle)
 {
   const char *method = "can_extents";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   return boolean_method (script, method, handle, 0);
 }
 
@@ -793,7 +793,7 @@ int
 sh_can_multi_conn (void *handle)
 {
   const char *method = "can_multi_conn";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   return boolean_method (script, method, handle, 0);
 }
 
@@ -802,13 +802,13 @@ int
 sh_can_fua (void *handle)
 {
   const char *method = "can_fua";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
   int r;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     if (s.len > 0 && s.ptr[s.len-1] == '\n')
       s.ptr[s.len-1] = '\0';
@@ -856,13 +856,13 @@ int
 sh_can_cache (void *handle)
 {
   const char *method = "can_cache";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
   CLEANUP_FREE_STRING string s = empty_vector;
   int r;
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     if (s.len > 0 && s.ptr[s.len-1] == '\n')
       s.ptr[s.len-1] = '\0';
@@ -903,7 +903,7 @@ int
 sh_can_fast_zero (void *handle)
 {
   const char *method = "can_fast_zero";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   int r = boolean_method (script, method, handle, 2);
   if (r < 2)
     return r;
@@ -920,11 +920,11 @@ int
 sh_flush (void *handle, uint32_t flags)
 {
   const char *method = "flush";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   const char *args[] = { script, method, h->h.ptr, NULL };
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
     return 0;
 
@@ -949,7 +949,7 @@ int
 sh_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 {
   const char *method = "trim";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   char cbuf[32], obuf[32], fbuf[32];
   const char *args[] = { script, method, h->h.ptr, cbuf, obuf, fbuf, NULL };
@@ -958,7 +958,7 @@ sh_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
   snprintf (obuf, sizeof obuf, "%" PRIu64, offset);
   flags_string (flags, fbuf, sizeof fbuf);
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
     return 0;
 
@@ -983,7 +983,7 @@ int
 sh_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 {
   const char *method = "zero";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   char cbuf[32], obuf[32], fbuf[32];
   const char *args[] = { script, method, h->h.ptr, cbuf, obuf, fbuf, NULL };
@@ -992,7 +992,7 @@ sh_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
   snprintf (obuf, sizeof obuf, "%" PRIu64, offset);
   flags_string (flags, fbuf, sizeof fbuf);
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
     return 0;
 
@@ -1088,7 +1088,7 @@ sh_extents (void *handle, uint32_t count, uint64_t offset, uint32_t flags,
             struct nbdkit_extents *extents)
 {
   const char *method = "extents";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   char cbuf[32], obuf[32], fbuf[32];
   const char *args[] = { script, method, h->h.ptr, cbuf, obuf, fbuf, NULL };
@@ -1099,7 +1099,7 @@ sh_extents (void *handle, uint32_t count, uint64_t offset, uint32_t flags,
   snprintf (obuf, sizeof obuf, "%" PRIu64, offset);
   flags_string (flags, fbuf, sizeof fbuf);
 
-  switch (call_read (&s, args)) {
+  switch (sub.call_read (&s, args)) {
   case OK:
     r = parse_extents (script, s.ptr, s.len, extents);
     return r;
@@ -1132,7 +1132,7 @@ int
 sh_cache (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 {
   const char *method = "cache";
-  const char *script = get_script (method);
+  const char *script = sub.get_script (method);
   struct sh_handle *h = handle;
   char cbuf[32], obuf[32];
   const char *args[] = { script, method, h->h.ptr, cbuf, obuf, NULL };
@@ -1141,7 +1141,7 @@ sh_cache (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
   snprintf (obuf, sizeof obuf, "%" PRIu64, offset);
   assert (!flags);
 
-  switch (call (args)) {
+  switch (sub.call (args)) {
   case OK:
     return 0;
 

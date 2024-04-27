@@ -54,52 +54,11 @@
 #include "vector.h"
 
 #include "call.h"
+#include "tmpdir.h"
 
 #ifndef HAVE_ENVIRON_DECL
 extern char **environ;
 #endif
-
-/* Temporary directory for scripts to use. */
-char tmpdir[] = "/tmp/nbdkitXXXXXX";
-
-/* Private copy of environ, with $tmpdir added. */
-static char **env;
-
-void
-call_load (void)
-{
-  /* Create the temporary directory for the shell script to use. */
-  if (mkdtemp (tmpdir) == NULL) {
-    nbdkit_error ("mkdtemp: /tmp: %m");
-    exit (EXIT_FAILURE);
-  }
-
-  nbdkit_debug ("load: tmpdir: %s", tmpdir);
-
-  /* Copy the environment, and add $tmpdir. */
-  env = copy_environ (environ, "tmpdir", tmpdir, NULL);
-  if (env == NULL)
-    exit (EXIT_FAILURE);
-}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-result"
-void
-call_unload (void)
-{
-  CLEANUP_FREE char *cmd = NULL;
-  size_t i;
-
-  /* Delete the temporary directory.  Ignore all errors. */
-  if (asprintf (&cmd, "rm -rf %s", tmpdir) >= 0)
-    system (cmd);
-
-  /* Free the private copy of environ. */
-  for (i = 0; env[i] != NULL; ++i)
-    free (env[i]);
-  free (env);
-}
-#pragma GCC diagnostic pop
 
 static void
 debug_call (const char **argv)
