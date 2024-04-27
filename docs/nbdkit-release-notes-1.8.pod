@@ -15,7 +15,7 @@ nbdkit 1.8.0 was released on 12th November 2018.
 
 =item *
 
-New plugin: L<nbdkit-sh-plugin(1)> for running shell scripts and other
+New plugin: L<nbdkit-sh-plugin(3)> for running shell scripts and other
 external programs.  See:
 L<https://rwmj.wordpress.com/2018/09/09/write-nbdkit-plugins-in-shell-script/>
 

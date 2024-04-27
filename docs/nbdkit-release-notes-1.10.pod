@@ -41,12 +41,12 @@ L<nbdkit-cow-filter(1)>: Use a fully parallel thread model.
 
 =item *
 
-L<nbdkit-sh-plugin(1)>: Inline scripts:
+L<nbdkit-sh-plugin(3)>: Inline scripts:
 L<https://rwmj.wordpress.com/2018/12/15/nbdkit-inline-scripts/>
 
 =item *
 
-L<nbdkit-sh-plugin(1)>: Full API version 2 is now supported.
+L<nbdkit-sh-plugin(3)>: Full API version 2 is now supported.
 
 =item *
 
