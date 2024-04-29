@@ -31,6 +31,17 @@ x86_64-almalinux-8-clang:
     TARGET_BASE_IMAGE: docker.io/library/almalinux:8
 
 
+x86_64-almalinux-9:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-almalinux-9-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: almalinux-9
+    TARGET_BASE_IMAGE: docker.io/library/almalinux:9
+
+
 x86_64-alpine-318:
   extends: .native_build_job
   needs:
@@ -43,27 +54,28 @@ x86_64-alpine-318:
     TARGET_BASE_IMAGE: docker.io/library/alpine:3.18
 
 
+x86_64-alpine-319:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-alpine-319-container
+      optional: true
+  allow_failure: false
+  variables:
+    GOLANG: skip
+    NAME: alpine-319
+    TARGET_BASE_IMAGE: docker.io/library/alpine:3.19
+
+
 x86_64-alpine-edge:
   extends: .native_build_job
   needs:
     - job: x86_64-alpine-edge-container
       optional: true
-  allow_failure: false
+  allow_failure: true
   variables:
     GOLANG: skip
     NAME: alpine-edge
     TARGET_BASE_IMAGE: docker.io/library/alpine:edge
-
-
-x86_64-centos-stream-8:
-  extends: .native_build_job
-  needs:
-    - job: x86_64-centos-stream-8-container
-      optional: true
-  allow_failure: false
-  variables:
-    NAME: centos-stream-8
-    TARGET_BASE_IMAGE: quay.io/centos/centos:stream8
 
 
 x86_64-centos-stream-9:
@@ -105,22 +117,34 @@ x86_64-debian-sid:
   needs:
     - job: x86_64-debian-sid-container
       optional: true
-  allow_failure: false
+  allow_failure: true
   variables:
     NAME: debian-sid
     TARGET_BASE_IMAGE: docker.io/library/debian:sid-slim
 
 
-x86_64-fedora-38:
+x86_64-fedora-39:
   extends: .native_build_job
   needs:
-    - job: x86_64-fedora-38-container
+    - job: x86_64-fedora-39-container
       optional: true
   allow_failure: false
   variables:
-    NAME: fedora-38
+    NAME: fedora-39
     PERL: force
-    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:38
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:39
+
+
+x86_64-fedora-40:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-fedora-40-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: fedora-40
+    PERL: force
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:40
 
 
 x86_64-fedora-rawhide:
@@ -128,7 +152,7 @@ x86_64-fedora-rawhide:
   needs:
     - job: x86_64-fedora-rawhide-container
       optional: true
-  allow_failure: false
+  allow_failure: true
   variables:
     NAME: fedora-rawhide
     PERL: force
@@ -140,7 +164,7 @@ x86_64-fedora-rawhide-clang:
   needs:
     - job: x86_64-fedora-rawhide-container
       optional: true
-  allow_failure: false
+  allow_failure: true
   variables:
     CC: clang
     NAME: fedora-rawhide
@@ -164,21 +188,10 @@ x86_64-opensuse-tumbleweed:
   needs:
     - job: x86_64-opensuse-tumbleweed-container
       optional: true
-  allow_failure: false
+  allow_failure: true
   variables:
     NAME: opensuse-tumbleweed
     TARGET_BASE_IMAGE: registry.opensuse.org/opensuse/tumbleweed:latest
-
-
-x86_64-ubuntu-2004:
-  extends: .native_build_job
-  needs:
-    - job: x86_64-ubuntu-2004-container
-      optional: true
-  allow_failure: false
-  variables:
-    NAME: ubuntu-2004
-    TARGET_BASE_IMAGE: docker.io/library/ubuntu:20.04
 
 
 x86_64-ubuntu-2204:
@@ -192,35 +205,46 @@ x86_64-ubuntu-2204:
     TARGET_BASE_IMAGE: docker.io/library/ubuntu:22.04
 
 
+x86_64-ubuntu-2404:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-ubuntu-2404-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: ubuntu-2404
+    TARGET_BASE_IMAGE: docker.io/library/ubuntu:24.04
+
+
 
 # Cross build jobs
 
-mingw32-fedora-38:
+mingw32-fedora-40:
   extends: .cross_build_job
   needs:
-    - job: mingw32-fedora-38-container
+    - job: mingw32-fedora-40-container
       optional: true
   allow_failure: false
   variables:
     CROSS: mingw32
     GOLANG: skip
-    NAME: fedora-38
+    NAME: fedora-40
     RUST: skip
-    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:38
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:40
 
 
-mingw64-fedora-38:
+mingw64-fedora-40:
   extends: .cross_build_job
   needs:
-    - job: mingw64-fedora-38-container
+    - job: mingw64-fedora-40-container
       optional: true
   allow_failure: false
   variables:
     CROSS: mingw64
     GOLANG: skip
-    NAME: fedora-38
+    NAME: fedora-40
     RUST: skip
-    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:38
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:40
 
 
 # Native cirrus build jobs
@@ -260,7 +284,7 @@ x86_64-freebsd-14:
 x86_64-freebsd-current:
   extends: .cirrus_build_job
   needs: []
-  allow_failure: false
+  allow_failure: true
   variables:
     CIRRUS_VM_IMAGE_NAME: freebsd-14-0-snap
     CIRRUS_VM_IMAGE_SELECTOR: image_family

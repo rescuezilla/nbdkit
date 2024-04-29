@@ -4,13 +4,12 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-function install_buildenv() {
-    dnf distro-sync -y
-    dnf install 'dnf-command(config-manager)' -y
-    dnf config-manager --set-enabled -y powertools
-    dnf install -y centos-release-advanced-virtualization
-    dnf install -y epel-release
-    dnf install -y epel-next-release
+FROM docker.io/library/almalinux:9
+
+RUN dnf update -y && \
+    dnf install 'dnf-command(config-manager)' -y && \
+    dnf config-manager --set-enabled -y crb && \
+    dnf install -y epel-release && \
     dnf install -y \
         autoconf \
         automake \
@@ -46,9 +45,9 @@ function install_buildenv() {
         lua-devel \
         make \
         ocaml \
-        perl \
         perl-ExtUtils-Embed \
         perl-Pod-Simple \
+        perl-base \
         perl-devel \
         perl-podlators \
         pkgconfig \
@@ -65,18 +64,19 @@ function install_buildenv() {
         xorriso \
         xz \
         xz-devel \
-        zlib-devel
-    rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED
-    rpm -qa | sort > /packages.txt
-    mkdir -p /usr/libexec/ccache-wrappers
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/cc
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/clang
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/g++
+        zlib-devel && \
+    dnf autoremove -y && \
+    dnf clean all -y && \
+    rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED && \
+    rpm -qa | sort > /packages.txt && \
+    mkdir -p /usr/libexec/ccache-wrappers && \
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/c++ && \
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/cc && \
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/clang && \
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/g++ && \
     ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/gcc
-}
 
-export CCACHE_WRAPPERSDIR="/usr/libexec/ccache-wrappers"
-export LANG="en_US.UTF-8"
-export MAKE="/usr/bin/make"
-export PYTHON="/usr/bin/python3"
+ENV CCACHE_WRAPPERSDIR "/usr/libexec/ccache-wrappers"
+ENV LANG "en_US.UTF-8"
+ENV MAKE "/usr/bin/make"
+ENV PYTHON "/usr/bin/python3"
