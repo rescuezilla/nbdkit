@@ -4,7 +4,7 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM docker.io/library/ubuntu:20.04
+FROM docker.io/library/ubuntu:24.04
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
@@ -15,7 +15,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       automake \
                       bash \
                       bash-completion \
-                      bsdmainutils \
+                      bsdextrautils \
                       ca-certificates \
                       cargo \
                       ccache \
@@ -36,6 +36,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       libgnutls28-dev \
                       libguestfs-dev \
                       liblzma-dev \
+                      libnbd-dev \
                       libperl-dev \
                       libselinux1-dev \
                       libssh-dev \
@@ -44,7 +45,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       libvirt-dev \
                       libzstd-dev \
                       locales \
-                      lua5.3 \
+                      lua5.4 \
                       make \
                       mount \
                       ocaml \
@@ -55,6 +56,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       python3 \
                       python3-boto3 \
                       python3-dev \
+                      python3-libnbd \
                       qemu-utils \
                       rust-clippy \
                       rustc \
