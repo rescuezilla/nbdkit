@@ -18,7 +18,16 @@ targets:
           CC: clang
           PERL: skip
 
+  almalinux-9: x86_64
+
   alpine-318:
+    jobs:
+      - arch: x86_64
+        variables:
+          # cgo does not play well with musl: https://github.com/golang/go/issues/13492
+          GOLANG: skip
+
+  alpine-319:
     jobs:
       - arch: x86_64
         variables:
@@ -31,8 +40,6 @@ targets:
         variables:
           # cgo does not play well with musl: https://github.com/golang/go/issues/13492
           GOLANG: skip
-
-  centos-stream-8: x86_64
 
   centos-stream-9: x86_64
 
@@ -47,7 +54,13 @@ targets:
 
   debian-sid: x86_64
 
-  fedora-38:
+  fedora-39:
+    jobs:
+      - arch: x86_64
+        variables:
+          PERL: force
+
+  fedora-40:
     jobs:
       - arch: x86_64
         variables:
@@ -109,6 +122,6 @@ targets:
           RUST: skip
           GOLANG: skip
 
-  ubuntu-2004: x86_64
-
   ubuntu-2204: x86_64
+
+  ubuntu-2404: x86_64

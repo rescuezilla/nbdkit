@@ -13,7 +13,7 @@ function install_buildenv() {
             automake \
             bash \
             bash-completion \
-            bsdmainutils \
+            bsdextrautils \
             ca-certificates \
             cargo \
             ccache \
@@ -34,6 +34,7 @@ function install_buildenv() {
             libgnutls28-dev \
             libguestfs-dev \
             liblzma-dev \
+            libnbd-dev \
             libperl-dev \
             libselinux1-dev \
             libssh-dev \
@@ -42,7 +43,7 @@ function install_buildenv() {
             libvirt-dev \
             libzstd-dev \
             locales \
-            lua5.3 \
+            lua5.4 \
             make \
             mount \
             ocaml \
@@ -53,6 +54,7 @@ function install_buildenv() {
             python3 \
             python3-boto3 \
             python3-dev \
+            python3-libnbd \
             qemu-utils \
             rust-clippy \
             rustc \
