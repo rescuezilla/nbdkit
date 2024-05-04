@@ -45,4 +45,10 @@ extern ssize_t full_pread (int fd, void *buf, size_t count, off_t offset);
 extern ssize_t full_pwrite (int fd, const void *buf, size_t count,
                             off_t offset);
 
+#ifndef WIN32
+#include <stdint.h>
+#include <sys/stat.h>
+extern int64_t device_size (int fd, const struct stat *statbuf);
+#endif
+
 #endif /* NBDKIT_UTILS_H */
