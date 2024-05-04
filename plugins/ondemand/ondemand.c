@@ -45,7 +45,6 @@
 #include <errno.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -340,28 +339,12 @@ run_command (const char *disk)
   return 0;
 }
 
-/* For block devices, stat->st_size is not the true size. */
-static int64_t
-block_device_size (int fd)
-{
-  off_t size;
-
-  size = lseek (fd, 0, SEEK_END);
-  if (size == -1) {
-    nbdkit_error ("lseek: %m");
-    return -1;
-  }
-
-  return size;
-}
-
 static void *
 ondemand_open (int readonly)
 {
   struct handle *h;
   CLEANUP_FREE char *disk = NULL;
   int flags, err;
-  struct stat statbuf;
 #ifdef F_OFD_SETLK
   struct flock lock;
   int cmd;
@@ -466,21 +449,12 @@ ondemand_open (int readonly)
 #endif
 
   /* Find the size of the disk. */
-  if (fstat (h->fd, &statbuf) == -1) {
-    nbdkit_error ("fstat: %s: %m", disk);
+  h->size = device_size (h->fd, NULL);
+  if (h->size == -1) {
+    nbdkit_error ("device_size: %s: %m", disk);
     goto error;
   }
 
-  /* The command could set $disk to a regular file or a block device
-   * (or a symlink to either), so we must check that here.
-   */
-  if (S_ISBLK (statbuf.st_mode)) {
-    h->size = block_device_size (h->fd);
-    if (h->size == -1)
-      goto error;
-  }
-  else                          /* Regular file. */
-    h->size = statbuf.st_size;
   nbdkit_debug ("ondemand: requested_size = %" PRIi64 ", size = %" PRIi64,
                 requested_size, h->size);
 

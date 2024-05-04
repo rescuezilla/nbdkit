@@ -69,6 +69,7 @@
 #include "cleanup.h"
 #include "isaligned.h"
 #include "fdatasync.h"
+#include "utils.h"
 
 static enum {
   mode_none,
@@ -468,6 +469,7 @@ file_list_exports (int readonly, int default_only,
 /* The per-connection handle. */
 struct handle {
   int fd;
+  struct stat statbuf;
   bool is_block_device;
   int sector_size;
   bool can_write;
@@ -521,7 +523,6 @@ static void *
 file_open (int readonly)
 {
   struct handle *h;
-  struct stat statbuf;
   const char *file;
 
   h = malloc (sizeof *h);
@@ -631,7 +632,7 @@ file_open (int readonly)
 
   assert (h->fd >= 0);
 
-  if (fstat (h->fd, &statbuf) == -1) {
+  if (fstat (h->fd, &h->statbuf) == -1) {
     nbdkit_error ("fstat: %s: %m", file);
     close (h->fd);
     free (h);
@@ -649,9 +650,9 @@ file_open (int readonly)
 #endif
   }
 
-  if (S_ISBLK (statbuf.st_mode))
+  if (S_ISBLK (h->statbuf.st_mode))
     h->is_block_device = true;
-  else if (S_ISREG (statbuf.st_mode))
+  else if (S_ISREG (h->statbuf.st_mode))
     h->is_block_device = false;
   else {
     nbdkit_error ("file is not regular or block device: %s", file);
@@ -701,43 +702,20 @@ file_close (void *handle)
 
 #define THREAD_MODEL NBDKIT_THREAD_MODEL_PARALLEL
 
-/* For block devices, stat->st_size is not the true size.  The caller
- * grabs the lock.
- */
-static int64_t
-block_device_size (int fd)
-{
-  off_t size;
-
-  size = lseek (fd, 0, SEEK_END);
-  if (size == -1) {
-    nbdkit_error ("lseek (to find device size): %m");
-    return -1;
-  }
-
-  return size;
-}
-
 /* Get the file size. */
 static int64_t
 file_get_size (void *handle)
 {
+  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lseek_lock); /* device_size may seek */
   struct handle *h = handle;
+  int64_t r;
 
-  if (h->is_block_device) {
-    ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lseek_lock);
-    return block_device_size (h->fd);
-  } else {
-    /* Regular file. */
-    struct stat statbuf;
-
-    if (fstat (h->fd, &statbuf) == -1) {
-      nbdkit_error ("fstat: %m");
-      return -1;
-    }
-
-    return statbuf.st_size;
+  r = device_size (h->fd, &h->statbuf);
+  if (r == -1) {
+    nbdkit_error ("device_size: %m");
+    return -1;
   }
+  return r;
 }
 
 /* Check if file is read-only. */

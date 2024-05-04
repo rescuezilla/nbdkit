@@ -140,7 +140,7 @@ create_virtual_disk_layout (void)
      * add a padding region at the end to round it up.
      */
     if (append_region_len (&the_regions, the_files.ptr[i].filename,
-                           the_files.ptr[i].statbuf.st_size,
+                           the_files.ptr[i].size,
                            the_files.ptr[i].alignment, SECTOR_SIZE,
                            region_file, i) == -1)
       return -1;

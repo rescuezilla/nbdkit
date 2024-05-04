@@ -44,7 +44,6 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 
 #include <nbdkit-plugin.h>
 
@@ -56,6 +55,7 @@
 #include "pread.h"
 #include "pwrite.h"
 #include "rounding.h"
+#include "utils.h"
 #include "vector.h"
 
 #include "random.h"
@@ -140,23 +140,17 @@ partitioning_config (const char *key, const char *value)
       nbdkit_error ("%s: %m", file.filename);
       return -1;
     }
-    if (fstat (file.fd, &file.statbuf) == -1) {
+
+    file.size = device_size (file.fd, NULL);
+    if (file.size == -1) {
       err = errno;
       close (file.fd);
       errno = err;
-      nbdkit_error ("%s: stat: %m", file.filename);
+      nbdkit_error ("%s: device_size: %m", file.filename);
       return -1;
     }
 
-    /* XXX We could implement this but it requires extra work. */
-    if (S_ISBLK (file.statbuf.st_mode)) {
-      nbdkit_error ("%s: file parameter points to a block device, "
-                    "not a normal file",
-                    file.filename);
-      return -1;
-    }
-
-    if (file.statbuf.st_size == 0) {
+    if (file.size == 0) {
       nbdkit_error ("%s: zero length partitions are not allowed",
                     file.filename);
       return -1;
@@ -250,7 +244,7 @@ partitioning_config_complete (void)
 
   total_size = 0;
   for (i = 0; i < the_files.len; ++i)
-    total_size += the_files.ptr[i].statbuf.st_size;
+    total_size += the_files.ptr[i].size;
   needs_gpt = total_size > MAX_MBR_DISK_SIZE;
 
   /* Choose default parttype if not set. */
