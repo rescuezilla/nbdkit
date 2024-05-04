@@ -38,7 +38,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 
 #include <nbdkit-plugin.h>
 
@@ -201,14 +200,14 @@ cdi_open (int readonly)
 static int64_t
 cdi_get_size (void *handle)
 {
-  struct stat statbuf;
+  int64_t r;
 
-  if (fstat (fd, &statbuf) == -1) {
-    nbdkit_error ("fstat: %m");
+  r = device_size (fd, NULL);
+  if (r == -1) {
+    nbdkit_error ("device_size: %m");
     return -1;
   }
-
-  return statbuf.st_size;
+  return r;
 }
 
 /* Serves the same data over multiple connections. */

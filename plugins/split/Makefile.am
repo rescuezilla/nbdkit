@@ -33,6 +33,9 @@ include $(top_srcdir)/common-rules.mk
 
 EXTRA_DIST = nbdkit-split-plugin.pod
 
+# Disabled on Windows because device_size is not supported.
+if !IS_WINDOWS
+
 plugin_LTLIBRARIES = nbdkit-split-plugin.la
 
 nbdkit_split_plugin_la_SOURCES = \
@@ -73,3 +76,4 @@ nbdkit-split-plugin.1: nbdkit-split-plugin.pod \
 	    $<
 
 endif HAVE_POD
+endif !IS_WINDOWS
