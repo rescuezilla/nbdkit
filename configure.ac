@@ -386,6 +386,8 @@ AC_CHECK_HEADERS([\
         termios.h \
         stdatomic.h \
         syslog.h \
+        sys/disk.h \
+        sys/disklabel.h \
         sys/endian.h \
         sys/ioctl.h \
         sys/mman.h \
