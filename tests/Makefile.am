@@ -837,6 +837,7 @@ EXTRA_DIST += \
 # file plugin test.
 TESTS += \
 	test-file.sh \
+	test-file-size.sh \
 	test-file-readonly.sh \
 	test-file-fd.sh \
 	test-file-extents.sh \
@@ -845,6 +846,7 @@ TESTS += \
 	$(NULL)
 EXTRA_DIST += \
 	test-file.sh \
+	test-file-size.sh \
 	test-file-readonly.sh \
 	test-file-fd.sh \
 	test-file-extents.sh \

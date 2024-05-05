@@ -44,6 +44,8 @@
 
 #include "test.h"
 
+#define DISK_SIZE (100 * 1024 * 1024)
+
 static char *loopdev;                   /* Name of the loop device. */
 static void detach_loopdev (void);
 
@@ -59,6 +61,7 @@ main (int argc, char *argv[])
   char *data;
   size_t len;
   char *s;
+  int64_t size;
 
   /* This test can only be run as root, and will be skipped otherwise. */
   if (geteuid () != 0) {
@@ -89,7 +92,7 @@ main (int argc, char *argv[])
     perror ("mkstemp");
     exit (EXIT_FAILURE);
   }
-  if (ftruncate (fd, 100 * 1024 * 1024) == -1) {
+  if (ftruncate (fd, DISK_SIZE) == -1) {
     perror ("ftruncate");
     unlink (disk);
     exit (EXIT_FAILURE);
@@ -151,6 +154,22 @@ main (int argc, char *argv[])
 
   if (guestfs_launch (g) == -1)
     exit (EXIT_FAILURE);
+
+  /* Check that the size of the disk seen through libguestfs & NBD
+   * matches the size of the file.  This ensures that the common/utils
+   * device_size function is working, but also that the size is passed
+   * through many layers up to us.
+   */
+  size = guestfs_blockdev_getsize64 (g, "/dev/sda");
+  if (size == -1)
+    exit (EXIT_FAILURE);
+  if (size != DISK_SIZE) {
+    fprintf (stderr,
+             "%s FAILED: disk size incorrect "
+             "(actual: %" PRIi64 ", expected: %d)\n",
+             program_name, size, DISK_SIZE);
+    exit (EXIT_FAILURE);
+  }
 
   /* Partition the disk. */
   if (guestfs_part_disk (g, "/dev/sda", "mbr") == -1)
