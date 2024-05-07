@@ -1065,6 +1065,7 @@ EXTRA_DIST += \
 	test-gcs-unit.sh \
 	test-gcs/google/cloud/storage/__init__.py \
 	test-gcs/google/api_core/exceptions.py \
+	test-gcs/google/api_core/__init__.py \
 	$(NULL)
 
 # sparse-random plugin test.
