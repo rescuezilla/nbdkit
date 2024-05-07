@@ -35,7 +35,6 @@
 
 #include <stdbool.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 
 #include "rounding.h"
 
@@ -81,7 +80,7 @@ extern int parttype;
 struct file {
   const char *filename;         /* file= supplied on the command line */
   int fd;
-  struct stat statbuf;
+  int64_t size;
   char guid[16];                /* random GUID used for GPT */
   unsigned long alignment;      /* alignment of this partition */
   uint8_t mbr_id;               /* MBR ID of this partition */

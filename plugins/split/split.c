@@ -41,7 +41,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <stdbool.h>
 #include <pthread.h>
 
@@ -51,6 +50,7 @@
 #include "pread.h"
 #include "pwrite.h"
 #include "string-vector.h"
+#include "utils.h"
 #include "windows-compat.h"
 
 /* The files. */
@@ -112,7 +112,6 @@ split_open (int readonly)
   int flags;
   size_t i;
   uint64_t offset;
-  struct stat statbuf;
 #ifdef SEEK_HOLE
   off_t r;
 #endif
@@ -151,19 +150,12 @@ split_open (int readonly)
   for (i = 0; i < filenames.len; ++i) {
     h->files[i].offset = offset;
 
-    if (fstat (h->files[i].fd, &statbuf) == -1) {
-      nbdkit_error ("stat: %s: %m", filenames.ptr[i]);
+    h->files[i].size = device_size (h->files[i].fd, NULL);
+    if (h->files[i].size == -1) {
+      nbdkit_error ("%s: device_size: %m", filenames.ptr[i]);
       goto err;
     }
-    /* XXX We could implement this but it requires extra work. */
-    if (S_ISBLK (statbuf.st_mode)) {
-      nbdkit_error ("%s: file parameter points to a block device, "
-                    "not a normal file",
-                    filenames.ptr[i]);
-      goto err;
-    }
-    h->files[i].size = statbuf.st_size;
-    offset += statbuf.st_size;
+    offset += h->files[i].size;
 
     nbdkit_debug ("file[%zu]=%s: offset=%" PRIu64 ", size=%" PRIu64,
                   i, filenames.ptr[i], h->files[i].offset, h->files[i].size);

@@ -40,6 +40,7 @@ libutils_la_SOURCES = \
 	cleanup-nbdkit.c \
 	cleanup.h \
 	const-string-vector.h \
+	device-size.c \
 	environ.c \
 	exit-with-parent.c \
 	exit-with-parent.h \

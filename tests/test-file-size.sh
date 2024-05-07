@@ -30,50 +30,26 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test the file plugin.
+# Test the file accurately gets the file size.
 
 source ./functions.sh
 set -e
 set -x
 
 requires_plugin file
-requires_nbdsh_uri
+requires_nbdinfo
+requires_run
 requires $TRUNCATE --version
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="file.pid file.img $sock"
-rm -f $files
-cleanup_fn rm -f $files
+f="file-size.img"
+rm -f $f
+cleanup_fn rm -f $f
 
-$TRUNCATE -s 16384 file.img
-start_nbdkit -P file.pid -U $sock file file.img
-
-# Try to test all the major functions supported by both
-# the Unix and Windows versions of the file plugin.
-nbdsh -u "nbd+unix://?socket=$sock" -c '
-assert not h.is_read_only()
-assert h.get_size() == 16384
-
-buf0 = bytearray(1024)
-buf1 = b"1" * 1024
-buf2 = b"2" * 1024
-h.pwrite(buf1 + buf2 + buf1 + buf2, 1024)
-buf = h.pread(8192, 0)
-assert buf == buf0 + buf1 + buf2 + buf1 + buf2 + buf0*3
-
-if h.can_flush():
-   h.flush()
-
-if h.can_trim():
-   h.trim(1024, 1024)
-   buf = h.pread(8192, 0)
-   assert buf == buf0*2 + buf2 + buf1 + buf2 + buf0*3
-
-   # It would be nice to test base:allocation here, but
-   # unfortunately it is not practical because it would
-   # depend on the host filesystem block size.
-
-h.zero(4096, 1024)
-buf = h.pread(8192, 0)
-assert buf == buf0*8
-'
+for s in 0 1 511 512 513 $((1024 * 1024)) $((64 * 1024 * 1024 - 1)); do
+    truncate -s $s $f
+    size="$(nbdkit file $f --run 'nbdinfo --size "$uri"')"
+    if [ $s -ne $size ]; then
+        echo "ERROR: file size does not match expected:" "$s" "!=" "$size" >&2
+        exit 1
+    fi
+done

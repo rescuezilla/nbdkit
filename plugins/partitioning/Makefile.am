@@ -33,6 +33,9 @@ include $(top_srcdir)/common-rules.mk
 
 EXTRA_DIST = nbdkit-partitioning-plugin.pod
 
+# Disabled on Windows because device_size is not supported.
+if !IS_WINDOWS
+
 plugin_LTLIBRARIES = nbdkit-partitioning-plugin.la
 
 nbdkit_partitioning_plugin_la_SOURCES = \
@@ -82,3 +85,4 @@ nbdkit-partitioning-plugin.1: nbdkit-partitioning-plugin.pod \
 	    $<
 
 endif HAVE_POD
+endif !IS_WINDOWS

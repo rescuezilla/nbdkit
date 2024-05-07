@@ -37,7 +37,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 
 #include <nbdkit-plugin.h>
 
@@ -205,14 +204,14 @@ iso_open (int readonly)
 static int64_t
 iso_get_size (void *handle)
 {
-  struct stat statbuf;
+  int64_t r;
 
-  if (fstat (fd, &statbuf) == -1) {
-    nbdkit_error ("fstat: %m");
+  r = device_size (fd, NULL);
+  if (r == -1) {
+    nbdkit_error ("device_size: %m");
     return -1;
   }
-
-  return statbuf.st_size;
+  return r;
 }
 
 /* Make this look more like a real CD. */
