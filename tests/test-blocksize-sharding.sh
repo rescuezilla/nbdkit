@@ -80,9 +80,13 @@ witness = os.getenv("witness")
 def touch(path):
     open(path, "a").close()
 
+def progress(prefix, start):
+    t = time.time() - start
+    print("%s: %g" % (prefix, t), flush=True)
+
 # First pass: check that two aligned operations work in parallel
 # Total time should be closer to 2 seconds, rather than 4 if serialized
-print("sanity check")
+print("sanity check", flush=True)
 ba1 = bytearray(b"1"*16)
 ba2 = bytearray(b"2"*16)
 buf1 = nbd.Buffer.from_bytearray(ba1)
@@ -91,21 +95,24 @@ touch(witness)
 start_t = time.time()
 h.aio_pwrite(buf1, 0)
 h.aio_pwrite(buf2, 0)
+progress("after writes", start_t)
 
 while h.aio_in_flight() > 0:
     h.poll(-1)
+    progress("after poll", start_t)
 end_t = time.time()
 os.unlink(witness)
 
 out = h.pread(16,0)
-print(out)
+progress("after read", start_t)
+print(out, flush=True)
 t = end_t - start_t
-print(t)
+print("elapsed write time: %g" % t, flush=True)
 assert out in [b"1"*16, b"2"*16]
-assert t >= 2 and t <= 3
+assert 2.0 <= t < 4.0
 
 # Next pass: try to kick off unaligned first
-print("unaligned first")
+print("unaligned first", flush=True)
 h.zero(16, 0)
 ba3 = bytearray(b"3"*12)
 ba4 = bytearray(b"4"*16)
@@ -122,14 +129,14 @@ end_t = time.time()
 os.unlink(witness)
 
 out = h.pread(16,0)
-print(out)
+print(out, flush=True)
 t = end_t - start_t
-print(t)
+print(t, flush=True)
 assert out in [b"4"*4 + b"3"*12, b"4"*16]
-assert t >= 8
+assert t >= 8.0
 
 # Next pass: try to kick off aligned first
-print("aligned first")
+print("aligned first", flush=True)
 ba5 = bytearray(b"5"*16)
 ba6 = bytearray(b"6"*12)
 buf5 = nbd.Buffer.from_bytearray(ba5)
@@ -146,11 +153,11 @@ end_t = time.time()
 os.unlink(witness)
 
 out = h.pread(16,0)
-print(out)
+print(out, flush=True)
 t = end_t - start_t
-print(t)
+print(t, flush=True)
 assert out in [b"5"*4 + b"6"*12, b"5"*16]
-assert t >= 8
+assert t >= 8.0
 '
 
 # Now run everything
