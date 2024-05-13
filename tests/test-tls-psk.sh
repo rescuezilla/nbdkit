@@ -34,20 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
-requires qemu-img --version
-
-if ! qemu-img --help | grep -- --object; then
-    echo "$0: 'qemu-img' command does not have the --object option"
-    exit 77
-fi
-
-# Does the qemu-img binary support PSK?
-if LANG=C qemu-img info --object tls-creds-psk,id=id disk |&
-        grep -sq "invalid object type: tls-creds-psk"
-then
-    echo "$0: 'qemu-img' command does not support TLS-PSK"
-    exit 77
-fi
+requires_nbdinfo
 
 # Does the nbdkit binary support TLS?
 if ! nbdkit --dump-config | grep -sq tls=yes; then
@@ -62,22 +49,19 @@ if [ ! -s keys.psk ]; then
     exit 77
 fi
 
-# Unfortunately qemu cannot do TLS over a Unix domain socket (nbdkit
-# can, but that is tested in tests-nbd-tls-psk.sh).  Find an unused port to
-# listen on.
-pick_unused_port
+sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
+files="$sock tls-psk.pid tls-psk.out"
+rm -f $files
+cleanup_fn rm -f $files
 
-cleanup_fn rm -f tls-psk.pid tls-psk.out
-start_nbdkit -P tls-psk.pid -p $port -n \
+start_nbdkit -P tls-psk.pid -U $sock -n \
              --tls=require --tls-psk=keys.psk -D nbdkit.tls.session=1 \
              example1
 
 # Run qemu-img against the server.
-qemu-img info --output=json \
-         --object "tls-creds-psk,id=tls0,endpoint=client,dir=$PWD" \
-         --image-opts "file.driver=nbd,file.host=localhost,file.port=$port,file.tls-creds=tls0" > tls-psk.out
+nbdinfo "nbds+unix://qemu@/?socket=$sock&tls-psk-file=keys.psk" > tls-psk.out
 
 cat tls-psk.out
 
-grep -sq '"format": *"raw"' tls-psk.out
-grep -sq '"virtual-size": *104857600\b' tls-psk.out
+grep 'is_read_only: true' tls-psk.out
+grep -E 'export-size: 104857600\b' tls-psk.out
