@@ -840,7 +840,7 @@ main (int argc, char *argv[])
    * false.
    */
   if (print_uri && uri && nbdkit_stdio_safe ()) {
-    printf ("URI of this nbdkit server: %s\n", uri);
+    printf ("%s\n", uri);
     printf ("Shell-quoted URI: ");
     shell_quote (uri, stdout);
     printf ("\n");

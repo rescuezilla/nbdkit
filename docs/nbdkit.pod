@@ -176,7 +176,7 @@ nbdkit I<--print-uri> option to print the URI of this server instance.
 For example:
 
  $ nbdkit -U /tmp/socket --print-uri null
- URI of this nbdkit server: nbd+unix://?socket=/tmp/socket
+ nbd+unix://?socket=/tmp/socket
  Shell-quoted URI: "nbd+unix://?socket=/tmp/socket"
  Command to query the NBD endpoint:
    nbdinfo "nbd+unix://?socket=/tmp/socket"

@@ -45,7 +45,7 @@ LANG=C nbdkit -f --print-uri null --run 'exit 0' > $out
 cat $out
 
 # Check for expected output.
-grep 'nbd+unix://' $out
+grep '^nbd+unix://' $out
 grep '?socket=/' $out
 grep 'Shell-quoted URI' $out
 grep 'nbd[i]nfo' $out
