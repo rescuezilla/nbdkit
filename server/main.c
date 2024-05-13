@@ -329,6 +329,10 @@ main (int argc, char *argv[])
       }
       break;
 
+    case HELP_OPTION:
+      help = true;
+      break;
+
     case LOG_OPTION:
       if (strcmp (optarg, "stderr") == 0)
         log_to = LOG_TO_STDERR;
@@ -351,6 +355,20 @@ main (int argc, char *argv[])
           printf ("--%s\n", long_options[i].name);
       }
       exit (EXIT_SUCCESS);
+
+    case MASK_HANDSHAKE_OPTION:
+      if (nbdkit_parse_unsigned ("mask-handshake",
+                                 optarg, &mask_handshake) == -1)
+        exit (EXIT_FAILURE);
+      break;
+
+    case NO_MC_OPTION:
+      no_mc = true;
+      break;
+
+    case NO_SR_OPTION:
+      no_sr = true;
+      break;
 
     case RUN_OPTION:
       if (socket_activation) {
@@ -451,22 +469,8 @@ main (int argc, char *argv[])
       ipaddr = optarg;
       break;
 
-    case MASK_HANDSHAKE_OPTION:
-      if (nbdkit_parse_unsigned ("mask-handshake",
-                                 optarg, &mask_handshake) == -1)
-        exit (EXIT_FAILURE);
-      break;
-
     case 'n':
       newstyle = true;
-      break;
-
-    case NO_MC_OPTION:
-      no_mc = true;
-      break;
-
-    case NO_SR_OPTION:
-      no_sr = true;
       break;
 
     case 'o':
@@ -541,10 +545,6 @@ main (int argc, char *argv[])
 
     case 'V':
       version = true;
-      break;
-
-    case HELP_OPTION:
-      help = true;
       break;
 
     default:
