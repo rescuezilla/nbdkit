@@ -35,12 +35,7 @@ set -e
 set -x
 
 requires_run
-requires qemu-img --version
-
-if ! qemu-img --help | grep -- --object; then
-    echo "$0: 'qemu-img' command does not have the --object option"
-    exit 77
-fi
+requires_nbdinfo
 
 # Does the nbdkit binary support TLS?
 if ! nbdkit --dump-config | grep -sq tls=yes; then
@@ -59,23 +54,20 @@ if [ ! -f "$pkidir/ca-cert.pem" ]; then
     exit 77
 fi
 
-# Unfortunately qemu 4.0 cannot do TLS over a Unix domain socket (nbdkit
-# can, but that is tested in tests-nbd-tls.sh).  Find an unused port to
-# listen on.
-pick_unused_port
+sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
+files="$sock tls.pid tls.out"
+rm -f $files
+cleanup_fn rm -f $files
 
-cleanup_fn rm -f tls.pid tls.out
-start_nbdkit -P tls.pid -p $port -n \
+start_nbdkit -P tls.pid -U $sock -n \
              --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
              -D nbdkit.tls.session=1 \
              example1
 
-# Run qemu-img against the server.
-qemu-img info --output=json \
-         --object "tls-creds-x509,id=tls0,endpoint=client,dir=$pkidir" \
-         --image-opts "file.driver=nbd,file.host=localhost,file.port=$port,file.tls-creds=tls0" > tls.out
+# Run nbdinfo against the server.
+nbdinfo "nbds+unix://qemu@/?socket=$sock&tls-certificates=$pkidir" > tls.out
 
 cat tls.out
 
-grep -sq '"format": *"raw"' tls.out
-grep -sq '"virtual-size": *104857600\b' tls.out
+grep 'is_read_only: true' tls.out
+grep -E 'export-size: 104857600\b' tls.out
