@@ -30,44 +30,22 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test each option appears in the synopsis.
-
 source ./functions.sh
-set -e
 set -x
+set -e
 
-# If these fail it's probably because you ran the script by hand.
-test -n "$srcdir"
-synopsis=$srcdir/../docs/synopsis.txt
-test -f "$synopsis"
+requires_plugin null
+requires_run
 
-# Windows uses CRLF line endings, so we have to remove the CR.
-nocr="tr -d '\r'"
+out="print-uri.out"
+rm -f $out
+cleanup_fn rm -f $out
 
-for i in $(nbdkit --short-options | $nocr); do
-    grep '[^-]'$i $synopsis
-done
+LANG=C nbdkit -f --print-uri null --run 'exit 0' > $out
+cat $out
 
-for i in $(nbdkit --long-options | $nocr); do
-    case "$i" in
-        # Only one version of each long option is shown in the
-        # synopsis, so ignore other versions.
-        --export-name) ;;       # alias of -e, --exportname
-        --no-fork) ;;           # alias of -f
-        --ip-addr) ;;           # alias of -i, --ipaddr
-        --new-style) ;;         # alias of -n, --newstyle
-        --no-mc) ;;             # alias of --no-meta-contexts
-        --no-sr) ;;             # alias of --no-structured-replies
-        --old-style) ;;         # alias of -o, --oldstyle
-        --pid-file) ;;          # alias of -P, --pidfile
-        --print-url) ;;         # alias of --print-uri
-        --read-only) ;;         # alias of -r, --readonly
-        --show-uri) ;;          # alias of --print-uri
-        --show-url) ;;          # alias of --print-uri
-        --stdin) ;;             # alias of -s, --single
-
-        # Anything else is tested.
-        *)
-            grep -- "$i" $synopsis
-    esac
-done
+# Check for expected output.
+grep 'nbd+unix://' $out
+grep '?socket=/' $out
+grep 'Shell-quoted URI' $out
+grep 'nbd[i]nfo' $out

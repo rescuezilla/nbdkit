@@ -47,5 +47,14 @@ test -f "$podfile"
 nocr="tr -d '\r'"
 
 for i in $(nbdkit --short-options | $nocr) $(nbdkit --long-options | $nocr); do
-    grep '^=item B<'$i'[=>]' $podfile
+    case "$i" in
+        # Skip some options that we don't want to document.
+        --print-url) ;;         # alias of --print-uri
+        --show-uri) ;;          # alias of --print-uri
+        --show-url) ;;          # alias of --print-uri
+
+        # Anything else is tested.
+        *)
+            grep '^=item B<'$i'[=>]' $podfile
+    esac
 done

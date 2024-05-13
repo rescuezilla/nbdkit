@@ -167,6 +167,20 @@ Display information about nbdkit or a specific plugin:
  nbdkit example1 --help
  nbdkit example1 --dump-plugin
 
+=head2 NBD URIs and endpoints
+
+NBD has a way to specify the
+L<URI|https://github.com/NetworkBlockDevice/nbd/blob/master/doc/uri.md>
+of an NBD endpoint to make it easy to interconnect NBD tools.  Use the
+nbdkit I<--print-uri> option to print the URI of this server instance.
+For example:
+
+ $ nbdkit -U /tmp/socket --print-uri null
+ URI of this nbdkit server: nbd+unix://?socket=/tmp/socket
+ Shell-quoted URI: "nbd+unix://?socket=/tmp/socket"
+ Command to query the NBD endpoint:
+   nbdinfo "nbd+unix://?socket=/tmp/socket"
+
 =head1 GLOBAL OPTIONS
 
 =over 4
@@ -371,6 +385,10 @@ delete the file when it exits.
 
 Change the TCP/IP port number on which nbdkit serves requests.
 The default is C<10809>.  See also I<-i>.
+
+=item B<--print-uri>
+
+Print the URI.  See L</NBD URIs and endpoints> above.
 
 =item B<-r>
 
@@ -783,6 +801,7 @@ L<https://bitbucket.org/hirofuchi/xnbd>.
 =head2 Documentation for the NBD protocol
 
 L<https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md>,
+L<https://github.com/NetworkBlockDevice/nbd/blob/master/doc/uri.md>,
 L<https://nbd.sourceforge.io/>.
 
 =head2 Similar protocols

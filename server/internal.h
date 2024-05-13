@@ -133,6 +133,7 @@ extern bool newstyle;
 extern bool no_mc;
 extern bool no_sr;
 extern const char *port;
+extern bool print_uri;
 extern bool read_only;
 extern const char *run;
 extern bool listen_stdin;

@@ -106,6 +106,7 @@ bool no_mc;                     /* --no-meta-contexts */
 bool no_sr;                     /* --no-sr */
 char *pidfile;                  /* -P */
 const char *port;               /* -p */
+bool print_uri;                 /* --print-uri */
 bool read_only;                 /* -r */
 const char *run;                /* --run */
 bool listen_stdin;              /* -s */
@@ -368,6 +369,10 @@ main (int argc, char *argv[])
 
     case NO_SR_OPTION:
       no_sr = true;
+      break;
+
+    case PRINT_URI:
+      print_uri = true;
       break;
 
     case RUN_OPTION:
@@ -829,6 +834,22 @@ main (int argc, char *argv[])
    * called before we change user, fork, or open any sockets.
    */
   top->get_ready (top);
+
+  /* Print the URI.  Do it just before we close stdio, especially
+   * before setting 'configured' to true which makes nbdkit_stdio_safe
+   * false.
+   */
+  if (print_uri && uri && nbdkit_stdio_safe ()) {
+    printf ("URI of this nbdkit server: %s\n", uri);
+    printf ("Shell-quoted URI: ");
+    shell_quote (uri, stdout);
+    printf ("\n");
+    printf ("Command to query the NBD endpoint:\n");
+    printf ("  nbdinfo ");
+    shell_quote (uri, stdout);
+    printf ("\n");
+    fflush (stdout);
+  }
 
   switch_stdio ();
   configured = true;

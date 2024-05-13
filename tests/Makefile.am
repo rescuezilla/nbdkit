@@ -250,6 +250,7 @@ TESTS += \
 	test-no-parameters.sh \
 	test-bad-plugin-name.sh \
 	test-bad-filter-name.sh \
+	test-print-uri.sh \
 	test-start.sh \
 	test-single.sh \
 	test-single-from-file.sh \
@@ -315,6 +316,7 @@ EXTRA_DIST += \
 	test-no-parameters.sh \
 	test-not-linked-to-libssl.sh \
 	test-plugin-docs.sh \
+	test-print-uri.sh \
 	test-probe-filter-dump-plugin.sh \
 	test-probe-filter.sh \
 	test-probe-plugin.sh \
