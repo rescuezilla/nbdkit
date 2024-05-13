@@ -287,9 +287,14 @@ endif
 EXTRA_DIST += \
 	test-bad-filter-name.sh \
 	test-bad-plugin-name.sh \
-	test-captive.sh \
 	test-captive-tls.sh \
+	test-captive.sh \
+	test-client-death-tls.sh \
+	test-client-death.sh \
+	test-crippled-extents.sh \
 	test-debug-flags.sh \
+	test-disconnect-tls.sh \
+	test-disconnect.sh \
 	test-dump-plugin-and-single.sh \
 	test-dump-plugin-example1.sh \
 	test-dump-plugin-example2.sh \
@@ -298,30 +303,25 @@ EXTRA_DIST += \
 	test-dump-plugin-thread-model.sh \
 	test-dump-plugin.sh \
 	test-flush.sh \
-	test-crippled-extents.sh \
 	test-foreground.sh \
 	test-help-example1.sh \
 	test-help-plugin.sh \
-	test-plugin-docs.sh \
 	test-ipv4-lo.sh \
 	test-ipv6-lo.sh \
 	test-long-name.sh \
-	test-nbd-client.sh \
 	test-nbd-client-tls.sh \
+	test-nbd-client.sh \
 	test-nbdkit-backend-debug.sh \
 	test-no-parameters.sh \
 	test-not-linked-to-libssl.sh \
-	test-probe-filter.sh \
+	test-plugin-docs.sh \
 	test-probe-filter-dump-plugin.sh \
+	test-probe-filter.sh \
 	test-probe-plugin.sh \
 	test-random-sock.sh \
-	test-read-password.sh \
 	test-read-password-interactive.sh \
 	test-read-password-plugin.c \
-	test-disconnect.sh \
-	test-disconnect-tls.sh \
-	test-client-death.sh \
-	test-client-death-tls.sh \
+	test-read-password.sh \
 	test-shutdown.sh \
 	test-single-from-file.sh \
 	test-single-sh.sh \
