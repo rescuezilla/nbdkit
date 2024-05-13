@@ -75,6 +75,8 @@ guestfish and expanded differently.  Since NBD URIs are now widely
 supported this magic is no longer necessary.  In nbdkit E<ge> 1.24
 both variables expand to the same URI.
 
+See also L<nbdkit(1)/NBD URIs and endpoints>.
+
 =item C<$tls>
 
 Corresponds to the I<--tls> option passed to nbdkit.  If I<--tls=off>
