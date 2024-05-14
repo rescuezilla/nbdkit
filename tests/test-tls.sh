@@ -70,7 +70,7 @@ nbdkit --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
        example1 \
        --run '
        # Run nbdinfo against the server.
-       nbdinfo "nbds+unix://qemu@/?socket=$unixsocket&tls-certificates=$pkidir"
+       nbdinfo "$uri"
        ' > $out
 
 cat $out
