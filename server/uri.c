@@ -112,5 +112,11 @@ make_uri (void)
   }
 
  out:
+  if (r)
+    debug ("NBD URI: %s", r);
+  else
+    debug ("no NBD URI because service mode is %s",
+           service_mode_string (service_mode));
+
   return r;
 }
