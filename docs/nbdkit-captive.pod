@@ -77,12 +77,6 @@ both variables expand to the same URI.
 
 See also L<nbdkit(1)/NBD URIs and endpoints>.
 
-=item C<$tls>
-
-Corresponds to the I<--tls> option passed to nbdkit.  If I<--tls=off>
-this is not set.  If I<--tls=on> this is set to C<"1">.  If
-I<--tls=require> this is set to C<"2">.
-
 =item C<$port>
 
 If E<ne> "", the port number that nbdkit is listening on.
@@ -98,6 +92,24 @@ connecting to nbdkit, as set by the I<-e> (I<--exportname>) command
 line option of nbdkit.  This only matters to plugins that
 differentiate what they serve based on the export name requested by
 the client.
+
+=item C<$tls>
+
+Corresponds to the I<--tls> option passed to nbdkit.  If I<--tls=off>
+this is not set.  If I<--tls=on> this is set to C<"1">.  If
+I<--tls=require> this is set to C<"2">.
+
+=item C<$tls_certificates>
+
+If I<--tls-certificates> was passed to nbdkit, the value is copied
+here.  It is usually the directory containing PKI certificates.  Note
+that the path might not be an absolute path, or even valid.
+
+=item C<$tls_psk>
+
+If I<--tls-psk> was passed to nbdkit, the value is copied here.  It is
+usually the filename of a TLS Pre-Shared Keys (PSK) file.  Note that
+the filename might not be an absolute path, or even valid.
 
 =back
 

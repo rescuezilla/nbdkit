@@ -258,6 +258,8 @@ TESTS += \
 	test-single-sh.sh \
 	test-captive.sh \
 	test-captive-tls.sh \
+	test-captive-tls-certificates.sh \
+	test-captive-tls-psk.sh \
 	test-random-sock.sh \
 	test-tls.sh \
 	test-tls-psk.sh \
@@ -289,6 +291,8 @@ endif
 EXTRA_DIST += \
 	test-bad-filter-name.sh \
 	test-bad-plugin-name.sh \
+	test-captive-tls-certificates.sh \
+	test-captive-tls-psk.sh \
 	test-captive-tls.sh \
 	test-captive.sh \
 	test-client-death-tls.sh \

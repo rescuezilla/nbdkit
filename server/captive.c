@@ -88,9 +88,7 @@ run_command (void)
     shell_quote (export_name, fp);
   putc ('\n', fp);
 
-  /* Construct $tls, $port and $unixsocket. */
-  if (tls > 0)
-    fprintf (fp, "tls=%d\n", tls);
+  /* Construct $port and $unixsocket. */
   fprintf (fp, "port=");
   if (port)
     shell_quote (port, fp);
@@ -98,6 +96,18 @@ run_command (void)
   fprintf (fp, "unixsocket=");
   if (unixsocket)
     shell_quote (unixsocket, fp);
+  fprintf (fp, "\n");
+
+  /* Construct TLS-related variables. */
+  if (tls > 0)
+    fprintf (fp, "tls=%d\n", tls);
+  fprintf (fp, "tls_certificates=");
+  if (tls_certificates_dir)
+    shell_quote (tls_certificates_dir, fp);
+  fprintf (fp, "\n");
+  fprintf (fp, "tls_psk=");
+  if (tls_psk)
+    shell_quote (tls_psk, fp);
   fprintf (fp, "\n");
 
   /* Add the --run command.  Note we don't have to quote this. */
