@@ -49,7 +49,7 @@ if ! nbdkit --dump-plugin nbd | grep -sq libnbd_tls=1; then
 fi
 
 # Did we create the PSK keys file?
-# Probably 'certtool' is missing.
+# Probably 'psktool' is missing.
 if [ ! -s keys.psk ]; then
     echo "$0: PSK keys file was not created by the test harness"
     exit 77
