@@ -106,7 +106,7 @@ make_uri (void)
     abort ();
   }
 
-  if (fclose (fp) == EOF) {
+  if (close_memstream (fp) == EOF) {
     perror ("memstream failed");
     exit (EXIT_FAILURE);
   }
