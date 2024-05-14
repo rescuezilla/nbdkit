@@ -46,6 +46,12 @@ fi
 # RHEL 7 GnuTLS did not support --tls-verify-peer.
 requires nbdkit --tls-verify-peer null --run 'exit 0'
 
+# RHEL 8 libnbd / nbdinfo doesn't support the tls-certificates
+# parameter in URIs, so connections always fail.  It's hard to detect
+# if libnbd supports this, so just go off version number.  The libnbd
+# commit adding this feature was 847e0b9830, added in libnbd 1.9.5.
+requires_libnbd_version 1.10
+
 # Did we create the PKI files?
 # Probably 'certtool' is missing.
 pkidir="$PWD/pki"
