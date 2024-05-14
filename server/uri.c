@@ -52,6 +52,7 @@ make_uri (void)
   char *r = NULL;
   const bool tls_required = tls == 2;
   const char *scheme;
+  bool query_appended;
 
   switch (service_mode) {
   case SERVICE_MODE_SOCKET_ACTIVATION:
@@ -97,6 +98,7 @@ make_uri (void)
     }
     fprintf (fp, "?socket=");
     uri_quote (unixsocket, fp);
+    query_appended = true;
     break;
   case SERVICE_MODE_VSOCK:
     /* 1 = VMADDR_CID_LOCAL */
@@ -109,6 +111,7 @@ make_uri (void)
       putc ('/', fp);
       uri_quote (export_name, fp);
     }
+    query_appended = false;
     break;
   case SERVICE_MODE_TCPIP:
     fputs ("localhost", fp);
@@ -120,6 +123,7 @@ make_uri (void)
       putc ('/', fp);
       uri_quote (export_name, fp);
     }
+    query_appended = false;
     break;
 
   case SERVICE_MODE_SOCKET_ACTIVATION:
@@ -128,6 +132,25 @@ make_uri (void)
     /*FALLTHROUGH*/
   default:
     abort ();
+  }
+
+  /* For TLS, append tls-certificates or tls-psk-file.  Note that
+   * tls-certificates requires libnbd >= 1.10 (Sep 2021) and it fails
+   * strangely with older versions (RHEL 8 is too old).  Hopefully
+   * this will resolve itself over time as people upgrade libnbd.
+   * Qemu ignores these parameters, see:
+   * https://lists.libguestfs.org/archives/list/guestfs@lists.libguestfs.org/message/PDXCGDWJD2FHFNQNSFKH752IMVOAW2KI/
+   */
+  if (tls_required && (tls_certificates_dir || tls_psk)) {
+    putc (query_appended ? '&' : '?', fp);
+    if (tls_certificates_dir) {
+      fputs ("tls-certificates=", fp);
+      uri_quote (tls_certificates_dir, fp);
+    }
+    else if (tls_psk) {
+      fputs ("tls-psk-file=", fp);
+      uri_quote (tls_psk, fp);
+    }
   }
 
   if (close_memstream (fp) == EOF) {
