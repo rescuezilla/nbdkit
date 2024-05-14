@@ -60,7 +60,7 @@ make_uri (void)
 
   fp = open_memstream (&r, &len);
   if (fp == NULL) {
-    perror ("open_memstream");
+    perror ("uri: open_memstream");
     exit (EXIT_FAILURE);
   }
 
@@ -107,7 +107,7 @@ make_uri (void)
   }
 
   if (close_memstream (fp) == EOF) {
-    perror ("memstream failed");
+    perror ("uri: close_memstream");
     exit (EXIT_FAILURE);
   }
 
