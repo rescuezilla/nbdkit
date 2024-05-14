@@ -34,6 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
+requires_run
 requires_nbdinfo
 
 # Does the nbdkit binary support TLS?
@@ -49,19 +50,18 @@ if [ ! -s keys.psk ]; then
     exit 77
 fi
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock tls-psk.pid tls-psk.out"
-rm -f $files
-cleanup_fn rm -f $files
+out="tls-psk.out"
+rm -f $out
+cleanup_fn rm -f $out
 
-start_nbdkit -P tls-psk.pid -U $sock -n \
-             --tls=require --tls-psk=keys.psk -D nbdkit.tls.session=1 \
-             example1
+nbdkit --tls=require --tls-psk=keys.psk -D nbdkit.tls.session=1 \
+       example1 \
+       --run '
+       # Run nbdinfo against the server.
+       nbdinfo "nbds+unix://qemu@/?socket=$unixsocket&tls-psk-file=keys.psk"
+       ' > $out
 
-# Run qemu-img against the server.
-nbdinfo "nbds+unix://qemu@/?socket=$sock&tls-psk-file=keys.psk" > tls-psk.out
+cat $out
 
-cat tls-psk.out
-
-grep 'is_read_only: true' tls-psk.out
-grep -E 'export-size: 104857600\b' tls-psk.out
+grep 'is_read_only: true' $out
+grep -E 'export-size: 104857600\b' $out
