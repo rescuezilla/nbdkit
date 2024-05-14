@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "open_memstream.h"
@@ -49,6 +50,8 @@ make_uri (void)
   FILE *fp;
   size_t len = 0;
   char *r = NULL;
+  const bool tls_required = tls == 2;
+  const char *scheme;
 
   switch (service_mode) {
   case SERVICE_MODE_SOCKET_ACTIVATION:
@@ -58,15 +61,36 @@ make_uri (void)
   default: ;
   }
 
+  /* Work out the scheme. */
+  switch (service_mode) {
+  case SERVICE_MODE_TCPIP:
+    scheme = tls_required ? "nbds" : "nbd";
+    break;
+  case SERVICE_MODE_UNIXSOCKET:
+    scheme = tls_required ? "nbds+unix" : "nbd+unix";
+    break;
+  case SERVICE_MODE_VSOCK:
+    scheme = tls_required ? "nbds+vsock" : "nbd+vsock";
+    break;
+  case SERVICE_MODE_SOCKET_ACTIVATION:
+  case SERVICE_MODE_LISTEN_STDIN:
+    /* these labels are not-reachable, see above */
+    /*FALLTHROUGH*/
+  default:
+    abort ();
+  }
+
+  /* Open the memory stream to store the URI. */
   fp = open_memstream (&r, &len);
   if (fp == NULL) {
     perror ("uri: open_memstream");
     exit (EXIT_FAILURE);
   }
 
+  fprintf (fp, "%s://", scheme);
+
   switch (service_mode) {
   case SERVICE_MODE_UNIXSOCKET:
-    fprintf (fp, "nbd%s+unix://", tls == 2 ? "s" : "");
     if (export_name && strcmp (export_name, "") != 0) {
       putc ('/', fp);
       uri_quote (export_name, fp);
@@ -76,7 +100,7 @@ make_uri (void)
     break;
   case SERVICE_MODE_VSOCK:
     /* 1 = VMADDR_CID_LOCAL */
-    fprintf (fp, "nbd%s+vsock://1", tls == 2 ? "s" : "");
+    putc ('1', fp);
     if (port) {
       putc (':', fp);
       fputs (port, fp);
@@ -87,7 +111,7 @@ make_uri (void)
     }
     break;
   case SERVICE_MODE_TCPIP:
-    fprintf (fp, "nbd%s://localhost", tls == 2 ? "s" : "");
+    fputs ("localhost", fp);
     if (port) {
       putc (':', fp);
       fputs (port, fp);
