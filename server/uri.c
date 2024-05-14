@@ -54,7 +54,7 @@ make_uri (void)
   case SERVICE_MODE_SOCKET_ACTIVATION:
   case SERVICE_MODE_LISTEN_STDIN:
     /* can't form a URI, uri will be NULL */
-    return NULL;
+    goto out;
   default: ;
   }
 
@@ -111,5 +111,6 @@ make_uri (void)
     exit (EXIT_FAILURE);
   }
 
+ out:
   return r;
 }
