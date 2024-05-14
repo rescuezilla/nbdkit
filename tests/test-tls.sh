@@ -60,20 +60,20 @@ if [ ! -f "$pkidir/ca-cert.pem" ]; then
     exit 77
 fi
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock tls.pid tls.out"
-rm -f $files
-cleanup_fn rm -f $files
+out="tls.out"
+rm -f $out
+cleanup_fn rm -f $out
 
-start_nbdkit -P tls.pid -U $sock -n \
-             --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
-             -D nbdkit.tls.session=1 \
-             example1
+export pkidir
+nbdkit --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
+       -D nbdkit.tls.session=1 \
+       example1 \
+       --run '
+       # Run nbdinfo against the server.
+       nbdinfo "nbds+unix://qemu@/?socket=$unixsocket&tls-certificates=$pkidir"
+       ' > $out
 
-# Run nbdinfo against the server.
-nbdinfo "nbds+unix://qemu@/?socket=$sock&tls-certificates=$pkidir" > tls.out
+cat $out
 
-cat tls.out
-
-grep 'is_read_only: true' tls.out
-grep -E 'export-size: 104857600\b' tls.out
+grep 'is_read_only: true' $out
+grep -E 'export-size: 104857600\b' $out
