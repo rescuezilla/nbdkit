@@ -194,6 +194,9 @@ extern unsigned int get_socket_activation (void);
 /* usergroup.c */
 extern void change_user (void);
 
+/* uri.c */
+extern char *make_uri (void);
+
 /* connections.c */
 
 /* Flags for connection_send_function */

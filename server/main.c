@@ -81,7 +81,6 @@
 #endif
 
 static char *make_random_fifo (void);
-static char *make_uri (void);
 static struct backend *open_plugin_so (size_t i, const char *filename,
                                        int short_name);
 static struct backend *open_filter_so (struct backend *next, size_t i,
@@ -122,7 +121,6 @@ bool verbose;                   /* -v */
 bool vsock;                     /* --vsock */
 
 enum service_mode service_mode; /* serving over TCP, Unix, etc */
-char *uri;                      /* NBD URI */
 bool configured;                /* .config_complete done */
 int saved_stdin = -1;           /* dup'd stdin during -s/--run */
 int saved_stdout = -1;          /* dup'd stdout during -s/--run */
@@ -910,77 +908,6 @@ service_mode_string (enum service_mode sm)
   case SERVICE_MODE_TCPIP:             return "TCP/IP";
   default: abort ();
   }
-}
-
-static char *
-make_uri (void)
-{
-  FILE *fp;
-  size_t len = 0;
-  char *r = NULL;
-
-  switch (service_mode) {
-  case SERVICE_MODE_SOCKET_ACTIVATION:
-  case SERVICE_MODE_LISTEN_STDIN:
-    /* can't form a URI, uri will be NULL */
-    return NULL;
-  default: ;
-  }
-
-  fp = open_memstream (&r, &len);
-  if (fp == NULL) {
-    perror ("open_memstream");
-    exit (EXIT_FAILURE);
-  }
-
-  switch (service_mode) {
-  case SERVICE_MODE_UNIXSOCKET:
-    fprintf (fp, "nbd%s+unix://", tls == 2 ? "s" : "");
-    if (export_name && strcmp (export_name, "") != 0) {
-      putc ('/', fp);
-      uri_quote (export_name, fp);
-    }
-    fprintf (fp, "?socket=");
-    uri_quote (unixsocket, fp);
-    break;
-  case SERVICE_MODE_VSOCK:
-    /* 1 = VMADDR_CID_LOCAL */
-    fprintf (fp, "nbd%s+vsock://1", tls == 2 ? "s" : "");
-    if (port) {
-      putc (':', fp);
-      fputs (port, fp);
-    }
-    if (export_name && strcmp (export_name, "") != 0) {
-      putc ('/', fp);
-      uri_quote (export_name, fp);
-    }
-    break;
-  case SERVICE_MODE_TCPIP:
-    fprintf (fp, "nbd%s://localhost", tls == 2 ? "s" : "");
-    if (port) {
-      putc (':', fp);
-      fputs (port, fp);
-    }
-    if (export_name && strcmp (export_name, "") != 0) {
-      putc ('/', fp);
-      uri_quote (export_name, fp);
-    }
-    break;
-
-  case SERVICE_MODE_SOCKET_ACTIVATION:
-  case SERVICE_MODE_LISTEN_STDIN:
-    /* these labels are not-reachable, see above */
-    /*FALLTHROUGH*/
-  default:
-    abort ();
-  }
-
-  if (fclose (fp) == EOF) {
-    perror ("memstream failed");
-    exit (EXIT_FAILURE);
-  }
-
-  return r;
 }
 
 /* Is it the name of a possible nbdkit-<name>-plugin or

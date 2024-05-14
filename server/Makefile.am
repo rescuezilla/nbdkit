@@ -64,6 +64,7 @@ nbdkit_SOURCES = \
 	socket-activation.c \
 	sockets.c \
 	threadlocal.c \
+	uri.c \
 	usergroup.c \
 	vfprintf.c \
 	$(top_srcdir)/include/nbdkit-plugin.h \
