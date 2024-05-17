@@ -105,5 +105,5 @@ for opt in \
 do
     nbdkit -fv -D curl.verbose=1 \
            curl file:$PWD/disk protocols=file "$opt" \
-           --run 'nbdinfo $nbd'
+           --run 'nbdinfo "$uri"'
 done

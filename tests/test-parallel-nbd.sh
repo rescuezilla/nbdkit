@@ -66,7 +66,7 @@ start_nbdkit -P test-parallel-nbd.pid \
 nbdkit -v -t 1 nbd socket=$sock --run '
   timeout 60s </dev/null qemu-io -f raw \
   -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" \
-  -c aio_flush $nbd' | tee test-parallel-nbd.out
+  -c aio_flush "$uri"' | tee test-parallel-nbd.out
 if test "$(grep '512/512' test-parallel-nbd.out)" != \
 "wrote 512/512 bytes at offset 512
 read 512/512 bytes at offset 0"; then
@@ -77,7 +77,7 @@ fi
 nbdkit -v nbd socket=$sock --run '
   timeout 60s </dev/null qemu-io -f raw \
   -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" \
-  -c aio_flush $nbd' | tee test-parallel-nbd.out
+  -c aio_flush "$uri"' | tee test-parallel-nbd.out
 if test "$(grep '512/512' test-parallel-nbd.out)" != \
 "read 512/512 bytes at offset 0
 wrote 512/512 bytes at offset 512"; then

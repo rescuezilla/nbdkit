@@ -58,7 +58,7 @@ tar cf $tar $disk
 # Run nbdkit.
 nbdkit file $tar \
        --filter=tar tar-entry=$disk \
-       --run 'qemu-img info --output=json $nbd' > $out
+       --run 'qemu-img info --output=json "$uri"' > $out
 cat $out
 
 # Check various fields in the input.

@@ -45,7 +45,7 @@ cleanup_fn rm -f $files
 # Select partition 3 from a 2 partition disk.
 nbdkit -r -f -v --filter=partition \
          partitioning disk disk partition-type=mbr partition=3 \
-         --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
+         --run 'nbdinfo "$uri"' > partition2.log 2>&1 ||:
 
 cat partition2.log
 
@@ -58,7 +58,7 @@ grep "MBR partition 3 not found" partition2.log
 nbdkit -r -f -v --filter=partition \
          partitioning disk disk disk disk disk disk disk disk disk \
          partition-type=mbr partition=11 \
-         --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
+         --run 'nbdinfo "$uri"' > partition2.log 2>&1 ||:
 
 cat partition2.log
 
@@ -67,7 +67,7 @@ grep "MBR partition 11 not found" partition2.log
 # It should be impossible to select an extended partition.
 nbdkit -r -f -v --filter=partition \
          partitioning disk disk disk disk disk partition-type=mbr partition=4 \
-         --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
+         --run 'nbdinfo "$uri"' > partition2.log 2>&1 ||:
 
 cat partition2.log
 
@@ -77,7 +77,7 @@ grep "MBR partition 4 not found" partition2.log
 # partition gives a different error.
 nbdkit -r -f -v --filter=partition \
          partitioning disk disk partition-type=mbr partition=5 \
-         --run 'nbdinfo $nbd' > partition2.log 2>&1 ||:
+         --run 'nbdinfo "$uri"' > partition2.log 2>&1 ||:
 
 cat partition2.log
 

@@ -52,7 +52,7 @@ nbdkit eval \
        pread='dd if=/dev/zero count=$3 iflag=count_bytes' \
        missing='echo "in missing: $@" >> eval.missing; exit 2' \
        unload='' \
-       --run 'nbdinfo $nbd; sleep 10' > eval.out
+       --run 'nbdinfo "$uri"; sleep 10' > eval.out
 
 cat eval.out
 grep -E ' 67108864\b' eval.out

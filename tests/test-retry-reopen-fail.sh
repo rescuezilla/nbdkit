@@ -66,7 +66,7 @@ do_test ()
     nbdkit -v \
            sh - \
            --filter=retry retry-delay=1 retries=$retries \
-           --run 'qemu-io -r -f raw $nbd -c "r 0 512" -c "r 0 512"
+           --run 'qemu-io -r -f raw "$uri" -c "r 0 512" -c "r 0 512"
                   echo $? >> retry-reopen-fail-status' <<'EOF'
 #!/usr/bin/env bash
 handle=$2

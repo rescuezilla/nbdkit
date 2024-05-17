@@ -54,7 +54,7 @@ test ()
            -r \
            --filter=extentlist \
            null size=$1 extentlist=$input \
-           --run 'qemu-img map -f raw --output=json $nbd' |
+           --run 'qemu-img map -f raw --output=json "$uri"' |
         jq -c '.[] | {start:.start, length:.length, data:.data, zero:.zero}' \
            > $out
     diff -u $out $expected

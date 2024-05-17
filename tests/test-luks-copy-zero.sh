@@ -64,9 +64,10 @@ $TRUNCATE -s 100M $zero_disk
 
 # Using nbdkit-luks-filter, write the zero disk into the encrypted
 # disk.  nbdcopy will do this using NBD_CMD_ZERO operations.
+export zero_disk
 nbdkit -fv \
        file $encrypt_disk --filter=luks passphrase=123456 \
-       --run "nbdcopy -C 1 $zero_disk \$nbd"
+       --run 'nbdcopy -C 1 $zero_disk "$uri"'
 
 # Check that the encrypted disk is still a LUKS disk.  If zeroing is
 # wrong in the filter it's possible that it writes through to the

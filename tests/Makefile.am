@@ -117,7 +117,7 @@ disk:
 	mkdir disk.tmp
 	echo -n "hello,world" > disk.tmp/hello.txt
 	$(top_builddir)/nbdkit$(EXEEXT) -fv linuxdisk disk.tmp size=100M \
-	    --run 'qemu-img convert $$nbd $@-t'
+	    --run 'qemu-img convert "$$uri" $@-t'
 	rm -rf disk.tmp
 	mv $@-t $@
 

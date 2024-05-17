@@ -59,7 +59,7 @@ nbdkit -fv vddk \
        server=noserver.example.com thumbprint=ab \
        vm=novm /nofile \
        user=root password=-3 \
-       --run 'nbdinfo $nbd' \
+       --run 'nbdinfo "$uri"' \
        >&$out ||:
 exec 3<&-
 cat $out
@@ -74,7 +74,7 @@ nbdkit -fv vddk \
        server=noserver.example.com thumbprint=ab \
        vm=novm /nofile \
        user=root password=-3 \
-       --run 'nbdinfo $nbd' \
+       --run 'nbdinfo "$uri"' \
        >&$out ||:
 exec 3<&-
 cat $out

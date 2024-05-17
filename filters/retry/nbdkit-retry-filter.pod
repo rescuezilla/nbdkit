@@ -53,7 +53,7 @@ L<nbdkit-ssh-plugin(1)>, L<qemu-img(1)> and L<nbdkit-captive(1)>.
  nbdkit \
    ssh host=remote.example.com /var/tmp/test.iso \
    --filter=retry \
-   --run 'qemu-img convert -p -f raw $nbd -O qcow2 test.qcow2'
+   --run 'qemu-img convert -p -f raw "$uri" -O qcow2 test.qcow2'
 
 Without I<--filter=retry> a temporary failure would cause the copy to
 fail (for example, the remote host’s firewall is restarted causing the

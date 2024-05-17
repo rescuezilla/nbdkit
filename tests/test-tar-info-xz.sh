@@ -62,7 +62,7 @@ xz --best --block-size=32768 $tar
 nbdkit file $tar_xz \
        --filter=tar tar-entry=$disk \
        --filter=xz \
-       --run 'qemu-img info --output=json $nbd' > $out
+       --run 'qemu-img info --output=json "$uri"' > $out
 cat $out
 
 # Check various fields in the input.

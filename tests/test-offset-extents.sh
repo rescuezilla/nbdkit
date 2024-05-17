@@ -53,7 +53,7 @@ do_test ()
            --filter=offset \
            data "$1" size="$2" \
            offset=1024 range=65536 \
-           --run 'qemu-img map -f raw --output=json $nbd' |
+           --run 'qemu-img map -f raw --output=json "$uri"' |
         jq -c '.[] | {start:.start, length:.length, data:.data, zero:.zero}' \
            > $out
     if ! cmp $out $expected; then

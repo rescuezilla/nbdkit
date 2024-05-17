@@ -112,7 +112,7 @@ chmod +x test-parallel-sh.script
 # With --threads=1, the write should complete first because it was issued first
 nbdkit -v -t 1 --filter=delay sh test-parallel-sh.script \
   wdelay=2 rdelay=1 --run 'timeout 60s </dev/null qemu-io -f raw \
-    -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" -c aio_flush $nbd' |
+    -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" -c aio_flush "$uri"' |
     tee test-parallel-sh.out
 if test "$(grep '512/512' test-parallel-sh.out)" != \
 "wrote 512/512 bytes at offset 512
@@ -123,7 +123,7 @@ fi
 # With default --threads, the faster read should complete first
 nbdkit -v --filter=delay sh test-parallel-sh.script \
   wdelay=2 rdelay=1 --run 'timeout 60s </dev/null qemu-io -f raw \
-    -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" -c aio_flush $nbd' |
+    -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" -c aio_flush "$uri"' |
     tee test-parallel-sh.out
 if test "$(grep '512/512' test-parallel-sh.out)" != \
 "read 512/512 bytes at offset 0
@@ -136,7 +136,7 @@ fi
 nbdkit -v --filter=noparallel --filter=log --filter=delay \
   sh test-parallel-sh.script logfile=/dev/null \
   wdelay=2 rdelay=1 --run 'timeout 60s </dev/null qemu-io -f raw \
-    -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" -c aio_flush $nbd' |
+    -c "aio_write -P 2 512 512" -c "aio_read -P 1 0 512" -c aio_flush "$uri"' |
     tee test-parallel-sh.out
 if test "$(grep '512/512' test-parallel-sh.out)" != \
 "wrote 512/512 bytes at offset 512

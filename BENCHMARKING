@@ -128,9 +128,9 @@ the qemu client support sparseness detection and efficient zeroing.
 To test copying speed you can use ‘qemu-img convert’, to or from
 nbdkit:
 
-  nbdkit memory 1G --run 'qemu-img convert file.qcow2 -O raw $nbd'
+  nbdkit memory 1G --run 'qemu-img convert file.qcow2 -O raw "$uri"'
 
-  nbdkit memory 1G --run 'qemu-img convert $nbd -O qcow2 file.qcow2'
+  nbdkit memory 1G --run 'qemu-img convert "$uri" -O qcow2 file.qcow2'
 
 Notes:
 

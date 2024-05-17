@@ -65,7 +65,7 @@ do_test ()
            truncate="$3"
     # We use jq to normalize the output and convert it to plain text.
     nbdkit nbd socket="$sock" \
-           --run 'qemu-img map -f raw --output=json $nbd' |
+           --run 'qemu-img map -f raw --output=json "$uri"' |
         jq -c '.[] | {start:.start, length:.length, data:.data, zero:.zero}' \
            > $out
     rm -f "$sock"

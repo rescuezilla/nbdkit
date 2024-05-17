@@ -49,7 +49,7 @@ start_t=$SECONDS
 nbdkit -v \
        sh - \
        --filter=retry retry-delay=1 retry-readonly=yes \
-       --run 'qemu-io -f raw -c "w 0 512" -c "w 0 512" $nbd || :' <<'EOF'
+       --run 'qemu-io -f raw -c "w 0 512" -c "w 0 512" "$uri" || :' <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
     open)

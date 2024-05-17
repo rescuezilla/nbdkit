@@ -51,9 +51,9 @@ do_test ()
 {
     : > $out
     if [ "$2" = write_zero ]; then
-        cmd='qemu-io -f raw -c "w -z 0 512" $nbd'
+        cmd='qemu-io -f raw -c "w -z 0 512" "$uri"'
     else
-        cmd='qemu-io -r -f raw -c "r 0 1" $nbd'
+        cmd='qemu-io -r -f raw -c "r 0 1" "$uri"'
     fi
     nbdkit -v sh - --run "$cmd"' &&
       echo qemu-io unexpectedly passed >> '$out'; :' >> $out

@@ -17,7 +17,7 @@ only one extent at a time (such as S<C<qemu-img convert>>), but where
 the plugin can provide multiple extents for the same high latency as a
 single extent (such as L<nbdkit-vddk-plugin(1)>).  For example:
 
- nbdkit --filter=cacheextents --run 'qemu-img map $nbd' vddk ...
+ nbdkit --filter=cacheextents --run 'qemu-img map "$uri"' vddk ...
 
 For files with big extents (when it is unlikely for one extents() call
 to return multiple different extents) this does not slow down the

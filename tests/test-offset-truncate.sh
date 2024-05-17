@@ -44,7 +44,7 @@ requires_nbdsh_uri
 function do_test_info ()
 {
     nbdkit --filter=offset --filter=truncate pattern size=1024 \
-           "$@" --run 'nbdinfo $nbd'
+           "$@" --run 'nbdinfo "$uri"'
 }
 
 function do_test_read512 ()

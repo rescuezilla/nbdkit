@@ -60,7 +60,7 @@ expect -f - <<'EOF'
            server=noserver.example.com thumbprint=ab \
            vm=novm /nofile \
            user=root password=- \
-           --run 'nbdinfo \$nbd' \
+           --run 'nbdinfo \"\$uri\"' \
            2>$env(out)"
   expect "ssword:"
   send "abc\r"

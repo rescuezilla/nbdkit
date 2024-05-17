@@ -46,11 +46,11 @@ if is_windows; then
 fi
 
 nbdkit -v -D ip.rules=1 --filter=ip null allow=anyunix deny=all \
-       --run 'nbdinfo $nbd'
+       --run 'nbdinfo "$uri"'
 
 # This is expected to fail.
 if nbdkit -v -D ip.rules=1 --filter=ip null deny=anyunix \
-          --run 'nbdinfo $nbd'; then
+          --run 'nbdinfo "$uri"'; then
     echo "$0: expected test to fail"
     exit 1
 fi
