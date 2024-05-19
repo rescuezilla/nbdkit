@@ -25,12 +25,15 @@ For plugins and filters, see the [plugins](plugins/) and
 There are many NBD clients, but the nbdkit project has a companion
 client library called https://gitlab.com/nbdkit/libnbd
 
-https://gitlab.com/nbdkit/nbdkit
+Upstream repository: https://gitlab.com/nbdkit/nbdkit
 
 ## License
 
-This software is Copyright Red Hat and licensed under a BSD
-license.  See [LICENSE](LICENSE) for details.
+This software is Copyright Red Hat and licensed under a BSD license.
+See [LICENSE](LICENSE) for details.
+
+Examples are usually licensed even more permissively ("as close to
+public domain as possible"), see the individual files for details.
 
 ## Building from source
 
@@ -38,13 +41,13 @@ license.  See [LICENSE](LICENSE) for details.
 
 * Linux, macOS, Windows, FreeBSD, OpenBSD or Haiku
 * GCC or Clang
-* bash >= 4
+* bash ≥ 4
 * GNU make
 
 Recommended for TLS (authentication and encryption) support, but it is
 possible to build without it:
 
-* gnutls >= 3.3.0
+* gnutls ≥ 3.3.0
 
 For Windows support see [the Windows section below](README.md#windows).
 
@@ -55,13 +58,13 @@ For macOS support see [the macOS section below](README.md#macos).
 To build the man pages, you will optionally need to install:
 
 * Perl
-* Pod::Man and Pod::Simple (Perl libraries)
+* `Pod::Man` and `Pod::Simple` (Perl libraries)
 
 For SELinux socket labelling support:
 
 * libselinux
 
-For the gzip filter and supporting compressed qcow2:
+For the gzip filter, or for supporting compressed qcow2:
 
 * zlib or zlib-ng
 
@@ -69,7 +72,7 @@ For the xz filter:
 
 * liblzma
 
-For the memory plugin with allocator=zstd and supporting compressed qcow2:
+For the memory plugin with allocator=zstd, or for supporting compressed qcow2:
 
 * zstd
 
@@ -79,7 +82,7 @@ For the curl (HTTP/FTP) plugin:
 
 For the ssh plugin:
 
-* libssh >= 0.8.0
+* libssh ≥ 0.8.0
   (this is a different library from libssh2 - that will not work)
 
 For the iso plugin:
@@ -107,12 +110,12 @@ For the ext2 filter:
 
 For the linuxdisk plugin:
 
-* mke2fs >= 1.42.10 (from e2fsprogs)
+* mke2fs ≥ 1.42.10 (from e2fsprogs)
 
 For the nbd plugin, to get URI and TLS support, and also to run parts
 of the test suite:
 
-* libnbd >= 0.9.8
+* libnbd ≥ 0.9.8
 
 For the bittorrent plugin:
 
@@ -131,7 +134,7 @@ For the Perl and example4 plugins:
 
 * perl interpreter
 * perl development libraries
-* perl modules ExtUtils::Embed
+* perl module `ExtUtils::Embed`
 
 For the Python plugin:
 
@@ -143,7 +146,7 @@ For the Python plugin:
 
 For the OCaml plugin:
 
-* OCaml >= 4.03
+* OCaml ≥ 4.03
 
 For the Tcl plugin:
 
@@ -157,13 +160,13 @@ For the Rust plugin:
 
 * cargo (other dependencies will be downloaded at build time)
 
-To be able to write plugins in golang:
+For the golang plugin:
 
-* go >= 1.13
+* go ≥ 1.13
 
 For bash tab completion:
 
-* bash-completion >= 1.99
+* bash-completion ≥ 1.99
 
 To test for memory leaks (`make check-valgrind`):
 
@@ -177,7 +180,7 @@ For non-essential enhancements to the test suite:
 * hexdump
 * ip, ss (from iproute package)
 * jq
-* losetup (from util-linux package)
+* losetup (from util-linux)
 * mke2fs (from e2fsprogs)
 * nbdcopy, nbdinfo, nbdsh (from libnbd)
 * qemu-img, qemu-io, qemu-nbd (usually shipped with qemu)
@@ -187,12 +190,10 @@ For non-essential enhancements to the test suite:
 ### Building
 
 ```
-To build from tarball:         To build from git:
-
-                               autoreconf -i
-./configure                    ./configure
-make                           make
-make check                     make check
+autoreconf -i    # only required when building from git clone
+./configure
+make
+make check
 ```
 
 On FreeBSD and OpenBSD which do not have GNU make by default you must
@@ -216,7 +217,7 @@ make install
 
 ### Python
 
-Since nbdkit >= 1.16, only Python >= 3.6 is supported.
+Since nbdkit ≥ 1.16, only Python ≥ 3.6 is supported.
 
 By default nbdkit uses the Python version of the Python interpreter
 called “python” on the current $PATH.  If you have parallel versions
@@ -345,7 +346,7 @@ genhtml -o coverage gcov.info
 ```
 
 Open your browser and examine the `coverage/` directory.  At the time
-of writing (2020-04) test coverage of the server is reasonable, but
+of writing (2024-05) test coverage of the server is reasonable, but
 things are much worse for certain plugins and filters.
 
 ## macOS
@@ -353,8 +354,8 @@ things are much worse for certain plugins and filters.
 nbdkit works on macOS and is mostly feature complete.  Some tests may
 fail or be skipped.
 
-We have tested macOS 12 (Monterey) using MacPorts.  Other versions of
-macOS and Homebrew may work too.
+We have tested macOS 12 (Monterey), 13 (Ventura) and 14 (Sonoma),
+using MacPorts.  Other versions of macOS and Homebrew may work too.
 
 We installed the following MacPorts packages:
 
