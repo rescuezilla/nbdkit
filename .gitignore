@@ -4,6 +4,8 @@
 *.cmx
 *.dll
 *.exe
+*.gcda
+*.gcno
 *.la
 *.lo
 *.log
