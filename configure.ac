@@ -120,12 +120,12 @@ filters="\
         ddrescue \
         delay \
         error \
+        evil \
         exitlast \
         exitwhen \
         exportname \
         ext2 \
         extentlist \
-        evil \
         fua \
         gzip \
         ip \
@@ -1639,12 +1639,12 @@ AC_CONFIG_FILES([Makefile
                  filters/ddrescue/Makefile
                  filters/delay/Makefile
                  filters/error/Makefile
+                 filters/evil/Makefile
                  filters/exitlast/Makefile
                  filters/exitwhen/Makefile
                  filters/exportname/Makefile
                  filters/ext2/Makefile
                  filters/extentlist/Makefile
-                 filters/evil/Makefile
                  filters/fua/Makefile
                  filters/gzip/Makefile
                  filters/ip/Makefile
