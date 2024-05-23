@@ -68,6 +68,10 @@ For the gzip filter, or for supporting compressed qcow2:
 
 * zlib or zlib-ng
 
+For the bzip2 filter:
+
+* bzip2
+
 For the xz filter:
 
 * liblzma
