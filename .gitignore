@@ -122,6 +122,7 @@ plugins/*/*.3
 /server/test-public
 /stamp-h1
 /tests/disk
+/tests/disk.bz2
 /tests/disk.gz
 /tests/disk.tar
 /tests/disk.tar.gz
@@ -139,6 +140,7 @@ plugins/*/*.3
 /tests/split1
 /tests/split2
 /tests/split3
+/tests/test-bzip2
 /tests/test-connect
 /tests/test-curl
 /tests/test-curl-cookie-script

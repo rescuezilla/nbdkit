@@ -112,6 +112,7 @@ plugins="$(echo $(printf %s\\n $lang_plugins $non_lang_plugins | sort -u))"
 filters="\
         blocksize \
         blocksize-policy \
+        bzip2 \
         cache \
         cacheextents \
         checkwrite \
@@ -1321,6 +1322,22 @@ AS_IF([test "$with_libvirt" != "no"],[
 ])
 AM_CONDITIONAL([HAVE_LIBVIRT],[test "x$LIBVIRT_LIBS" != "x"])
 
+dnl Check for bzlib (only if you want to compile the bzip2 filter).
+AC_ARG_WITH([bzip2],
+    [AS_HELP_STRING([--without-bzip2],
+                    [disable bzip2 filter @<:@default=check@:>@])],
+    [],
+    [with_bzip2=check])
+AS_IF([test "$with_bzip2" != "no"],[
+    PKG_CHECK_MODULES([BZLIB], [bzip2],[
+        AC_SUBST([BZLIB_CFLAGS])
+        AC_SUBST([BZLIB_LIBS])
+        AC_DEFINE([HAVE_BZLIB],[1],[libbz2 found at compile time.])
+    ],
+    [AC_MSG_WARN([libbz2 not found, bzip2 filter will be disabled])])
+])
+AM_CONDITIONAL([HAVE_BZLIB],[test "x$BZLIB_LIBS" != "x"])
+
 dnl Check for zlib (only if you want to compile the gzip filter).
 AC_ARG_WITH([zlib],
     [AS_HELP_STRING([--without-zlib],
@@ -1614,6 +1631,7 @@ AC_CONFIG_FILES([Makefile
                  filters/Makefile
                  filters/blocksize/Makefile
                  filters/blocksize-policy/Makefile
+                 filters/bzip2/Makefile
                  filters/cache/Makefile
                  filters/cacheextents/Makefile
                  filters/checkwrite/Makefile
@@ -1735,6 +1753,7 @@ feature "tcl"                 test "x$HAVE_TCL_TRUE" = "x"
 echo
 echo "Optional filters:"
 echo
+feature "bzip2"               test "x$HAVE_BZLIB_TRUE" = "x"
 feature "ext2"                test "x$HAVE_EXT2_TRUE" = "x"
 feature "gzip"                test "x$HAVE_ZLIB_TRUE" = "x"
 feature "luks"                test "x$HAVE_GNUTLS_PBKDF2_TRUE" = "x"
