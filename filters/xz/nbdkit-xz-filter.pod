@@ -101,6 +101,7 @@ L<nbdkit(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-curl-plugin(1)>,
 L<nbdkit-file-plugin(1)>,
+L<nbdkit-gzip-filter(1)>,
 L<xz(1)>.
 
 =head1 AUTHORS
