@@ -69,6 +69,7 @@ from C<nbdkit-gzip-plugin> which first appeared in nbdkit 1.0.
 
 =head1 SEE ALSO
 
+L<nbdkit-bzip2-filter(1)>,
 L<nbdkit-curl-plugin(1)>,
 L<nbdkit-file-plugin(1)>,
 L<nbdkit-tar-filter(1)>,
