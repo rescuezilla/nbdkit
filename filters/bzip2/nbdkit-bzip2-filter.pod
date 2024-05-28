@@ -10,7 +10,7 @@ nbdkit-bzip2-filter - decompress a .bz2 file
 
 C<nbdkit-bzip2-filter> is a filter for L<nbdkit(1)> which transparently
 decompresses a bzip2-compressed file.  You can place this filter on top
-of L<nbdkit-file-plugin(1)> to decompress a local F<.gz> file.
+of L<nbdkit-file-plugin(1)> to decompress a local F<.bz2> file.
 
 The filter only allows read-only connections.
 
