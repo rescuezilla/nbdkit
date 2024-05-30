@@ -15,6 +15,7 @@ RUN dnf update -y && \
         automake \
         bash \
         bash-completion \
+        bzip2-devel \
         ca-certificates \
         cargo \
         ccache \

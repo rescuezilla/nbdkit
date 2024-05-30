@@ -30,6 +30,7 @@ function install_buildenv() {
             gzip \
             iproute2 \
             jq \
+            libbz2-dev \
             libcurl4-gnutls-dev \
             libgnutls28-dev \
             libguestfs-dev \

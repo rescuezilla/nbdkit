@@ -32,6 +32,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       gzip \
                       iproute2 \
                       jq \
+                      libbz2-dev \
                       libcurl4-gnutls-dev \
                       libgnutls28-dev \
                       libguestfs-dev \

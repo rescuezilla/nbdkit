@@ -13,6 +13,7 @@ function install_buildenv() {
         bash \
         bash-completion \
         busybox \
+        bzip2-dev \
         ca-certificates \
         cargo \
         ccache \

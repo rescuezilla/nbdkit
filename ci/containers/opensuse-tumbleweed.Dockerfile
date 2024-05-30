@@ -27,6 +27,7 @@ RUN zypper dist-upgrade -y && \
            gzip \
            iproute2 \
            jq \
+           libbz2-devel \
            libcurl-devel \
            libgnutls-devel \
            libguestfs-devel \
@@ -49,6 +50,7 @@ RUN zypper dist-upgrade -y && \
            python3-boto3 \
            python3-devel \
            python3-flake8 \
+           python3-libnbd \
            qemu-tools \
            rust \
            socat \

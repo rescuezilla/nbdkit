@@ -20,14 +20,14 @@ targets:
 
   almalinux-9: x86_64
 
-  alpine-318:
+  alpine-319:
     jobs:
       - arch: x86_64
         variables:
           # cgo does not play well with musl: https://github.com/golang/go/issues/13492
           GOLANG: skip
 
-  alpine-319:
+  alpine-320:
     jobs:
       - arch: x86_64
         variables:

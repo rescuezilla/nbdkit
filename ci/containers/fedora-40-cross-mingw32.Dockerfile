@@ -69,6 +69,7 @@ ENV MAKE "/usr/bin/make"
 ENV PYTHON "/usr/bin/python3"
 
 RUN nosync dnf install -y \
+               mingw32-bzip2 \
                mingw32-curl \
                mingw32-gcc \
                mingw32-gcc-c++ \

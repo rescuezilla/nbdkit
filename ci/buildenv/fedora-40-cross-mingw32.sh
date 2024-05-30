@@ -50,6 +50,7 @@ function install_buildenv() {
         xz
     rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED
     dnf install -y \
+        mingw32-bzip2 \
         mingw32-curl \
         mingw32-gcc \
         mingw32-gcc-c++ \
