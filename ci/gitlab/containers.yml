@@ -7,13 +7,6 @@
 
 # Native container jobs
 
-x86_64-almalinux-8-container:
-  extends: .container_job
-  allow_failure: false
-  variables:
-    NAME: almalinux-8
-
-
 x86_64-almalinux-9-container:
   extends: .container_job
   allow_failure: false

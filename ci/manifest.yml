@@ -8,16 +8,6 @@ gitlab:
     check-dco: false
 
 targets:
-  almalinux-8:
-    jobs:
-      - arch: x86_64
-
-      - arch: x86_64
-        suffix: -clang
-        variables:
-          CC: clang
-          PERL: skip
-
   almalinux-9: x86_64
 
   alpine-319:
