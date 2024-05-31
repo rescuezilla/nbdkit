@@ -36,6 +36,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                gcc-c++ \
                genisoimage \
                git \
+               glibc \
                glibc-langpack-en \
                gnutls-devel \
                golang \

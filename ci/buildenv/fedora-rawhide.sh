@@ -27,6 +27,7 @@ function install_buildenv() {
         genisoimage \
         git \
         glibc-langpack-en \
+        glibc-utils \
         gnutls-devel \
         golang \
         gzip \
