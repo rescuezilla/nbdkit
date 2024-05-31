@@ -35,6 +35,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                genisoimage \
                git \
                glibc-langpack-en \
+               glibc-utils \
                gnutls-devel \
                golang \
                gzip \

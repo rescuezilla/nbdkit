@@ -180,6 +180,7 @@ For non-essential enhancements to the test suite:
 * hexdump
 * ip, ss (from iproute package)
 * jq
+* libc_malloc_debug.so.0 (from glibc-utils)
 * losetup (from util-linux)
 * mke2fs (from e2fsprogs)
 * nbdcopy, nbdinfo, nbdsh (from libnbd)

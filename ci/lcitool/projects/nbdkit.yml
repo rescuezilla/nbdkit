@@ -21,6 +21,7 @@ packages:
   - hexdump
   - ip
   - jq
+  - libc-malloc-debug
   - libcurl
   - libguestfs
   - liblzma
