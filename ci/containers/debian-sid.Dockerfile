@@ -16,6 +16,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       bash \
                       bash-completion \
                       bsdextrautils \
+                      bzip2 \
                       ca-certificates \
                       cargo \
                       ccache \

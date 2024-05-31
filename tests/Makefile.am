@@ -129,7 +129,7 @@ if HAVE_BZLIB
 check_DATA += disk.bz2
 disk.bz2: disk
 	rm -f $@
-	bzip2 --keep $<
+	$(BZIP2) --keep $<
 endif HAVE_BZLIB
 
 if HAVE_ZLIB
@@ -1589,12 +1589,14 @@ EXTRA_DIST += \
 	test-blocksize-write-disconnect.sh \
 	$(NULL)
 
+if HAVE_BZLIB
 # bzip2 filter test.
 LIBGUESTFS_TESTS += test-bzip2
 
 test_bzip2_SOURCES = test-bzip2.c test.h
 test_bzip2_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_bzip2_LDADD = libtest.la $(LIBGUESTFS_LIBS)
+endif HAVE_BZLIB
 
 # cache filter test.
 TESTS += \

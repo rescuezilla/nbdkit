@@ -22,6 +22,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                automake \
                bash \
                bash-completion \
+               bzip2 \
                ca-certificates \
                cargo \
                ccache \

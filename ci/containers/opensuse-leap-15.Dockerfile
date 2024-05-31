@@ -13,6 +13,7 @@ RUN zypper update -y && \
            awk \
            bash \
            bash-completion-devel \
+           bzip2 \
            ca-certificates \
            cargo \
            ccache \

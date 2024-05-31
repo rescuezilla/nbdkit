@@ -12,6 +12,7 @@ function install_buildenv() {
            awk \
            bash \
            bash-completion-devel \
+           bzip2 \
            ca-certificates \
            cargo \
            ccache \

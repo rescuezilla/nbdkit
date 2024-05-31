@@ -1333,10 +1333,12 @@ AS_IF([test "$with_bzip2" != "no"],[
         AC_SUBST([BZLIB_CFLAGS])
         AC_SUBST([BZLIB_LIBS])
         AC_DEFINE([HAVE_BZLIB],[1],[libbz2 found at compile time.])
+        AC_CHECK_PROGS([BZIP2],[bzip2],[no])
     ],
     [AC_MSG_WARN([libbz2 not found, bzip2 filter will be disabled])])
 ])
-AM_CONDITIONAL([HAVE_BZLIB],[test "x$BZLIB_LIBS" != "x"])
+AM_CONDITIONAL([HAVE_BZLIB],
+  [test "x$BZLIB_LIBS" != "x" && test "x$BZIP2" != "xno"])
 
 dnl Check for zlib (only if you want to compile the gzip filter).
 AC_ARG_WITH([zlib],

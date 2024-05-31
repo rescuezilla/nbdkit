@@ -11,6 +11,7 @@ function install_buildenv() {
         automake \
         bash \
         bash-completion \
+        bzip2 \
         ca-certificates \
         cargo \
         ccache \

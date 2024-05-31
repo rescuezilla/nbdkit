@@ -12,6 +12,7 @@ function install_buildenv() {
         automake \
         bash \
         bash-completion-devel \
+        bzip2 \
         bzip2-devel \
         ca-certificates \
         cargo \

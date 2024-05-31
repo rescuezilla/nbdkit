@@ -5,6 +5,7 @@ packages:
   - awk
   - bash
   - bash-completion
+  - bzip2
   - bzip2-libs
   - cargo
   - ccache

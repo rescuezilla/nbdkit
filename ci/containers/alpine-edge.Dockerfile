@@ -14,6 +14,7 @@ RUN apk update && \
         bash \
         bash-completion \
         busybox \
+        bzip2 \
         bzip2-dev \
         ca-certificates \
         cargo \
