@@ -44,9 +44,12 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include <bzlib.h>
-
 #include <nbdkit-filter.h>
+
+/* On mingw, bzlib.h pollutes the namespace with <windows.h>; we must
+ * include <nbdkit-filter.h> first for winsock.
+ */
+#include <bzlib.h>
 
 #include "cleanup.h"
 #include "pread.h"
