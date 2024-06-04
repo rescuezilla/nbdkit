@@ -630,10 +630,10 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #error "not glibc 2.34"
 #endif
         ]])],
-   [if (LD_PRELOAD=libc_malloc_debug.so.0 /bin/true) 2>&1 | grep -v .; then
-      is_glibc_234=yes
-    else
+   [if (LD_PRELOAD=libc_malloc_debug.so.0 /bin/true) 2>&1 | grep .; then
       is_glibc_234='missing suitable libc_malloc_debug.so.0'
+    else
+      is_glibc_234=yes
     fi], [is_glibc_234=no]
 )
 AC_MSG_RESULT([$is_glibc_234])
