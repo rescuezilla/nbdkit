@@ -53,16 +53,13 @@
 #ifdef HAVE_GNUTLS
 
 #include <gnutls/gnutls.h>
+#include <gnutls/socket.h>
 #include <gnutls/x509.h>
 
-#if defined HAVE_GNUTLS_TRANSPORT_IS_KTLS_ENABLED && \
-  defined HAVE_GNUTLS_SOCKET_H
+#ifdef HAVE_GNUTLS_TRANSPORT_IS_KTLS_ENABLED
 #define TRY_KTLS 1
 #else
 #define TRY_KTLS 0
-#endif
-#if TRY_KTLS
-#include <gnutls/socket.h>
 #endif
 
 static int crypto_auth;
@@ -701,12 +698,8 @@ crypto_negotiate_tls (int sockin, int sockout)
      * certificates).
      */
     if (tls_verify_peer) {
-#ifdef HAVE_GNUTLS_SESSION_SET_VERIFY_CERT
       gnutls_certificate_server_set_request (session, GNUTLS_CERT_REQUEST);
       gnutls_session_set_verify_cert (session, NULL, 0);
-#else
-      abort (); /* Checked when we set the flag in main() */
-#endif
     }
 
     priority = strdup (TLS_PRIORITY);

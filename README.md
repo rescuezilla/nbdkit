@@ -47,7 +47,7 @@ public domain as possible"), see the individual files for details.
 Recommended for TLS (authentication and encryption) support, but it is
 possible to build without it:
 
-* gnutls ≥ 3.3.0
+* gnutls ≥ 3.5.18
 
 For Windows support see [the Windows section below](README.md#windows).
 

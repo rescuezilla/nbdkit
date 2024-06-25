@@ -659,12 +659,12 @@ AC_ARG_WITH([gnutls],
     [AS_HELP_STRING([--without-gnutls], [disable TLS support via GnuTLS @<:@default=check@:>@])])
 
 AS_IF([test "x$with_gnutls" != xno], [
-    PKG_CHECK_MODULES([GNUTLS], [gnutls >= 3.3.0], [
+    PKG_CHECK_MODULES([GNUTLS], [gnutls >= 3.5.18], [
         AC_SUBST([GNUTLS_CFLAGS])
         AC_SUBST([GNUTLS_LIBS])
         AC_DEFINE([HAVE_GNUTLS],[1],[gnutls found at compile time.])
     ], [
-        AC_MSG_WARN([gnutls not found or < 3.3.0, TLS support will be disabled.])
+        AC_MSG_WARN([gnutls not found or < 3.5.18, TLS support will be disabled.])
     ])
 ])
 
@@ -694,11 +694,9 @@ AS_IF([test "x$GNUTLS_LIBS" != "x"],[
         gnutls_group_get \
         gnutls_group_get_name \
         gnutls_pbkdf2 \
-        gnutls_session_set_verify_cert \
         gnutls_srp_server_get_username \
         gnutls_transport_is_ktls_enabled \
     ])
-    AC_CHECK_HEADERS([gnutls/socket.h])
     LIBS="$old_LIBS"
 
     dnl macOS has its own program called certtool and packages the
