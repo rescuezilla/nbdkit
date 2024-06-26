@@ -151,8 +151,8 @@ certificate:
 
 The client key file is sensitive.
 
-The client DNS name (C<cn> below) is the client's name that nbdkit
-sees and checks.
+The client DNS name (C<cn> below) is the client's name for information
+only.
 
  $ cat > client.info <<EOF
  country = US
