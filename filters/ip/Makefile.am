@@ -45,6 +45,7 @@ nbdkit_ip_filter_la_CPPFLAGS = \
 	-I$(top_builddir)/include \
 	-I$(top_srcdir)/common/include \
 	-I$(top_srcdir)/common/utils \
+	-I$(top_srcdir)/common/replacements \
 	$(NULL)
 nbdkit_ip_filter_la_CFLAGS = $(WARNINGS_CFLAGS)
 nbdkit_ip_filter_la_LDFLAGS = \
