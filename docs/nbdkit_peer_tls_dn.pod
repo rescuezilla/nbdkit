@@ -38,6 +38,9 @@ C<"CN=xx,O=yy,[...]C=zz"> (see S<RFC 4514> for the exact format).
 
 If the DN is not available, C<""> is returned (this is not an error).
 
+L<nbdkit-ip-filter(1)> can be used to filter client connections by the
+DN.
+
 =head2 EXAMPLE CERTIFICATE AND DISTINGUISHED NAME
 
 Please see L<nbdkit-tls(1)> for details of how to generate client
