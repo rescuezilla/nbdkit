@@ -44,7 +44,7 @@
 #include "nbd-protocol.h"
 
 int
-protocol_handshake ()
+protocol_handshake (void)
 {
   int r;
 

@@ -108,7 +108,7 @@ lock_request (void)
 }
 
 void
-unlock_request ()
+unlock_request (void)
 {
   struct connection *conn = threadlocal_get_conn ();
 
