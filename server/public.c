@@ -948,7 +948,7 @@ get_peercred_common (int64_t *pid, int64_t *uid, int64_t *gid)
 }
 
 NBDKIT_DLL_PUBLIC int64_t
-nbdkit_peer_pid ()
+nbdkit_peer_pid (void)
 {
   int64_t pid;
 
@@ -959,7 +959,7 @@ nbdkit_peer_pid ()
 }
 
 NBDKIT_DLL_PUBLIC int64_t
-nbdkit_peer_uid ()
+nbdkit_peer_uid (void)
 {
   int64_t uid;
 
@@ -970,7 +970,7 @@ nbdkit_peer_uid ()
 }
 
 NBDKIT_DLL_PUBLIC int64_t
-nbdkit_peer_gid ()
+nbdkit_peer_gid (void)
 {
   int64_t gid;
 
@@ -983,7 +983,7 @@ nbdkit_peer_gid ()
 #ifdef SO_PEERSEC
 
 NBDKIT_DLL_PUBLIC char *
-nbdkit_peer_security_context ()
+nbdkit_peer_security_context (void)
 {
   struct connection *conn = threadlocal_get_conn ();
   int s;
@@ -1050,7 +1050,7 @@ nbdkit_peer_security_context ()
 #else /* !SO_PEERSEC */
 
 NBDKIT_DLL_PUBLIC char *
-nbdkit_peer_security_context ()
+nbdkit_peer_security_context (void)
 {
   nbdkit_error ("SO_PEERSEC is not available on this platform");
   return NULL;
