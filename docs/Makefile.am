@@ -130,6 +130,7 @@ generated_mans = \
 	nbdkit_parse_probability.3 \
 	nbdkit_parse_size.3 \
 	nbdkit_peer_name.3 \
+	nbdkit_peer_tls_dn.3 \
 	nbdkit-plugin.3 \
 	nbdkit-probing.1 \
 	nbdkit-protocol.1 \
@@ -251,6 +252,11 @@ nbdkit_parse_size.3: nbdkit_parse_size.pod $(top_builddir)/podwrapper.pl
 	    $<
 
 nbdkit_peer_name.3: nbdkit_peer_name.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit_peer_tls_dn.3: nbdkit_peer_tls_dn.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<

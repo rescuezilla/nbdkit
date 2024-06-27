@@ -1,0 +1,89 @@
+=head1 NAME
+
+nbdkit_peer_tls_dn - read the client TLS X.509 Distinguished Name
+
+=head1 SYNOPSIS
+
+ #include <nbdkit-plugin.h>
+
+ char *nbdkit_peer_tls_dn (void);
+
+=head1 DESCRIPTION
+
+If all of these conditions are met:
+
+=over 4
+
+=item *
+
+the client connects over TLS (see L<nbdkit-tls(1)>)
+
+=item *
+
+the TLS connection is using X.509 certificates
+
+=item *
+
+the client presents a client certificate
+
+=item *
+
+the nbdkit I<--tls-verify-peer> option is used
+
+=back
+
+then this API can be used to get the Distinguished Name (DN) of the
+certificate.  This is returned as a string of the form
+C<"CN=xx,O=yy,[...]C=zz"> (see S<RFC 4514> for the exact format).
+
+If the DN is not available, C<""> is returned (this is not an error).
+
+=head2 EXAMPLE CERTIFICATE AND DISTINGUISHED NAME
+
+Please see L<nbdkit-tls(1)> for details of how to generate client
+certificates.  Following those instructions, if you were to generate a
+certificate from this F<client.info> input:
+
+ country = US
+ state = New York
+ locality = New York
+ organization = BigCo
+ cn = client.example.com
+ tls_www_client
+ encryption_key
+ signing_key
+
+then the client DN would be:
+
+ CN=client.example.com,O=BigCo,L=New York,ST=New York,C=US
+
+=head1 RETURN VALUE
+
+On success this function returns a TLS Distinguished Name as a string,
+or C<"">.  The caller must free this string.
+
+If there is an error it calls L<nbdkit_error(3)> and returns C<NULL>.
+
+=head1 LANGUAGE BINDINGS
+
+=head1 HISTORY
+
+C<nbdkit_peer_tls_dn> was added in nbdkit 1.40.
+
+=head1 SEE ALSO
+
+L<nbdkit(1)>,
+L<nbdkit-plugin(3)>,
+L<nbdkit-filter(3)>,
+L<nbdkit-tls(1)>,
+L<nbdkit-ip-filter(1)>,
+L<nbdkit_is_tls(3)>,
+L<nbdkit_peer_name(3)>.
+
+=head1 AUTHORS
+
+Richard W.M. Jones
+
+=head1 COPYRIGHT
+
+Copyright Red Hat

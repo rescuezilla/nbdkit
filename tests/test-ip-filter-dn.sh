@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # nbdkit
 # Copyright Red Hat
 #
@@ -29,47 +30,52 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-include $(top_srcdir)/common-rules.mk
+# Test the ip filter with dn: parameter.
 
-EXTRA_DIST = nbdkit-ip-filter.pod
+source ./functions.sh
+set -e
+set -x
 
-filter_LTLIBRARIES = nbdkit-ip-filter.la
+requires_nbdinfo
+requires_run
 
-nbdkit_ip_filter_la_SOURCES = \
-	ip.c \
-	$(top_srcdir)/include/nbdkit-filter.h \
-	$(NULL)
+# Does the nbdkit binary support TLS?
+if ! nbdkit --dump-config | grep -sq tls=yes; then
+    echo "$0: nbdkit built without TLS support"
+    exit 77
+fi
 
-nbdkit_ip_filter_la_CPPFLAGS = \
-	-I$(top_srcdir)/include \
-	-I$(top_builddir)/include \
-	-I$(top_srcdir)/common/include \
-	-I$(top_srcdir)/common/utils \
-	-I$(top_srcdir)/common/replacements \
-	$(NULL)
-nbdkit_ip_filter_la_CFLAGS = $(WARNINGS_CFLAGS)
-nbdkit_ip_filter_la_LDFLAGS = \
-	-module -avoid-version -shared $(NO_UNDEFINED_ON_WINDOWS) \
-	$(NULL)
-if USE_LINKER_SCRIPT
-nbdkit_ip_filter_la_LDFLAGS += \
-	-Wl,--version-script=$(top_srcdir)/filters/filters.syms
-endif
-nbdkit_ip_filter_la_LIBADD = \
-	$(top_builddir)/common/utils/libutils.la \
-	$(top_builddir)/common/replacements/libcompat.la \
-	$(IMPORT_LIBRARY_ON_WINDOWS) \
-	$(NULL)
+# RHEL 8 libnbd / nbdinfo doesn't support the tls-certificates
+# parameter in URIs, so connections always fail.  It's hard to detect
+# if libnbd supports this, so just go off version number.  The libnbd
+# commit adding this feature was 847e0b9830, added in libnbd 1.9.5.
+requires_libnbd_version 1.10
 
-if HAVE_POD
+# Did we create the PKI files?
+# Probably 'certtool' is missing.
+pkidir="$PWD/pki"
+if [ ! -f "$pkidir/ca-cert.pem" ]; then
+    echo "$0: PKI files were not created by the test harness"
+    exit 77
+fi
 
-man_MANS = nbdkit-ip-filter.1
-CLEANFILES += $(man_MANS)
+# This is expected to succeed.
+nbdkit -v --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
+       -D nbdkit.tls.session=1 \
+       null \
+       -D ip.rules=1 --filter=ip \
+       allow=dn:"*,O=Test,*,C=US" \
+       deny=all \
+       --run 'nbdinfo "$uri"'
 
-nbdkit-ip-filter.1: nbdkit-ip-filter.pod \
-		$(top_builddir)/podwrapper.pl
-	$(PODWRAPPER) --section=1 --man $@ \
-	    --html $(top_builddir)/html/$@.html \
-	    $<
-
-endif HAVE_POD
+# This is expected to fail.
+if nbdkit -v --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
+       -D nbdkit.tls.session=1 \
+       null \
+       -D ip.rules=1 --filter=ip \
+       allow=dn:"CN=foobar,*,C=US" \
+       deny=all \
+       --run 'nbdinfo "$uri"'; then
+    echo "$0: expected test to fail"
+    exit 1
+fi

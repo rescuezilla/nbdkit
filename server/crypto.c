@@ -786,6 +786,99 @@ crypto_negotiate_tls (int sockin, int sockout)
   return -1;
 }
 
+NBDKIT_DLL_PUBLIC char *
+nbdkit_peer_tls_dn (void)
+{
+  GET_CONN;
+  gnutls_session_t session = conn->crypto_session;
+  gnutls_credentials_type_t cred;
+  const gnutls_datum_t *cert_list;
+  unsigned int cert_list_size = 0;
+  gnutls_x509_crt_t cert = NULL;
+  gnutls_datum_t dn = { 0 };
+  int r;
+  char *ret = NULL;
+
+  if (!session) {
+    nbdkit_debug ("nbdkit_peer_tls_dn: no TLS session");
+    goto out_no_dn;
+  }
+
+  cred = gnutls_auth_get_type (session);
+  if (cred != GNUTLS_CRD_CERTIFICATE) {
+    nbdkit_debug ("nbdkit_peer_tls_dn: "
+                  "TLS session not using certificates");
+    goto out_no_dn;
+  }
+
+  if (gnutls_certificate_type_get (session) != GNUTLS_CRT_X509) {
+    nbdkit_debug ("nbdkit_peer_tls_dn: "
+                  "TLS session not using X.509 certificates");
+    goto out_no_dn;
+  }
+
+  cert_list = gnutls_certificate_get_peers (session, &cert_list_size);
+  if (cert_list == NULL || cert_list_size == 0) {
+    /* This can happen if tls_verify_peer is not set.  It could also
+     * happen because gnutls cannot allocate the certificate list but
+     * that should be a rare error.  Return no DN in this case.
+     */
+    nbdkit_debug ("nbdkit_peer_tls_dn: "
+                  "no client certificates (is --tls-verify-peer set?)");
+    goto out_no_dn;
+  }
+
+  /* XXX According to the spec, certificates should be sent with the
+   * client's certificate first, but the man page for
+   * gnutls_certificate_get_peers says there are X.509 clients which
+   * send them in a random order.  However it's unlikely that there
+   * are any NBD clients doing this.  Anyway we only consider the
+   * first certificate in the list.
+   */
+  r = gnutls_x509_crt_init (&cert);
+  if (r != 0) {
+    nbdkit_error ("gnutls_x509_crt_init: %s", gnutls_strerror (r));
+    goto out;
+  }
+  r = gnutls_x509_crt_import (cert, &cert_list[0], GNUTLS_X509_FMT_DER);
+  if (r != 0) {
+    nbdkit_error ("gnutls_x509_crt_import: %s", gnutls_strerror (r));
+    goto out;
+  }
+
+  r = gnutls_x509_crt_get_dn3 (cert, &dn, 0);
+  if (r != 0) {
+    nbdkit_error ("gnutls_x509_crt_get_dn3: %s", gnutls_strerror (r));
+    goto out;
+  }
+  ret = strdup ((char *) dn.data);
+  if (ret == NULL) {
+    nbdkit_error ("strdup: %m");
+    ret = NULL;
+    goto out;
+  }
+
+ out:
+  if (cert)
+    gnutls_x509_crt_deinit (cert);
+  if (dn.data)
+    gnutls_free (dn.data);
+  return ret;
+
+  /* Not an error, but no DN for this session. */
+ out_no_dn:
+  if (cert)
+    gnutls_x509_crt_deinit (cert);
+  if (dn.data)
+    gnutls_free (dn.data);
+  ret = strdup ("");
+  if (ret == NULL) {
+    nbdkit_error ("strdup: %m");
+    return NULL;
+  }
+  return ret;
+}
+
 #else /* !HAVE_GNUTLS */
 
 /* GnuTLS was not available at compile time.  These are stub versions
@@ -819,6 +912,13 @@ crypto_negotiate_tls (int sockin, int sockout)
 {
   /* Should never be called because tls == 0. */
   abort ();
+}
+
+NBDKIT_DLL_PUBLIC char *
+nbdkit_peer_tls_dn (void)
+{
+  nbdkit_error ("nbdkit_peer_tls_dn is not supported on this platform");
+  return -1;
 }
 
 #endif /* !HAVE_GNUTLS */
