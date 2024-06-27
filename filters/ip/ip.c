@@ -62,6 +62,7 @@
 
 #include "ascii-string.h"
 #include "cleanup.h"
+#include "strndup.h"
 
 /* -D ip.rules=1 to enable debugging of rules and rule matching. */
 NBDKIT_DLL_PUBLIC int ip_debug_rules;
@@ -76,7 +77,7 @@ struct rule {
     struct in_addr ipv4;        /* for IPV4, IPV6 */
     struct in6_addr ipv6;
     int64_t id;                 /* for PID, UID, GID, VSOCKCID, VSOCKPORT */
-    const char *label;          /* for SECURITY */
+    char *label;                /* for SECURITY (must be freed) */
   } u;
   unsigned prefixlen;           /* for IPV4, IPV6 */
 };
@@ -165,6 +166,8 @@ free_rules (struct rule *rules)
 
   for (rule = rules; rule != NULL; rule = next) {
     next = rule->next;
+    if (rule->type == SECURITY)
+      free (rule->u.label);
     free (rule);
   }
 }
@@ -309,7 +312,11 @@ parse_rule (const char *paramname,
 
   if (n >= 9 && ascii_strncasecmp (value, "security:", 9) == 0) {
     new_rule->type = SECURITY;
-    new_rule->u.label = &value[9];
+    new_rule->u.label = strndup (&value[9], n-9);
+    if (new_rule->u.label == NULL) {
+      nbdkit_error ("strndup: %m");
+      return -1;
+    }
     return 0;
   }
 
