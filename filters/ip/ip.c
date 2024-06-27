@@ -655,14 +655,22 @@ print_peer_name (const struct sockaddr *sa)
 }
 
 static bool
-check_if_allowed (const struct sockaddr *addr)
+check_if_allowed (void)
 {
+  struct sockaddr_storage addr;
+  socklen_t addrlen = sizeof addr;
+
+  if (nbdkit_peer_name ((struct sockaddr *) &addr, &addrlen) == -1)
+    return false;               /* We should fail closed ... */
+  if (ip_debug_rules)
+    print_peer_name ((struct sockaddr *) &addr);
+
   if (matches_rules_list ("ip: match client with allow",
-                          allow_rules, addr))
+                          allow_rules, (struct sockaddr *) &addr))
     return true;
 
   if (matches_rules_list ("ip: match client with deny",
-                          deny_rules, addr))
+                          deny_rules, (struct sockaddr *) &addr))
     return false;
 
   return true;
@@ -672,16 +680,8 @@ static int
 ip_preconnect (nbdkit_next_preconnect *next, nbdkit_backend *nxdata,
                int readonly)
 {
-  struct sockaddr_storage addr;
-  socklen_t addrlen = sizeof addr;
-
-  if (nbdkit_peer_name ((struct sockaddr *) &addr, &addrlen) == -1)
-    return -1;                  /* We should fail closed ... */
-  if (ip_debug_rules)
-    print_peer_name ((struct sockaddr *) &addr);
-
   /* Follow the rules. */
-  if (check_if_allowed ((struct sockaddr *) &addr) == false) {
+  if (check_if_allowed () == false) {
     nbdkit_error ("client not permitted to connect "
                   "because of source address restriction");
     return -1;
