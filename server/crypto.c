@@ -55,8 +55,12 @@
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 
-#if defined HAVE_GNUTLS_TRANSPORT_IS_KTLS_ENABLED && \
-  defined HAVE_GNUTLS_SOCKET_H
+/* See comment in configure.ac */
+#ifdef HAVE_GNUTLS_SOCKET_H
+#include <gnutls/socket.h>
+#endif
+
+#ifdef HAVE_GNUTLS_TRANSPORT_IS_KTLS_ENABLED
 #define TRY_KTLS 1
 #else
 #define TRY_KTLS 0

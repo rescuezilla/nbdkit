@@ -683,6 +683,18 @@ AS_IF([test "x$GNUTLS_LIBS" != "x"],[
     AC_DEFINE_UNQUOTED([TLS_PRIORITY],["$tls_priority"],
                        [Default TLS session priority string])
 
+    # Check for working <gnutls/socket.h>.  This is only needed for
+    # gnutls 3.7.9 and no other version (unfortunately used by Debian
+    # 12 and others).  In that release kTLS functionality was added to
+    # <gnutls/socket.h> incorrectly, before being moved to
+    # <gnutls/gnutls.h> in 3.8.0.  <gnutls/socket.h> breaks on
+    # Windows, so we must make inclusion conditional.  When we move
+    # the minimum version of gnutls >= 3.8.0 we can get rid of this.
+    old_CFLAGS="$CFLAGS"
+    CFLAGS="$GNUTLS_CFLAGS $CFLAGS"
+    AC_CHECK_HEADERS([gnutls/socket.h])
+    CFLAGS="$old_CFLAGS"
+
     # Check for APIs which may not be present.
     old_LIBS="$LIBS"
     LIBS="$GNUTLS_LIBS $LIBS"
