@@ -491,8 +491,9 @@ ipv6_equal (struct in6_addr addr1, struct in6_addr addr2, unsigned prefixlen)
 
 static bool
 matches_rule (const struct rule *rule,
-              int family, const struct sockaddr *addr)
+              const struct sockaddr *addr)
 {
+  const int family = ((struct sockaddr_in *)addr)->sin_family;
   const struct sockaddr_in *sin;
   uint32_t cin, rin, mask;
   const struct sockaddr_in6 *sin6;
@@ -587,13 +588,13 @@ matches_rule (const struct rule *rule,
 
 static bool
 matches_rules_list (const char *name, const struct rule *rules,
-                    int family, const struct sockaddr *addr)
+                    const struct sockaddr *addr)
 {
   const struct rule *rule;
   bool b;
 
   for (rule = rules; rule != NULL; rule = rule->next) {
-    b = matches_rule (rule, family, addr);
+    b = matches_rule (rule, addr);
     if (ip_debug_rules)
       print_rule (name, rule, b ? " => yes" : " => no");
     if (b)
@@ -606,24 +607,12 @@ matches_rules_list (const char *name, const struct rule *rules,
 static bool
 check_if_allowed (const struct sockaddr *addr)
 {
-  int family = ((struct sockaddr_in *)addr)->sin_family;
-
-  /* There's an implicit allow all for non-IP, non-Unix, non-AF_VSOCK
-   * sockets, see the manual.
-   */
-  if (family != AF_INET && family != AF_INET6 && family != AF_UNIX
-#if defined (AF_VSOCK) && defined (VMADDR_CID_ANY)
-      && family != AF_VSOCK
-#endif
-      )
-    return true;
-
   if (matches_rules_list ("ip: match client with allow",
-                          allow_rules, family, addr))
+                          allow_rules, addr))
     return true;
 
   if (matches_rules_list ("ip: match client with deny",
-                          deny_rules, family, addr))
+                          deny_rules, addr))
     return false;
 
   return true;
