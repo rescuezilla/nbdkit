@@ -516,7 +516,7 @@ tls_log (int level, const char *msg)
 NBDKIT_DLL_PUBLIC int nbdkit_debug_tls_session = 0;
 
 static void
-debug_x590_cert (gnutls_session_t session)
+debug_x509_cert (gnutls_session_t session)
 {
   const gnutls_datum_t *cert_list;
   unsigned int i, cert_list_size = 0;
@@ -627,7 +627,7 @@ debug_session (gnutls_session_t session)
   case GNUTLS_CRD_CERTIFICATE:
     debug ("TLS: authentication: certificate");
     if (gnutls_certificate_type_get (session) == GNUTLS_CRT_X509)
-      debug_x590_cert (session);
+      debug_x509_cert (session);
     if (kx == GNUTLS_KX_DHE_RSA || kx == GNUTLS_KX_DHE_DSS)
       dhe = true;
     else if (kx == GNUTLS_KX_ECDHE_RSA || kx == GNUTLS_KX_ECDHE_ECDSA)
