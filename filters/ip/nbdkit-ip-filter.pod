@@ -135,6 +135,30 @@ address representations can be used (see S<RFC 5952>).
 
 This matches a range of IPv6 addresses C<A:B:.../NN>.
 
+=item B<dn:>GLOB
+
+(nbdkit E<ge> 1.40, not Windows)
+
+This matches the TLS Distinguished Name (DN) of the client certificate
+against the wildcard C<GLOB>.  See L<nbdkit_peer_tls_dn(3)> and
+L<nbdkit-tls(1)> for further information.
+
+Because DNs contain commas (C<,>) but comma is also normally used to
+split allow/deny list elements, this filter has a special exception
+where if the first 3 characters of the allow or deny parameter match
+C<"dn:"> then the parameter is I<not> split.  This lets you match on
+DNs naturally using:
+
+ nbdkit --filter=ip allow=dn:"*,O=BigCo,*" allow=dn:"*,C=US" [...]
+
+B<Note:> If your allow or deny patterns contain any DN rules then
+I<all> filtering has to be done later in the
+L<connection lifecycle|nbdkit-plugin(3)/Callback lifecycle> since we
+must wait until TLS negotiation has been completed.  This makes
+filtering more expensive and potentially easier to cause DoS attacks.
+You should try to combine DN rules with early filtering outside nbdkit
+like using a firewall or VPN.
+
 =item B<pid:>PID
 
 (nbdkit E<ge> 1.24, Linux only)
@@ -255,7 +279,9 @@ L<nbdkit_peer_name(3)>,
 L<nbdkit_peer_pid(3)>,
 L<nbdkit_peer_uid(3)>,
 L<nbdkit_peer_gid(3)>,
-L<nbdkit_peer_security_context(3)>.
+L<nbdkit_peer_security_context(3)>,
+L<nbdkit_peer_tls_dn(3)>,
+L<nbdkit-tls(1)>.
 
 =head1 AUTHORS
 

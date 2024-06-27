@@ -1795,6 +1795,7 @@ TESTS += \
 	test-ip-filter.sh \
 	test-ip-filter-anyunix.sh \
 	test-ip-filter-anyvsock.sh \
+	test-ip-filter-dn.sh \
 	test-ip-filter-pid.sh \
 	test-ip-filter-uid.sh \
 	test-ip-filter-gid.sh \
@@ -1804,6 +1805,7 @@ EXTRA_DIST += \
 	test-ip-filter.sh \
 	test-ip-filter-anyunix.sh \
 	test-ip-filter-anyvsock.sh \
+	test-ip-filter-dn.sh \
 	test-ip-filter-pid.sh \
 	test-ip-filter-uid.sh \
 	test-ip-filter-gid.sh \

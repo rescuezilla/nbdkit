@@ -40,6 +40,10 @@
 #include <string.h>
 #include <assert.h>
 
+#ifdef HAVE_FNMATCH_H
+#include <fnmatch.h>
+#endif
+
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
@@ -71,19 +75,25 @@ struct rule {
   struct rule *next;
   enum { BAD = 0,
          ANY, ANYV4, ANYV6, IPV4, IPV6,
-         ANYUNIX, PID, UID, GID, SECURITY,
+         ANYUNIX, DN, PID, UID, GID, SECURITY,
          ANYVSOCK, VSOCKCID, VSOCKPORT } type;
   union {
     struct in_addr ipv4;        /* for IPV4, IPV6 */
     struct in6_addr ipv6;
     int64_t id;                 /* for PID, UID, GID, VSOCKCID, VSOCKPORT */
     char *label;                /* for SECURITY (must be freed) */
+    const char *glob;           /* for DN */
   } u;
   unsigned prefixlen;           /* for IPV4, IPV6 */
 };
 
 static struct rule *allow_rules, *allow_rules_last;
 static struct rule *deny_rules, *deny_rules_last;
+
+/* If there are any dn: rules then we must do more expensive "late
+ * filtering" in the .open method.
+ */
+static bool late_filtering = false;
 
 static void
 print_rule (const char *name, const struct rule *rule, const char *suffix)
@@ -118,6 +128,9 @@ print_rule (const char *name, const struct rule *rule, const char *suffix)
 
   case ANYUNIX:
     nbdkit_debug ("%s=anyunix%s", name, suffix);
+    break;
+  case DN:
+    nbdkit_debug ("%s=dn:%s%s", name, rule->u.glob, suffix);
     break;
   case PID:
     nbdkit_debug ("%s=pid:%" PRIi64 "%s", name, rule->u.id, suffix);
@@ -279,6 +292,12 @@ parse_rule (const char *paramname,
     return 0;
   }
 
+  if (n >= 3 && ascii_strncasecmp (value, "dn:", 3) == 0) {
+    late_filtering = true;
+    new_rule->type = DN;
+    new_rule->u.glob = &value[3];
+    return 0;
+  }
   if (n >= 4 && ascii_strncasecmp (value, "pid:", 4) == 0) {
     new_rule->type = PID;
     if (nbdkit_parse_int64_t ("pid:", &value[4], &new_rule->u.id) == -1)
@@ -407,6 +426,10 @@ parse_rules (const char *paramname,
 {
   size_t n;
 
+  /* Special exception for dn: since they contain commas. */
+  if (ascii_strncasecmp (value, "dn:", 3) == 0)
+    return parse_rule (paramname, rules, rules_last, value, strlen (value));
+
   while (*value != '\0') {
     n = strcspn (value, ",");
     if (n == 0) {
@@ -489,6 +512,42 @@ ipv6_equal (struct in6_addr addr1, struct in6_addr addr2, unsigned prefixlen)
   return true;
 }
 
+#ifdef HAVE_FNMATCH_H
+static bool
+dn_matches (const char *glob)
+{
+  char *dn = nbdkit_peer_tls_dn ();
+  int r;
+  bool ret;
+
+  if (dn == NULL)
+    return false;
+
+  if (ip_debug_rules)
+    nbdkit_debug ("ip: TLS DN = \"%s\"", dn);
+
+  r = fnmatch (glob, dn, FNM_CASEFOLD);
+  switch (r) {
+  case 0:
+    ret = true;
+    break;
+  case FNM_NOMATCH:
+    ret = false;
+    break;
+  default:
+    /* I even looked at the glibc code to see what the unspecified
+     * "errors" were and it was not clear.  The best we can do here is
+     * report the code and errno, but continue as if it doesn't match.
+     */
+    nbdkit_error ("fnmatch returned error code %d: %m", r);
+    ret = false;
+  }
+
+  free (dn);
+  return ret;
+}
+#endif
+
 static bool
 matches_rule (const struct rule *rule,
               const struct sockaddr *addr)
@@ -528,6 +587,13 @@ matches_rule (const struct rule *rule,
 
   case ANYUNIX:
     return family == AF_UNIX;
+
+  case DN:
+#ifdef HAVE_FNMATCH_H
+    return dn_matches (rule->u.glob);
+#else
+    return false;
+#endif
 
     /* Note these work even if the underlying nbdkit_peer_* call fails. */
   case PID:
@@ -676,21 +742,44 @@ check_if_allowed (void)
   return true;
 }
 
+/* Normal/early filtering, if there are no dn: rules. */
 static int
 ip_preconnect (nbdkit_next_preconnect *next, nbdkit_backend *nxdata,
                int readonly)
 {
-  /* Follow the rules. */
-  if (check_if_allowed () == false) {
-    nbdkit_error ("client not permitted to connect "
-                  "because of source address restriction");
-    return -1;
+  if (!late_filtering) {
+    /* Follow the rules. */
+    if (check_if_allowed () == false) {
+      nbdkit_error ("client not permitted to connect "
+                    "because of source address restriction");
+      return -1;
+    }
   }
 
   if (next (nxdata, readonly) == -1)
     return -1;
 
   return 0;
+}
+
+/* Late filtering, if there are dn: rules. */
+static void *
+ip_open (nbdkit_next_open *next, nbdkit_context *nxdata,
+         int readonly, const char *exportname, int is_tls)
+{
+  if (late_filtering) {
+    /* Follow the rules. */
+    if (check_if_allowed () == false) {
+      nbdkit_error ("client not permitted to connect "
+                    "because of source address restriction");
+      return NULL;
+    }
+  }
+
+  if (next (nxdata, readonly, exportname) == -1)
+    return NULL;
+
+  return NBDKIT_HANDLE_NOT_NEEDED;
 }
 
 static int
@@ -708,6 +797,7 @@ static struct nbdkit_filter filter = {
   .config_complete   = ip_config_complete,
   .config_help       = ip_config_help,
   .preconnect        = ip_preconnect,
+  .open              = ip_open,
 };
 
 NBDKIT_REGISTER_FILTER (filter)

@@ -379,6 +379,7 @@ AC_CHECK_HEADERS([\
         arpa/inet.h \
         byteswap.h \
         endian.h \
+        fnmatch.h \
         grp.h \
         linux/fs.h \
         netdb.h \
