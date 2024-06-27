@@ -166,6 +166,11 @@ Unix domain socket, and then only on some operating systems.  The
 security context is usually the SELinux label, IPSEC label or
 NetLabel.
 
+=head3 C<nbdkit.peer_tls_dn()>
+
+Return the client TLS Distinguished Name.
+See L<nbdkit_peer_tls_dn(3)>.
+
 =head3 C<nbdkit.read_password(value)>
 
 Read a password from a config parameter.  This returns the password as

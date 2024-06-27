@@ -251,6 +251,23 @@ do_peer_security_context (PyObject *self, PyObject *args)
   return r;
 }
 
+/* nbdkit.peer_tls_dn */
+static PyObject *
+do_peer_tls_dn (PyObject *self, PyObject *args)
+{
+  char *s;
+  PyObject *r;
+
+  s = nbdkit_peer_tls_dn ();
+  if (s == NULL) {
+    PyErr_SetString (PyExc_ValueError, "Unable to get client TLS DN");
+    return NULL;
+  }
+  r = PyUnicode_FromString (s);
+  free (s);
+  return r;
+}
+
 /* nbdkit.read_password */
 static PyObject *
 do_read_password (PyObject *self, PyObject *args)
@@ -298,6 +315,8 @@ static PyMethodDef NbdkitMethods[] = {
     "Return the client group ID for Unix domain sockets" },
   { "peer_security_context", do_peer_security_context, METH_NOARGS,
     "Return the client security context" },
+  { "peer_tls_dn", do_peer_tls_dn, METH_NOARGS,
+    "Return the client TLS Distinguished Name" },
   { "read_password", do_read_password, METH_VARARGS,
     "Read a password from a config parameter" },
   { "set_error", set_error, METH_VARARGS,
