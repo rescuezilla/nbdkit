@@ -604,20 +604,6 @@ matches_rules_list (const char *name, const struct rule *rules,
   return false;
 }
 
-static bool
-check_if_allowed (const struct sockaddr *addr)
-{
-  if (matches_rules_list ("ip: match client with allow",
-                          allow_rules, addr))
-    return true;
-
-  if (matches_rules_list ("ip: match client with deny",
-                          deny_rules, addr))
-    return false;
-
-  return true;
-}
-
 /* Print the peer name in preconnect, when -D ip.rules=1 */
 static void
 print_peer_name (const struct sockaddr *sa)
@@ -666,6 +652,20 @@ print_peer_name (const struct sockaddr *sa)
     nbdkit_debug ("ip: preconnect: unknown client address family %d",
                   sa->sa_family);
   }
+}
+
+static bool
+check_if_allowed (const struct sockaddr *addr)
+{
+  if (matches_rules_list ("ip: match client with allow",
+                          allow_rules, addr))
+    return true;
+
+  if (matches_rules_list ("ip: match client with deny",
+                          deny_rules, addr))
+    return false;
+
+  return true;
 }
 
 static int
