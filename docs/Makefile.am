@@ -49,6 +49,7 @@ EXTRA_DIST = \
 	nbdkit_parse_probability.pod \
 	nbdkit_parse_size.pod \
 	nbdkit_peer_name.pod \
+	nbdkit_peer_tls_dn.pod \
 	nbdkit-plugin.pod \
 	nbdkit-probing.pod \
 	nbdkit-protocol.pod \
