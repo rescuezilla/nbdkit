@@ -44,9 +44,10 @@ filter will print a warning message if this happens.
 
 =item Thread model must be parallel*
 
-For example L<nbdkit-curl-plugin(1)> only supports
-C<serialize_requests>, and so this filter cannot perform prefetches in
-parallel with the read requests.
+Use C<nbdkit PLUGIN --dump-plugin> to find the thread model of the
+underlying plugin.  If it does not support the C<parallel> thread
+model, this filter cannot perform prefetches in parallel with the read
+requests.
 
 =item Only scans while clients are connected*
 
