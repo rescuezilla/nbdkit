@@ -42,24 +42,24 @@ filter will print a warning message if this happens.
 
 =over 4
 
-=item Thread model must be parallel*
+=item Thread model must be parallel¹
 
 Use C<nbdkit PLUGIN --dump-plugin> to find the thread model of the
 underlying plugin.  If it does not support the C<parallel> thread
 model, this filter cannot perform prefetches in parallel with the read
 requests.
 
-=item Only scans while clients are connected*
+=item Only scans while clients are connected¹
 
 The current filter only scans while there is at least one client
 connected.
 
-=item Only scans the default export*
+=item Only scans the default export¹
 
 The current filter only scans the default export and ignores all
 clients connecting to the non-default export name.
 
-*We may be able to lift these restrictions in future.
+¹ We may be able to lift these restrictions in future.
 
 =item Underlying filters or plugin must support C<.cache> (prefetch)
 
