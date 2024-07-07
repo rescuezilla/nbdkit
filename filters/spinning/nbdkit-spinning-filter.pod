@@ -48,6 +48,8 @@ if the requests are for different heads (as happens on a real disk).
 Using C<separate-heads=true> simulates heads which move on independent
 arms (but each head is still confined to its quarter of the disk):
 
+                            range of movement for 4ᵗʰ arm/head
+                                     ┌──────┴─────┐
     ⇓                 ⇓    ⇓            ⇓
  ┌─────────────────────────────────────────────────┐
  └─────────────────────────────────────────────────┘
