@@ -1,12 +1,14 @@
 =head1 NAME
 
-nbdkit_peer_tls_dn - read the client TLS X.509 Distinguished Name
+nbdkit_peer_tls_dn,
+nbdkit_peer_tls_issuer_dn - read the client TLS X.509 Distinguished Name
 
 =head1 SYNOPSIS
 
  #include <nbdkit-plugin.h>
 
  char *nbdkit_peer_tls_dn (void);
+ char *nbdkit_peer_tls_issuer_dn (void);
 
 =head1 DESCRIPTION
 
@@ -32,9 +34,12 @@ the nbdkit I<--tls-verify-peer> option is used
 
 =back
 
-then this API can be used to get the Distinguished Name (DN) of the
-certificate.  This is returned as a string of the form
-C<"CN=xx,O=yy,[...]C=zz"> (see S<RFC 4514> for the exact format).
+then these APIs can be used to get the Distinguished Name (DN) of the
+certificate or the certificate's issuer.  The issuer is the
+Certificate Authority (CA) that issued the client certificate.
+
+The DN is returned as a string of the form C<"CN=xx,O=yy,[...]C=zz">
+(see S<RFC 4514> for the exact format).
 
 If the DN is not available, C<""> is returned (this is not an error).
 
@@ -45,7 +50,7 @@ DN.
 
 Please see L<nbdkit-tls(1)> for details of how to generate client
 certificates.  Following those instructions, if you were to generate a
-certificate from this F<client.info> input:
+client certificate from this F<client.info> input:
 
  country = US
  state = New York
@@ -56,31 +61,44 @@ certificate from this F<client.info> input:
  encryption_key
  signing_key
 
-then the client DN would be:
+and sign it with this Certificate Authority F<ca.info>:
+
+ cn = BigCo
+ ca
+ cert_signing_key
+
+then the client certificate DN would be:
 
  CN=client.example.com,O=BigCo,L=New York,ST=New York,C=US
 
+and the issuer DN would be:
+
+ CN=BigCo
+
 =head1 RETURN VALUE
 
-On success this function returns a TLS Distinguished Name as a string,
-or C<"">.  The caller must free this string.
+On success both of these functions return a TLS Distinguished Name as
+a string, or C<"">.  The caller must free this string.
 
-If there is an error it calls L<nbdkit_error(3)> and returns C<NULL>.
+If there is an error they call L<nbdkit_error(3)> and return C<NULL>.
 
 =head1 LANGUAGE BINDINGS
 
 In L<nbdkit-ocaml-plugin(3)>:
 
  NBDKit.peer_tls_dn : unit -> string
+ NBDKit.peer_tls_issuer_dn : unit -> string
 
 In L<nbdkit-python-plugin(3)>:
 
  import nbdkit
  dn = nbdkit.peer_tls_dn()
+ dn = nbdkit.peer_tls_issuer_dn()
 
 =head1 HISTORY
 
-C<nbdkit_peer_tls_dn> was added in nbdkit 1.40.
+C<nbdkit_peer_tls_dn> and C<nbdkit_peer_tls_issuer_dn> were added in
+S<nbdkit 1.40>.
 
 =head1 SEE ALSO
 

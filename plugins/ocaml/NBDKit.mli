@@ -240,5 +240,6 @@ val peer_gid : unit -> int64
 (** Binding for [nbdkit_peer_security_context]. *)
 val peer_security_context : unit -> string
 
-(** Binding for [nbdkit_peer_tls_dn]. *)
+(** Binding for [nbdkit_peer_tls_dn] and [nbdkit_peer_tls_issuer_dn]. *)
 val peer_tls_dn : unit -> string
+val peer_tls_issuer_dn : unit -> string

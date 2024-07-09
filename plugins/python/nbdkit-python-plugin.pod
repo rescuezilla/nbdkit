@@ -171,6 +171,11 @@ NetLabel.
 Return the client TLS Distinguished Name.
 See L<nbdkit_peer_tls_dn(3)>.
 
+=head3 C<nbdkit.peer_tls_issuer_dn()>
+
+Return the client certificate issuer's TLS Distinguished Name.
+See L<nbdkit_peer_tls_issuer_dn(3)>.
+
 =head3 C<nbdkit.read_password(value)>
 
 Read a password from a config parameter.  This returns the password as

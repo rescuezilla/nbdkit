@@ -359,3 +359,15 @@ ocaml_nbdkit_peer_tls_dn (value unitv)
   free (label);
   CAMLreturn (rv);
 }
+
+NBDKIT_DLL_PUBLIC value
+ocaml_nbdkit_peer_tls_issuer_dn (value unitv)
+{
+  CAMLparam1 (unitv);
+  CAMLlocal1 (rv);
+  char *label = nbdkit_peer_tls_issuer_dn ();
+  if (label == NULL) caml_failwith ("nbdkit_peer_tls_issuer_dn");
+  rv = caml_copy_string (label);
+  free (label);
+  CAMLreturn (rv);
+}

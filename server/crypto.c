@@ -786,8 +786,17 @@ crypto_negotiate_tls (int sockin, int sockout)
   return -1;
 }
 
-NBDKIT_DLL_PUBLIC char *
-nbdkit_peer_tls_dn (void)
+/* The prototype of both gnutls_x509_crt_get_dn3 and
+ * gnutls_x509_crt_get_issuer_dn3.
+ */
+typedef int (*get_dn3_fn) (gnutls_x509_crt_t cert, gnutls_datum_t *dn,
+                           unsigned  flags);
+
+/* Common function to call either gnutls_x509_crt_get_dn3 or
+ * gnutls_x509_crt_get_issuer_dn3.
+ */
+static char *
+get_peer_dn (const char *fn, get_dn3_fn get_dn3)
 {
   GET_CONN;
   gnutls_session_t session = conn->crypto_session;
@@ -846,9 +855,9 @@ nbdkit_peer_tls_dn (void)
     goto out;
   }
 
-  r = gnutls_x509_crt_get_dn3 (cert, &dn, 0);
+  r = get_dn3 (cert, &dn, 0);
   if (r != 0) {
-    nbdkit_error ("gnutls_x509_crt_get_dn3: %s", gnutls_strerror (r));
+    nbdkit_error ("%s: %s", fn, gnutls_strerror (r));
     goto out;
   }
   ret = strdup ((char *) dn.data);
@@ -877,6 +886,20 @@ nbdkit_peer_tls_dn (void)
     return NULL;
   }
   return ret;
+}
+
+NBDKIT_DLL_PUBLIC char *
+nbdkit_peer_tls_dn (void)
+{
+  return get_peer_dn ("gnutls_x509_crt_get_dn3",
+                      gnutls_x509_crt_get_dn3);
+}
+
+NBDKIT_DLL_PUBLIC char *
+nbdkit_peer_tls_issuer_dn (void)
+{
+  return get_peer_dn ("gnutls_x509_crt_get_issuer_dn3",
+                      gnutls_x509_crt_get_issuer_dn3);
 }
 
 #else /* !HAVE_GNUTLS */
@@ -917,7 +940,16 @@ crypto_negotiate_tls (int sockin, int sockout)
 NBDKIT_DLL_PUBLIC char *
 nbdkit_peer_tls_dn (void)
 {
-  nbdkit_error ("nbdkit_peer_tls_dn is not supported on this platform");
+  nbdkit_error ("%s is not supported on this platform",
+                "nbdkit_peer_tls_dn");
+  return -1;
+}
+
+NBDKIT_DLL_PUBLIC char *
+nbdkit_peer_tls_issuer_dn (void)
+{
+  nbdkit_error ("%s is not supported on this platform",
+                "nbdkit_peer_tls_issuer_dn");
   return -1;
 }
 

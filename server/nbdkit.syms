@@ -80,6 +80,7 @@
     nbdkit_peer_pid;
     nbdkit_peer_security_context;
     nbdkit_peer_tls_dn;
+    nbdkit_peer_tls_issuer_dn;
     nbdkit_peer_uid;
     nbdkit_printf_intern;
     nbdkit_read_password;

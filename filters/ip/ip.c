@@ -75,14 +75,14 @@ struct rule {
   struct rule *next;
   enum { BAD = 0,
          ANY, ANYV4, ANYV6, IPV4, IPV6,
-         ANYUNIX, DN, PID, UID, GID, SECURITY,
+         ANYUNIX, DN, ISSUER_DN, PID, UID, GID, SECURITY,
          ANYVSOCK, VSOCKCID, VSOCKPORT } type;
   union {
     struct in_addr ipv4;        /* for IPV4, IPV6 */
     struct in6_addr ipv6;
     int64_t id;                 /* for PID, UID, GID, VSOCKCID, VSOCKPORT */
     char *label;                /* for SECURITY (must be freed) */
-    const char *glob;           /* for DN */
+    const char *glob;           /* for DN or ISSUER_DN */
   } u;
   unsigned prefixlen;           /* for IPV4, IPV6 */
 };
@@ -90,8 +90,8 @@ struct rule {
 static struct rule *allow_rules, *allow_rules_last;
 static struct rule *deny_rules, *deny_rules_last;
 
-/* If there are any dn: rules then we must do more expensive "late
- * filtering" in the .open method.
+/* If there are any dn:/issuer-dn: rules then we must do more
+ * expensive "late filtering" in the .open method.
  */
 static bool late_filtering = false;
 
@@ -131,6 +131,9 @@ print_rule (const char *name, const struct rule *rule, const char *suffix)
     break;
   case DN:
     nbdkit_debug ("%s=dn:%s%s", name, rule->u.glob, suffix);
+    break;
+  case ISSUER_DN:
+    nbdkit_debug ("%s=issuer-dn:%s%s", name, rule->u.glob, suffix);
     break;
   case PID:
     nbdkit_debug ("%s=pid:%" PRIi64 "%s", name, rule->u.id, suffix);
@@ -298,6 +301,12 @@ parse_rule (const char *paramname,
     new_rule->u.glob = &value[3];
     return 0;
   }
+  if (n >= 10 && ascii_strncasecmp (value, "issuer-dn:", 10) == 0) {
+    late_filtering = true;
+    new_rule->type = ISSUER_DN;
+    new_rule->u.glob = &value[10];
+    return 0;
+  }
   if (n >= 4 && ascii_strncasecmp (value, "pid:", 4) == 0) {
     new_rule->type = PID;
     if (nbdkit_parse_int64_t ("pid:", &value[4], &new_rule->u.id) == -1)
@@ -426,8 +435,9 @@ parse_rules (const char *paramname,
 {
   size_t n;
 
-  /* Special exception for dn: since they contain commas. */
-  if (ascii_strncasecmp (value, "dn:", 3) == 0)
+  /* Special exception for dn:/issuer-dn: since they contain commas. */
+  if (ascii_strncasecmp (value, "dn:", 3) == 0 ||
+      ascii_strncasecmp (value, "issuer-dn:", 10) == 0)
     return parse_rule (paramname, rules, rules_last, value, strlen (value));
 
   while (*value != '\0') {
@@ -514,9 +524,8 @@ ipv6_equal (struct in6_addr addr1, struct in6_addr addr2, unsigned prefixlen)
 
 #ifdef HAVE_FNMATCH_H
 static bool
-dn_matches (const char *glob)
+dn_matches (const char *name, const char *dn, const char *glob)
 {
-  char *dn = nbdkit_peer_tls_dn ();
   int r;
   bool ret;
 
@@ -524,7 +533,7 @@ dn_matches (const char *glob)
     return false;
 
   if (ip_debug_rules)
-    nbdkit_debug ("ip: TLS DN = \"%s\"", dn);
+    nbdkit_debug ("ip: %s = \"%s\"", name, dn);
 
   r = fnmatch (glob, dn, FNM_CASEFOLD);
   switch (r) {
@@ -543,7 +552,6 @@ dn_matches (const char *glob)
     ret = false;
   }
 
-  free (dn);
   return ret;
 }
 #endif
@@ -558,6 +566,9 @@ matches_rule (const struct rule *rule,
   const struct sockaddr_in6 *sin6;
 #if defined (AF_VSOCK) && defined (VMADDR_CID_ANY)
   const struct sockaddr_vm *svm;
+#endif
+#ifdef HAVE_FNMATCH_H
+  char *dn;
 #endif
   char *label;
   bool b;
@@ -590,7 +601,20 @@ matches_rule (const struct rule *rule,
 
   case DN:
 #ifdef HAVE_FNMATCH_H
-    return dn_matches (rule->u.glob);
+    dn = nbdkit_peer_tls_dn ();
+    b = dn_matches ("TLS DN", dn, rule->u.glob);
+    free (dn);
+    return b;
+#else
+    return false;
+#endif
+
+  case ISSUER_DN:
+#ifdef HAVE_FNMATCH_H
+    dn = nbdkit_peer_tls_issuer_dn ();
+    b = dn_matches ("TLS issuer DN", dn, rule->u.glob);
+    free (dn);
+    return b;
 #else
     return false;
 #endif
@@ -742,7 +766,7 @@ check_if_allowed (void)
   return true;
 }
 
-/* Normal/early filtering, if there are no dn: rules. */
+/* Normal/early filtering, if there are no dn:/issuer-dn: rules. */
 static int
 ip_preconnect (nbdkit_next_preconnect *next, nbdkit_backend *nxdata,
                int readonly)
@@ -762,7 +786,7 @@ ip_preconnect (nbdkit_next_preconnect *next, nbdkit_backend *nxdata,
   return 0;
 }
 
-/* Late filtering, if there are dn: rules. */
+/* Late filtering, if there are dn:/issuer-dn: rules. */
 static void *
 ip_open (nbdkit_next_open *next, nbdkit_context *nxdata,
          int readonly, const char *exportname, int is_tls)

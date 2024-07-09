@@ -134,23 +134,27 @@ This matches a range of IPv6 addresses C<A:B:.../NN>.
 
 =item B<dn:>WILDCARD
 
+=item B<issuer-dn:>WILDCARD
+
 (nbdkit E<ge> 1.40, not Windows)
 
 This matches the TLS Distinguished Name (DN) of the client certificate
-against the C<WILDCARD>.  In the example below quotes are used to
-protect the wildcard from the shell, they are not part of the
-matching:
+or client certificate's issuer against the C<WILDCARD>.  In the
+example below quotes are used to protect the wildcard from the shell,
+they are not part of the matching:
 
  nbdkit --filter=ip allow=dn:"*,O=BigCo,*" [...]
 
-See L<nbdkit_peer_tls_dn(3)> and L<nbdkit-tls(1)> for further
-information about DNs.
+ nbdkit --filter=ip allow=issuer-dn:"CN=BigCo" [...]
+
+See L<nbdkit_peer_tls_dn(3)>, L<nbdkit_peer_tls_issuer_dn(3)> and
+L<nbdkit-tls(1)> for further information about DNs.
 
 Using this rule has important performance implications, see
 L</Late filtering> below.
 
-Comma splitting is not done inside parameters that start with C<dn:>.
-See L</Comma splitting> below.
+Comma splitting is not done inside parameters that start with C<dn:>
+or C<issuer-dn:>.  See L</Comma splitting> below.
 
 =item B<pid:>PID
 
@@ -250,13 +254,13 @@ These sets of rules are equivalent:
  nbdkit --filter=ip allow=good1,good2 allow=good3 deny=all
 
 Because TLS Distinguished Names (DNs) contain commas, the filter has a
-special exception where if the first 3 characters of the allow or deny
-parameter match C<"dn:"> then the whole parameter is I<not> split.
-This lets you match on multiple DNs naturally:
+special exception where if the first characters of the allow or deny
+parameter match C<"dn:"> or C<"issuer-dn:"> then the whole parameter
+is I<not> split.  This lets you match on multiple DNs naturally:
 
  nbdkit --filter=ip \
         allow=dn:"*,O=BigCo,*" \
-        allow=dn:"*,C=US" [...]
+        allow=issuer-dn:"CN=BigCo" [...]
 
 =head2 Late filtering
 
@@ -267,15 +271,15 @@ client.  Filtering happens in the C<.preconnect> callback.
 L<nbdkit-plugin(3)/Callback lifecycle> explains the connection
 lifecycle in more detail.
 
-However if your allow or deny patterns contain any C<dn:> rules then
-I<all> filtering has to be done later in the connection lifecycle,
-since we must wait until TLS negotiation has been completed.
-Filtering happens in the C<.open> callback instead.
+However if your allow or deny patterns contain any C<dn:> or
+C<issuer-dn:> rules then I<all> filtering has to be done later in the
+connection lifecycle, since we must wait until TLS negotiation has
+been completed.  Filtering happens in the C<.open> callback instead.
 
 In practice this makes filtering more expensive and potentially makes
 it easier to cause Denial of Service (DoS) attacks.  You should try to
-combine C<dn:> rules with extra filtering outside nbdkit, such as
-using a firewall or VPN.
+combine C<dn:> and C<issuer-dn:> rules with extra filtering outside
+nbdkit, such as using a firewall or VPN.
 
 =head1 DEBUG FLAGS
 
@@ -318,6 +322,7 @@ L<nbdkit_peer_uid(3)>,
 L<nbdkit_peer_gid(3)>,
 L<nbdkit_peer_security_context(3)>,
 L<nbdkit_peer_tls_dn(3)>,
+L<nbdkit_peer_tls_issuer_dn(3)>,
 L<nbdkit-tls(1)>.
 
 =head1 AUTHORS

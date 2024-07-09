@@ -101,6 +101,7 @@ non_generated_mans = \
 	nbdkit_peer_pid.3 \
 	nbdkit_peer_uid.3 \
 	nbdkit_peer_security_context.3 \
+	nbdkit_peer_tls_issuer_dn.3 \
 	nbdkit_printf_intern.3 \
 	nbdkit_set_error.3 \
 	nbdkit_strndup_intern.3 \

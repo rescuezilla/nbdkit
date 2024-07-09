@@ -1394,7 +1394,8 @@ ID, group ID and security context using: L<nbdkit_peer_pid(3)>,
 L<nbdkit_peer_uid(3)>, L<nbdkit_peer_gid(3)> and
 L<nbdkit_peer_security_context(3)>.  If the client is connected using
 TLS and presented a client certificate then the Distinguished Name
-(DN) may be read using L<nbdkit_peer_tls_dn(3)>.
+(DN) may be read using L<nbdkit_peer_tls_dn(3)> and the
+issuer's DN by L<nbdkit_peer_tls_issuer_dn(3)>.
 
 =head1 SHUTDOWN
 
@@ -1641,6 +1642,7 @@ L<nbdkit_peer_name(3)>,
 L<nbdkit_peer_pid(3)>,
 L<nbdkit_peer_security_context(3)>,
 L<nbdkit_peer_tls_dn(3)>.
+L<nbdkit_peer_tls_issuer_dn(3)>.
 L<nbdkit_peer_uid(3)>,
 L<nbdkit_printf_intern(3)>,
 L<nbdkit_read_password(3)>,

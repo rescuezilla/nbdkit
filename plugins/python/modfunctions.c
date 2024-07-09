@@ -268,6 +268,23 @@ do_peer_tls_dn (PyObject *self, PyObject *args)
   return r;
 }
 
+/* nbdkit.peer_tls_issuer_dn */
+static PyObject *
+do_peer_tls_issuer_dn (PyObject *self, PyObject *args)
+{
+  char *s;
+  PyObject *r;
+
+  s = nbdkit_peer_tls_issuer_dn ();
+  if (s == NULL) {
+    PyErr_SetString (PyExc_ValueError, "Unable to get issuer TLS DN");
+    return NULL;
+  }
+  r = PyUnicode_FromString (s);
+  free (s);
+  return r;
+}
+
 /* nbdkit.read_password */
 static PyObject *
 do_read_password (PyObject *self, PyObject *args)
@@ -317,6 +334,8 @@ static PyMethodDef NbdkitMethods[] = {
     "Return the client security context" },
   { "peer_tls_dn", do_peer_tls_dn, METH_NOARGS,
     "Return the client TLS Distinguished Name" },
+  { "peer_tls_issuer_dn", do_peer_tls_issuer_dn, METH_NOARGS,
+    "Return the client certificate issuer's TLS Distinguished Name" },
   { "read_password", do_read_password, METH_VARARGS,
     "Read a password from a config parameter" },
   { "set_error", set_error, METH_VARARGS,
