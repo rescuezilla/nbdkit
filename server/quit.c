@@ -94,11 +94,18 @@ close_quit_pipe (void)
   close (write_quit_fd);
 }
 
-/* The pragma here is for the write() call below.  RHEL 6-era gcc requires
- * pragmas outside the function scope.
+/* The pragma here is for the write() call in set_quit below.  RHEL
+ * 6-era gcc requires pragmas outside the function scope.
  */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-result"
+
+/* This function is called from signal handlers and MUST NOT do
+ * anything asynch-signal unsafe (malloc, printf, debug etc.) as that
+ * can be turned into an RCE.  Example:
+ * https://www.qualys.com/2024/07/01/cve-2024-6387/regresshion.txt
+ * See also: signal-safety(7)
+ */
 static void
 set_quit (void)
 {
