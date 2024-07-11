@@ -225,9 +225,9 @@ Unix domain sockets and C<AF_VSOCK> sockets were always unfiltered in
 S<nbdkit E<le> 1.22>.  In S<nbdkit E<ge> 1.24> the ability to filter
 them was added.
 
-In S<nbdkit E<le> 1.40>, connections from non-IP, non-Unix, non-vsock
-sockets (whatever that would be) were allowed unfiltered.  Unknown
-socket families are now denied.
+In S<nbdkit E<le> 1.38>, connections from non-IP, non-Unix, non-vsock
+sockets (whatever that would be) were allowed unfiltered.  In
+S<nbdkit E<ge> 1.40> unknown socket families are denied.
 
 =head2 Common patterns of usage
 
