@@ -60,7 +60,7 @@
 #endif
 
 #if defined (__linux__) && HAVE_LINUX_FS_H
-#include <linux/fs.h>       /* For BLKZEROOUT, BLKROTATIONAL */
+#include <linux/fs.h>       /* For BLK* constants. */
 #endif
 
 #define NBDKIT_API_VERSION 2
@@ -68,6 +68,7 @@
 
 #include "cleanup.h"
 #include "isaligned.h"
+#include "ispowerof2.h"
 #include "fdatasync.h"
 #include "utils.h"
 
@@ -472,6 +473,7 @@ struct handle {
   bool is_block_device;
   int sector_size;
   unsigned short rotational;
+  uint32_t minimum, preferred, maximum;
   bool can_write;
   bool can_punch_hole;
   bool can_zero_range;
@@ -677,6 +679,28 @@ file_open (int readonly)
   }
 #endif
 
+  h->minimum = h->preferred = h->maximum = 0;
+#if defined(BLKIOMIN) && defined(BLKIOOPT)
+  if (h->is_block_device) {
+    unsigned int minimum = 0, preferred = 0;
+
+    if (ioctl (h->fd, BLKIOMIN, &minimum) != 0)
+      nbdkit_debug ("cannot get BLKIOMIN: %s: %m", file);
+    if (ioctl (h->fd, BLKIOOPT, &preferred) != 0)
+      nbdkit_debug ("cannot get BLKIOOPT: %s: %m", file);
+
+    /* Check the values are sane before assigning them.  There is no
+     * upper limit on request sizes.
+     */
+    if (minimum >= 512 && preferred >= minimum &&
+        is_power_of_2 (minimum) && is_power_of_2 (preferred)) {
+      h->minimum = minimum;
+      h->preferred = preferred;
+      h->maximum = 0xffffffff;
+    }
+  }
+#endif
+
 #ifdef FALLOC_FL_PUNCH_HOLE
   h->can_punch_hole = true;
 #else
@@ -733,6 +757,19 @@ file_is_rotational (void *handle)
   struct handle *h = handle;
 
   return h->rotational;
+}
+
+/* Return minimum, preferred and maximum block size. */
+static int
+file_block_size (void *handle, uint32_t *minimum,
+                 uint32_t *preferred, uint32_t *maximum)
+{
+  struct handle *h = handle;
+
+  *minimum = h->minimum;
+  *preferred = h->preferred;
+  *maximum = h->maximum;
+  return 0;
 }
 
 /* Check if file is read-only. */
@@ -1163,6 +1200,7 @@ static struct nbdkit_plugin plugin = {
   .close             = file_close,
   .get_size          = file_get_size,
   .is_rotational     = file_is_rotational,
+  .block_size        = file_block_size,
   .can_write         = file_can_write,
   .can_multi_conn    = file_can_multi_conn,
   .can_trim          = file_can_trim,
