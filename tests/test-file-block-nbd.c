@@ -40,9 +40,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-#include <guestfs.h>
-
-#include "test.h"
+#include <libnbd.h>
 
 #define DISK_SIZE (100 * 1024 * 1024)
 
@@ -52,21 +50,19 @@ static void detach_loopdev (void);
 int
 main (int argc, char *argv[])
 {
-  guestfs_h *g;
+  struct nbd_handle *nbd;
   int r;
   int fd;
   char cmd[64], buf[64];
   char disk[] = LARGE_TMPDIR "/diskXXXXXX"; /* Backing disk. */
   FILE *pp;
-  char *data;
   size_t len;
-  char *s;
   int64_t size;
 
   /* This test can only be run as root, and will be skipped otherwise. */
   if (geteuid () != 0) {
     fprintf (stderr, "%s: this test has to be run as root.\n",
-             program_name);
+             argv[0]);
     exit (77);
   }
 
@@ -74,7 +70,7 @@ main (int argc, char *argv[])
   r = access ("/dev/loop-control", W_OK);
   if (r != 0) {
     fprintf (stderr, "%s: /dev/loop-control is not writable.\n",
-             program_name);
+             argv[0]);
     exit (77);
   }
 
@@ -82,7 +78,7 @@ main (int argc, char *argv[])
   r = system ("losetup --version");
   if (r != 0) {
     fprintf (stderr, "%s: losetup program must be installed.\n",
-             program_name);
+             argv[0]);
     exit (77);
   }
 
@@ -108,7 +104,7 @@ main (int argc, char *argv[])
   }
   if (fgets (buf, sizeof buf, pp) == NULL) {
     fprintf (stderr, "%s: could not read loop device name from losetup\n",
-             program_name);
+             argv[0]);
     unlink (disk);
     exit (EXIT_FAILURE);
   }
@@ -133,106 +129,45 @@ main (int argc, char *argv[])
   strcpy (loopdev, buf);
   atexit (detach_loopdev);
 
+  /* Create the nbd handle. */
+  nbd = nbd_create ();
+  if (nbd == NULL) {
+    fprintf (stderr, "%s\n", nbd_get_error ());
+    exit (EXIT_FAILURE);
+  }
+
   /* Start nbdkit. */
-  if (test_start_nbdkit ("-D", "file.zero=1",
-                         "file", loopdev, NULL) == -1)
-    exit (EXIT_FAILURE);
-
-  g = guestfs_create ();
-  if (g == NULL) {
-    perror ("guestfs_create");
+  if (nbd_connect_command (nbd,
+                           (char *[]) {
+                             "nbdkit", "-s", "--exit-with-parent",
+                             "file", loopdev,
+                             NULL }) == -1) {
+    fprintf (stderr, "%s\n", nbd_get_error ());
     exit (EXIT_FAILURE);
   }
 
-  r = guestfs_add_drive_opts (g, "",
-                              GUESTFS_ADD_DRIVE_OPTS_FORMAT, "raw",
-                              GUESTFS_ADD_DRIVE_OPTS_PROTOCOL, "nbd",
-                              GUESTFS_ADD_DRIVE_OPTS_SERVER, server,
-                              -1);
-  if (r == -1)
+  /* Check the disk size matches the loop device size. */
+  size = nbd_get_size (nbd);
+  if (size == -1) {
+    fprintf (stderr, "%s\n", nbd_get_error ());
     exit (EXIT_FAILURE);
-
-  if (guestfs_launch (g) == -1)
-    exit (EXIT_FAILURE);
-
-  /* Check that the size of the disk seen through libguestfs & NBD
-   * matches the size of the file.  This ensures that the common/utils
-   * device_size function is working, but also that the size is passed
-   * through many layers up to us.
-   */
-  size = guestfs_blockdev_getsize64 (g, "/dev/sda");
-  if (size == -1)
-    exit (EXIT_FAILURE);
+  }
   if (size != DISK_SIZE) {
-    fprintf (stderr,
-             "%s FAILED: disk size incorrect "
-             "(actual: %" PRIi64 ", expected: %d)\n",
-             program_name, size, DISK_SIZE);
+    fprintf (stderr, "%s: incorrect export size, "
+             "expected: %d actual: %" PRIi64 "\n",
+             argv[0], DISK_SIZE, size);
     exit (EXIT_FAILURE);
   }
 
-  /* Print (but don't check) the minimum and optimal io sizes.  In
-   * theory these should come from the host loop device, via the file
-   * .block_size callback.  There's no official way to read these
-   * through libguestfs, and in any case with Linux 6.9 I don't see
-   * the correct values here.
-   */
-  const char *head_cmd[] = {
-    "head", "-1", "/sys/block/*/queue/*_io_size", NULL
-  };
-  guestfs_debug (g, "sh", (char **) head_cmd);
+  /* Print (don't check) the block size preferences. */
+  printf ("minimum = %" PRIu64 "\n",
+          nbd_get_block_size (nbd, LIBNBD_SIZE_MINIMUM));
+  printf ("preferred = %" PRIu64 "\n",
+          nbd_get_block_size (nbd, LIBNBD_SIZE_PREFERRED));
+  printf ("maximum = %" PRIu64 "\n",
+          nbd_get_block_size (nbd, LIBNBD_SIZE_MAXIMUM));
 
-  /* Partition the disk. */
-  if (guestfs_part_disk (g, "/dev/sda", "mbr") == -1)
-    exit (EXIT_FAILURE);
-  if (guestfs_mkfs (g, "ext4", "/dev/sda1") == -1)
-    exit (EXIT_FAILURE);
-
-  if (guestfs_mount_options (g, "discard", "/dev/sda1", "/") == -1)
-    exit (EXIT_FAILURE);
-
-#define filename "/hello.txt"
-#define content "hello, people of the world"
-
-  if (guestfs_write (g, filename, content, strlen (content)) == -1)
-    exit (EXIT_FAILURE);
-
-  data = guestfs_cat (g, filename);
-  if (!data)
-    exit (EXIT_FAILURE);
-
-  if (strcmp (data, content) != 0) {
-    fprintf (stderr,
-             "%s FAILED: unexpected content of %s file "
-             "(actual: %s, expected: %s)\n",
-             program_name, filename, data, content);
-    exit (EXIT_FAILURE);
-  }
-
-  /* Run sync to test flush path. */
-  if (guestfs_sync (g) == -1)
-    exit (EXIT_FAILURE);
-
-  /* Run fstrim to test trim path.  However only recent versions of
-   * libguestfs have this, and it probably only works in recent
-   * versions of qemu.
-   */
-#ifdef GUESTFS_HAVE_FSTRIM
-  if (guestfs_fstrim (g, "/", -1) == -1)
-    exit (EXIT_FAILURE);
-#endif
-
-  /* Run fallocate(1) on the device to test zero path. */
-  if (guestfs_umount (g, "/") == -1)
-    exit (EXIT_FAILURE);
-  const char *sh[] = { "fallocate", "-nzl", "64k", "/dev/sda", NULL };
-  s = guestfs_debug (g, "sh", (char **) sh);
-  free (s);
-
-  if (guestfs_shutdown (g) == -1)
-    exit (EXIT_FAILURE);
-
-  guestfs_close (g);
+  nbd_close (nbd);
 
   /* The atexit handler should detach the loop device and clean up
    * the backing disk.

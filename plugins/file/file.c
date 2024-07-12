@@ -67,9 +67,10 @@
 #include <nbdkit-plugin.h>
 
 #include "cleanup.h"
+#include "fdatasync.h"
 #include "isaligned.h"
 #include "ispowerof2.h"
-#include "fdatasync.h"
+#include "minmax.h"
 #include "utils.h"
 
 static enum {
@@ -682,20 +683,24 @@ file_open (int readonly)
   h->minimum = h->preferred = h->maximum = 0;
 #if defined(BLKIOMIN) && defined(BLKIOOPT)
   if (h->is_block_device) {
-    unsigned int minimum = 0, preferred = 0;
+    unsigned int minimum_io_size = 0, optimal_io_size = 0;
 
-    if (ioctl (h->fd, BLKIOMIN, &minimum) != 0)
+    if (ioctl (h->fd, BLKIOMIN, &minimum_io_size) == -1)
       nbdkit_debug ("cannot get BLKIOMIN: %s: %m", file);
-    if (ioctl (h->fd, BLKIOOPT, &preferred) != 0)
-      nbdkit_debug ("cannot get BLKIOOPT: %s: %m", file);
 
-    /* Check the values are sane before assigning them.  There is no
-     * upper limit on request sizes.
-     */
-    if (minimum >= 512 && preferred >= minimum &&
-        is_power_of_2 (minimum) && is_power_of_2 (preferred)) {
-      h->minimum = minimum;
-      h->preferred = preferred;
+    if (ioctl (h->fd, BLKIOOPT, &optimal_io_size) == -1)
+      nbdkit_debug ("cannot get BLKIOOPT: %s: %m", file);
+    else if (optimal_io_size == 0)
+      /* All devices in the Linux kernel except for MD report optimal
+       * as 0.  In that case guess a good value.
+       */
+      optimal_io_size = MAX (minimum_io_size, 4096);
+
+    /* Check the values are sane before using them. */
+    if (minimum_io_size >= 512 && is_power_of_2 (minimum_io_size) &&
+        optimal_io_size >= minimum_io_size && is_power_of_2 (optimal_io_size)) {
+      h->minimum = minimum_io_size;
+      h->preferred = optimal_io_size;
       h->maximum = 0xffffffff;
     }
   }

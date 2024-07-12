@@ -170,6 +170,7 @@ check-valgrind:
 # To run only tests which require root, use 'make check-root':
 root_tests = \
 	test-file-block \
+	test-file-block-nbd \
 	test-nbd-client.sh \
 	test-nbd-client-tls.sh \
 	test-swap.sh \
@@ -873,10 +874,15 @@ EXTRA_DIST += \
 	test-file-dirfd.sh \
 	$(NULL)
 LIBGUESTFS_TESTS += test-file-block
+LIBNBD_TESTS += test-file-block-nbd
 
 test_file_block_SOURCES = test-file-block.c test.h
 test_file_block_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_file_block_LDADD = libtest.la $(LIBGUESTFS_LIBS)
+
+test_file_block_nbd_SOURCES = test-file-block-nbd.c
+test_file_block_nbd_CFLAGS = $(WARNINGS_CFLAGS) $(LIBNBD_CFLAGS)
+test_file_block_nbd_LDADD = $(LIBNBD_LIBS)
 
 # floppy plugin test.
 TESTS += \
