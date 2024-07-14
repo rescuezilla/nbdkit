@@ -65,9 +65,6 @@
 #else
 #define TRY_KTLS 0
 #endif
-#if TRY_KTLS
-#include <gnutls/socket.h>
-#endif
 
 static int crypto_auth;
 #define CRYPTO_AUTH_CERTIFICATES 1
