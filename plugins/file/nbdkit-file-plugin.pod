@@ -220,6 +220,16 @@ future.
 
 =over 4
 
+=item C<file_block_size=yes>
+
+If set, the plugin has support for getting the minimum and preferred
+I/O size of block devices.
+
+=item C<file_blkrotational=yes>
+
+If set, the plugin has support for getting the rotational property of
+block devices.
+
 =item C<file_blksszget=yes>
 
 =item C<file_blkzeroout=yes>

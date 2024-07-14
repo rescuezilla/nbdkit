@@ -374,6 +374,12 @@ file_config_complete (void)
 static void
 file_dump_plugin (void)
 {
+#if defined(BLKIOMIN) && defined(BLKIOOPT)
+  printf ("file_block_size=yes\n");
+#endif
+#ifdef BLKROTATIONAL
+  printf ("file_blkrotational=yes\n");
+#endif
 #ifdef BLKSSZGET
   printf ("file_blksszget=yes\n");
 #endif
