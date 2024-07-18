@@ -73,6 +73,7 @@ EXTRA_DIST = \
 	nbdkit-release-notes-1.34.pod \
 	nbdkit-release-notes-1.36.pod \
 	nbdkit-release-notes-1.38.pod \
+	nbdkit-release-notes-1.40.pod \
 	nbdkit-security.pod \
 	nbdkit-service.pod \
 	nbdkit_shutdown.pod \
@@ -156,6 +157,7 @@ generated_mans = \
 	nbdkit-release-notes-1.34.1 \
 	nbdkit-release-notes-1.36.1 \
 	nbdkit-release-notes-1.38.1 \
+	nbdkit-release-notes-1.40.1 \
 	nbdkit-security.1 \
 	nbdkit-service.1 \
 	nbdkit_shutdown.3 \
