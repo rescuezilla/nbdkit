@@ -33,7 +33,7 @@ fixed in this release.
 
 L<nbdkit-ip-filter(1)> previously allowed unknown [not IPv4/v6, Unix
 or vsock] socket families implicitly, so having a C<deny=all> rule
-would not necessarily deny every connection.  This has been change in
+would not necessarily deny every connection.  This has been changed in
 this release so all unknown socket families are denied.
 
 All past security issues and information about how to report new ones
@@ -52,8 +52,8 @@ New L<nbdkit-bzip2-filter(1)> supporting bzip2-compressed images
 (Georg Pfuetzenreuter).
 
 New L<nbdkit-rotational-filter(1)> which can be used to change the
-rotational property of a plugin (whether it acts like a spinning hard
-disk, or RAM / flash storage).
+rotational property of a plugin (whether it advertises that it behaves
+like a spinning hard disk, or RAM / flash storage).
 
 New L<nbdkit-spinning-filter(1)> can be used to add seek delays to
 simulate a spinning hard disk.
@@ -77,7 +77,7 @@ should work properly across Linux and all the BSDs, and use this in
 several places where we need to know the size of a file or block
 device (thanks Eric Blake).
 
-When generating the NBD URI with TLS enabled, append
+When generating an NBD URI with TLS enabled, append
 C<?tls-certificates=DIR> or C<?tls-psk-key=FILE> parameter.  For
 libnbd-based NBD clients this allows the client to find the
 corresponding TLS credentials.
