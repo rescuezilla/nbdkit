@@ -130,6 +130,7 @@ check_DATA += disk.bz2
 disk.bz2: disk
 	rm -f $@
 	$(BZIP2) --keep $<
+	touch $@
 endif HAVE_BZLIB
 
 if HAVE_ZLIB
