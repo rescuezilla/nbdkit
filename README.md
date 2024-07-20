@@ -15,6 +15,7 @@ The key features of nbdkit are:
 * You can write plugins in C/C++, Go, Lua, Perl, Python, OCaml,
   Rust, shell script or Tcl.
 * Filters can be stacked in front of plugins to transform the output.
+* Server can run standalone or can be invoked from other programs.
 
 For documentation, see the [docs directory](docs/).
 
