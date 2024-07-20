@@ -50,6 +50,7 @@ requires_run
 requires test -f disk
 requires test -r /dev/null
 requires_nbdinfo
+requires_curl_protocol file
 
 # Write a dummy cookiefile/jar.
 cookiejar="cookiejar"

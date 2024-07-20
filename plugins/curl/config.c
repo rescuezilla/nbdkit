@@ -111,7 +111,19 @@ void
 curl_dump_plugin (void)
 {
 #ifdef LIBCURL_VERSION
+  /* The static version we were compiled against. */
   printf ("curl_version=%s\n", LIBCURL_VERSION);
+#endif
+#ifdef HAVE_CURL_VERSION_INFO
+  const curl_version_info_data *ver = curl_version_info (CURLVERSION_NOW);
+  const char *const *p;
+  /* The dynamic version we are linked against. */
+  printf ("curl_dynamic_version=%s\n", ver->version);
+  if (ver->ssl_version)
+    printf ("curl_ssl_version=%s\n", ver->ssl_version);
+  /* List of protocols supported. */
+  for (p = ver->protocols; *p != NULL; p++)
+    printf ("curl_protocol_%s=yes\n", *p);
 #endif
 }
 

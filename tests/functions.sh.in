@@ -438,6 +438,20 @@ requires_caps ()
     done
 }
 
+# Test the curl plugin supports a particular protocol.  Some versions
+# of curl are compiled "minimally", leaving out protocols that you
+# might expect to be present (https://lwn.net/Articles/887313/).
+requires_curl_protocol ()
+{
+    name="$1"
+
+    requires_plugin curl
+    if ! nbdkit curl --dump-plugin | grep "curl_protocol_$name=yes"; then
+        echo "$0: skipping test: curl does not support protocol \"$name\""
+        exit 77
+    fi
+}
+
 # skip_if_valgrind ["reason"]
 #
 # Skip test under 'make check-valgrind'.  An optional reason can be given.

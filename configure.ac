@@ -1248,9 +1248,13 @@ AS_IF([test "$with_curl" != "no"],[
         dnl feature in curl 8.3.1.
         dnl https://github.com/curl/curl/pull/11750
         dnl https://github.com/curl/curl/commit/9ffd4117357
+        dnl curl_version_info was added in 7.10
         old_LIBS="$LIBS"
         LIBS="$CURL_LIBS $LIBS"
-        AC_CHECK_FUNCS([curl_multi_get_handles])
+        AC_CHECK_FUNCS([\
+            curl_multi_get_handles \
+            curl_version_info \
+        ])
         LIBS="$old_LIBS"
     ],
     [AC_MSG_WARN([curl not found, curl plugin will be disabled])])

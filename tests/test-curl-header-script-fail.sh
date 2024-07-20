@@ -42,6 +42,7 @@ set -x
 requires_run
 requires test -f disk
 requires_nbdinfo
+requires_curl_protocol file
 
 errors="test-curl-header-script-fail.log"
 rm -f $errors

@@ -44,8 +44,8 @@ can be found in L<nbdkit-security(1)>.
 L<nbdkit-file-plugin(1)> now exposes minimum and preferred I/O size
 and the rotational property of block devices.
 
-L<nbdkit-curl-plugin(1)> prints the version of libcurl in
-I<--dump-plugin> output.
+L<nbdkit-curl-plugin(1)> prints the version of libcurl and other
+useful information in I<--dump-plugin> output.
 
 L<nbdkit-vddk-plugin(1)> has been tested with VMware VDDK 8.0.3.
 
