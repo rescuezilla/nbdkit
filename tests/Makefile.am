@@ -127,6 +127,7 @@ disk.tar: disk
 
 if HAVE_BZLIB
 check_DATA += disk.bz2
+CLEANFILES += disk.bz2
 disk.bz2: disk
 	rm -f $@
 	$(BZIP2) --keep $<
