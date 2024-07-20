@@ -165,6 +165,9 @@ static struct { const char *name; long bitmask; } curl_protocols[] = {
 #ifdef CURLPROTO_MQTT
   { "mqtt", CURLPROTO_MQTT },
 #endif
+#ifdef CURLPROTO_GOPHERS
+  { "gophers", CURLPROTO_GOPHERS },
+#endif
   { NULL }
 };
 
