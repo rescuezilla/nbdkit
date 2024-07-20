@@ -106,6 +106,15 @@ config_unload (void)
     curl_slist_free_all (resolves);
 }
 
+/* Add extra information to 'nbdkit curl --dump-plugin' output. */
+void
+curl_dump_plugin (void)
+{
+#ifdef LIBCURL_VERSION
+  printf ("curl_version=%s\n", LIBCURL_VERSION);
+#endif
+}
+
 #ifndef HAVE_CURLOPT_PROTOCOLS_STR
 /* See <curl/curl.h> */
 static struct { const char *name; long bitmask; } curl_protocols[] = {

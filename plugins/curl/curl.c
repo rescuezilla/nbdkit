@@ -575,6 +575,7 @@ static struct nbdkit_plugin plugin = {
    */
   //.config_help       = curl_config_help,
   .magic_config_key  = "url",
+  .dump_plugin       = curl_dump_plugin,
   .get_ready         = curl_get_ready,
   .after_fork        = curl_after_fork,
   .open              = curl_open,

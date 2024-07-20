@@ -138,6 +138,7 @@ extern int curl_config (const char *key, const char *value);
 extern int curl_config_complete (void);
 extern const char *curl_config_help;
 extern void config_unload (void);
+extern void curl_dump_plugin (void);
 extern struct curl_handle *allocate_handle (void);
 extern void free_handle (struct curl_handle *);
 
