@@ -7,7 +7,7 @@ nbdkit-release-notes-1.40 - release notes for nbdkit 1.40
 These are the release notes for nbdkit stable release 1.40.
 This describes the major changes since 1.38.
 
-nbdkit 1.40.0 was released on B<XXX XXX 2024>.
+nbdkit 1.40.0 was released on B<22 July 2024>.
 
 =head2 Security
 
