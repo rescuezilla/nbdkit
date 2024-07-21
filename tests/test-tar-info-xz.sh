@@ -37,6 +37,9 @@ set -e
 set -x
 
 requires_run
+requires_plugin file
+requires_filter tar
+requires_filter xz
 requires test -f disk
 requires tar --version
 requires qemu-img --version
