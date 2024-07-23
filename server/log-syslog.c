@@ -45,11 +45,9 @@
 /* Tempted to use LOG_FTP instead of LOG_DAEMON! */
 static const int PRIORITY = LOG_DAEMON|LOG_ERR;
 
-/* Note: preserves the previous value of errno. */
 void
-log_syslog_verror (const char *fs, va_list args)
+log_syslog_verror (int orig_errno, const char *fs, va_list args)
 {
-  int err = errno;
   const char *name = threadlocal_get_name ();
   size_t instance_num = threadlocal_get_instance_num ();
   CLEANUP_FREE char *msg = NULL;
@@ -59,9 +57,9 @@ log_syslog_verror (const char *fs, va_list args)
   fp = open_memstream (&msg, &len);
   if (fp == NULL) {
     /* Fallback to logging using fs, args directly. */
-    errno = err; /* Must restore in case fs contains %m */
+    errno = orig_errno;      /* must restore in case fs contains %m */
     vsyslog (PRIORITY, fs, args);
-    goto out;
+    return;
   }
 
   if (name) {
@@ -71,12 +69,9 @@ log_syslog_verror (const char *fs, va_list args)
     fprintf (fp, ": ");
   }
 
-  errno = err; /* Must restore in case fs contains %m */
+  errno = orig_errno;        /* must restore in case fs contains %m */
   vfprintf (fp, fs, args);
   close_memstream (fp);
 
   syslog (PRIORITY, "%s", msg);
-
- out:
-  errno = err;
 }
