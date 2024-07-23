@@ -40,6 +40,25 @@
 
 #include "internal.h"
 
+/* Copy the error message to threadlocal.  This is sent to callers
+ * which are using structured replies, but is for extra information
+ * only so don't fail if we are unable to copy it.
+ */
+static void
+copy_error_to_threadlocal (int orig_errno, const char *fs, va_list args)
+{
+  va_list args_copy;
+  char *msg;
+  int r;
+
+  va_copy (args_copy, args);
+  errno = orig_errno;        /* must restore in case fs contains %m */
+  r = vasprintf (&msg, fs, args_copy);
+  va_end (args_copy);
+  if (r != -1 && msg)
+    threadlocal_set_last_error (msg); /* ownership passed to threadlocal */
+}
+
 /* Call the right log_*_verror function depending on log_sink.
  * Note: preserves the previous value of errno.
  */
@@ -47,6 +66,8 @@ void
 log_verror (const char *fs, va_list args)
 {
   int orig_errno = errno;
+
+  copy_error_to_threadlocal (orig_errno, fs, args);
 
   switch (log_to) {
   case LOG_TO_DEFAULT:

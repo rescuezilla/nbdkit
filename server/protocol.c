@@ -239,6 +239,11 @@ handle_request (uint16_t cmd, uint16_t flags, uint64_t offset, uint32_t count,
    */
   threadlocal_set_errno (0);
 
+  /* Also clear the last error in this thread so we will only save
+   * nbdkit_error() from this request.
+   */
+  threadlocal_clear_last_error ();
+
   switch (cmd) {
   case NBD_CMD_READ:
     if (backend_pread (c, buf, count, offset, 0, &err) == -1)
