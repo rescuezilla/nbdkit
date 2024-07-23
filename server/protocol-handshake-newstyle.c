@@ -57,28 +57,47 @@ send_newstyle_option_reply (uint32_t option, uint32_t reply)
 {
   GET_CONN;
   struct nbd_fixed_new_option_reply fixed_new_option_reply;
+  const char *last_error = NULL;
+  uint32_t replylen = 0;
+
+  if (NBD_REP_IS_ERR (reply)) {
+    last_error = threadlocal_get_last_error ();
+    /* Note that calling nbdkit_error will invalidate last_error, so
+     * be careful below.
+     */
+    if (last_error) {
+      size_t len = strlen (last_error);
+      if (len <= NBD_MAX_STRING)
+        replylen = len;
+    }
+  }
 
   fixed_new_option_reply.magic = htobe64 (NBD_REP_MAGIC);
   fixed_new_option_reply.option = htobe32 (option);
   fixed_new_option_reply.reply = htobe32 (reply);
-  fixed_new_option_reply.replylen = htobe32 (0);
+  fixed_new_option_reply.replylen = htobe32 (replylen);
 
   debug ("replying to %s with %s", name_of_nbd_opt (option),
          name_of_nbd_rep (reply));
   if (conn->send (&fixed_new_option_reply,
-                  sizeof fixed_new_option_reply, 0) == -1) {
-    /* The protocol document says that the client is allowed to simply
-     * drop the connection after sending NBD_OPT_ABORT, or may read
-     * the reply.
-     */
-    if (option == NBD_OPT_ABORT)
-      debug ("write: %s: %m", name_of_nbd_opt (option));
-    else
-      nbdkit_error ("write: %s: %m", name_of_nbd_opt (option));
-    return -1;
-  }
+                  sizeof fixed_new_option_reply,
+                  replylen > 0 ? SEND_MORE : 0) == -1)
+    goto err;
+  if (replylen > 0 && conn->send (last_error, replylen, 0) == -1)
+    goto err;
 
   return 0;
+
+err:
+  /* The protocol document says that the client is allowed to simply
+   * drop the connection after sending NBD_OPT_ABORT, or may read
+   * the reply.
+   */
+  if (option == NBD_OPT_ABORT)
+    debug ("write: %s: %m", name_of_nbd_opt (option));
+  else
+    nbdkit_error ("write: %s: %m", name_of_nbd_opt (option));
+  return -1;
 }
 
 /* Reply to NBD_OPT_LIST with the plugin's list of export names.

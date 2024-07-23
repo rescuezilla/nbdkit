@@ -292,6 +292,7 @@ TESTS += \
 	test-read-password-interactive.sh \
 	test-nbd-client.sh \
 	test-nbd-client-tls.sh \
+	test-last-error.sh \
 	$(NULL)
 if !IS_WINDOWS
 TESTS += \
@@ -324,6 +325,7 @@ EXTRA_DIST += \
 	test-help-plugin.sh \
 	test-ipv4-lo.sh \
 	test-ipv6-lo.sh \
+	test-last-error.sh \
 	test-long-name.sh \
 	test-nbd-client-tls.sh \
 	test-nbd-client.sh \
