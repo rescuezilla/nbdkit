@@ -942,7 +942,7 @@ nbdkit_peer_tls_dn (void)
 {
   nbdkit_error ("%s is not supported on this platform",
                 "nbdkit_peer_tls_dn");
-  return -1;
+  return NULL;
 }
 
 NBDKIT_DLL_PUBLIC char *
@@ -950,7 +950,7 @@ nbdkit_peer_tls_issuer_dn (void)
 {
   nbdkit_error ("%s is not supported on this platform",
                 "nbdkit_peer_tls_issuer_dn");
-  return -1;
+  return NULL;
 }
 
 #endif /* !HAVE_GNUTLS */
