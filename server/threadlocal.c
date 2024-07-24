@@ -56,6 +56,7 @@ struct threadlocal {
   char *name;                   /* Can be NULL. */
   size_t instance_num;          /* Can be 0. */
   int err;
+  char *last_error;             /* Can be NULL. */
   void *buffer;                 /* Can be NULL. */
   size_t buffer_size;
   struct connection *conn;      /* Can be NULL. */
@@ -70,6 +71,7 @@ free_threadlocal (void *threadlocalv)
   struct threadlocal *threadlocal = threadlocalv;
 
   free (threadlocal->name);
+  free (threadlocal->last_error);
   free (threadlocal->buffer);
   free (threadlocal);
 }
@@ -174,6 +176,44 @@ threadlocal_get_errno (void)
 
   errno = err;
   return threadlocal ? threadlocal->err : 0;
+}
+
+/* Set the last_error field.  The ownership of the 'msg' string is
+ * passed to the threadlocal and will be freed here.
+ */
+void
+threadlocal_set_last_error (char *msg)
+{
+  struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);
+
+  if (threadlocal) {
+    free (threadlocal->last_error);
+    threadlocal->last_error = msg;
+  }
+  else {
+    /* ... otherwise throw it away, it's informational. */
+    free (msg);
+  }
+}
+
+void
+threadlocal_clear_last_error (void)
+{
+  threadlocal_set_last_error (NULL);
+}
+
+/* Get the last_error field.  If successful, this returns a non-NULL
+ * string.  This is valid until something calls nbdkit_error() in the
+ * same thread, so it should be used quickly.  Returning NULL is not
+ * necessarily an error.  The last_error is informational and may not
+ * be available.
+ */
+const char *
+threadlocal_get_last_error (void)
+{
+  struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);
+
+  return threadlocal ? threadlocal->last_error : NULL;
 }
 
 /* Return the single pread/pwrite buffer for this thread.  The buffer
