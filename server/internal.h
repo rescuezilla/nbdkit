@@ -569,8 +569,8 @@ extern void threadlocal_set_name (const char *name)
 extern const char *threadlocal_get_name (void);
 extern void threadlocal_set_instance_num (size_t instance_num);
 extern size_t threadlocal_get_instance_num (void);
-extern void threadlocal_set_error (int err);
-extern int threadlocal_get_error (void);
+extern void threadlocal_set_errno (int err);
+extern int threadlocal_get_errno (void);
 extern void *threadlocal_buffer (size_t size);
 extern void threadlocal_set_conn (struct connection *conn);
 extern struct connection *threadlocal_get_conn (void);

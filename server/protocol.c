@@ -235,8 +235,9 @@ handle_request (uint16_t cmd, uint16_t flags, uint64_t offset, uint32_t count,
   int err = 0;
 
   /* Clear the error, so that we know if the plugin calls
-   * nbdkit_set_error() or relied on errno.  */
-  threadlocal_set_error (0);
+   * nbdkit_set_error() or relied on errno.
+   */
+  threadlocal_set_errno (0);
 
   switch (cmd) {
   case NBD_CMD_READ:

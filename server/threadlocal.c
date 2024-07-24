@@ -154,7 +154,7 @@ threadlocal_get_instance_num (void)
 }
 
 void
-threadlocal_set_error (int err)
+threadlocal_set_errno (int err)
 {
   struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);
 
@@ -167,7 +167,7 @@ threadlocal_set_error (int err)
 /* This preserves errno, for convenience.
  */
 int
-threadlocal_get_error (void)
+threadlocal_get_errno (void)
 {
   int err = errno;
   struct threadlocal *threadlocal = pthread_getspecific (threadlocal_key);

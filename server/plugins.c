@@ -633,15 +633,14 @@ plugin_can_cache (struct context *c)
 NBDKIT_DLL_PUBLIC void
 nbdkit_set_error (int err)
 {
-  threadlocal_set_error (err);
+  threadlocal_set_errno (err);
 }
 
-/* Grab the appropriate error value.
- */
+/* Grab the appropriate error value. */
 static int
-get_error (struct backend_plugin *p)
+get_errno (struct backend_plugin *p)
 {
-  int ret = threadlocal_get_error ();
+  int ret = threadlocal_get_errno ();
 
   if (!ret && p->plugin.errno_is_preserved != 0)
     ret = errno;
@@ -664,7 +663,7 @@ plugin_pread (struct context *c,
   else
     r = p->plugin._pread_v1 (c->handle, buf, count, offset);
   if (r == -1)
-    *err = get_error (p);
+    *err = get_errno (p);
   return r;
 }
 
@@ -685,7 +684,7 @@ plugin_flush (struct context *c,
     return -1;
   }
   if (r == -1)
-    *err = get_error (p);
+    *err = get_errno (p);
   return r;
 }
 
@@ -715,7 +714,7 @@ plugin_pwrite (struct context *c,
   if (r != -1 && need_flush)
     r = plugin_flush (c, 0, err);
   if (r == -1 && !*err)
-    *err = get_error (p);
+    *err = get_errno (p);
   return r;
 }
 
@@ -744,7 +743,7 @@ plugin_trim (struct context *c,
   if (r != -1 && need_flush)
     r = plugin_flush (c, 0, err);
   if (r == -1 && !*err)
-    *err = get_error (p);
+    *err = get_errno (p);
   return r;
 }
 
@@ -782,7 +781,7 @@ plugin_zero (struct context *c,
     else
       emulate = true;
     if (r == -1)
-      *err = emulate ? EOPNOTSUPP : get_error (p);
+      *err = emulate ? EOPNOTSUPP : get_errno (p);
     if (r == 0 || (*err != EOPNOTSUPP && *err != ENOTSUP))
       goto done;
   }
@@ -794,7 +793,7 @@ plugin_zero (struct context *c,
   }
 
   flags &= ~NBDKIT_FLAG_MAY_TRIM;
-  threadlocal_set_error (0);
+  threadlocal_set_errno (0);
   *err = 0;
 
   while (count) {
@@ -814,7 +813,7 @@ plugin_zero (struct context *c,
   if (r != -1 && need_flush)
     r = plugin_flush (c, 0, err);
   if (r == -1 && !*err)
-    *err = get_error (p);
+    *err = get_errno (p);
   return r;
 }
 
@@ -839,7 +838,7 @@ plugin_extents (struct context *c,
     r = -1;
   }
   if (r == -1)
-    *err = get_error (p);
+    *err = get_errno (p);
   return r;
 }
 
@@ -859,7 +858,7 @@ plugin_cache (struct context *c,
 
   r = p->plugin.cache (c->handle, count, offset, flags);
   if (r == -1)
-    *err = get_error (p);
+    *err = get_errno (p);
   return r;
 }
 
