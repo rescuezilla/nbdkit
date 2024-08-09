@@ -12,16 +12,18 @@ as a standalone service, which is what this page describes.
 
 nbdkit supports socket activation (sometimes called systemd socket
 activation).  This is a simple protocol where instead of nbdkit itself
-opening the listening socket(s), the parent process (typically
-systemd) passes in pre-opened file descriptors.  Socket activation
-lets you serve infrequent NBD requests using a superserver without
-needing nbdkit to be running the whole time.
+opening the listening socket(s), the parent process (typically systemd
+or libnbd) passes in pre-opened file descriptors.
+
+One use for socket activation is to serve infrequent NBD requests
+using a superserver without needing nbdkit to be running the whole
+time.  Another use is to run nbdkit from a controlling libnbd process.
 
 Socket activation is triggered when both the C<LISTEN_FDS> and
 C<LISTEN_PID> environment variables are set.  In this mode using
-I<-i>, I<-p>, I<--run>, I<-s> or I<-U> flags on the command line is
-illegal and will cause an error.  Also in this mode nbdkit does not
-fork into the background (ie. I<-f> is implied).
+I<-i>, I<-p>, I<--run>, I<-s> or I<-U> flags on the command line will
+cause an error.  Also in this mode nbdkit does not fork into the
+background (ie. I<-f> is implied).
 
 =head2 Using socket activation with systemd
 
@@ -49,6 +51,25 @@ containing:
 
 For more information on systemd and socket activation, see
 L<http://0pointer.de/blog/projects/socket-activation.html>
+
+=head2 Using socket activation with libnbd
+
+L<libnbd(3)> L<nbd_connect_systemd_socket_activation(3)> lets you run
+nbdkit from a program using libnbd.  An example is:
+
+ struct nbd_handle *nbd = nbd_create ();
+ if (nbd == NULL) {
+   fprintf (stderr, "%s\n", nbd_get_error ());
+   exit (EXIT_FAILURE);
+ }
+ char *argv[] = {
+   "nbdkit", "--exit-with-parent", "memory", "1G", NULL
+ };
+ if (nbd_connect_systemd_socket_activation (nbd,
+                                            args) == -1) {
+   fprintf (stderr, "%s\n", nbd_get_error ());
+   exit (EXIT_FAILURE);
+ }
 
 =head1 INETD AND XINETD
 
@@ -110,9 +131,8 @@ B<Note> that this is different from the usual case where you present
 NBD as a virtual block device to a guest (which the guest sees as
 something like a SATA or virtio-scsi disk).  With C<AF_VSOCK> the
 virtual machine sees a raw NBD socket which it can connect to by
-opening an C<AF_VSOCK> connection.  Only libnbd supports C<AF_VSOCK>
-NBD client connections at the time of writing (2019).  For more about
-this protocol, see L<https://wiki.qemu.org/Features/VirtioVsock>
+opening an C<AF_VSOCK> connection.  For more about this protocol, see
+L<https://wiki.qemu.org/Features/VirtioVsock>
 
 =head2 AF_VSOCK example
 
@@ -172,6 +192,8 @@ L<xinetd(8)>,
 L<syslog(3)>,
 L<rsyslogd(8)>,
 L<journalctl(1)>,
+L<libnbd(3)>,
+L<nbd_connect_systemd_socket_activation(3)>,
 L<nbdsh(1)>.
 
 =head1 AUTHORS
