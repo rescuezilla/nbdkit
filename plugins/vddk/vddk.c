@@ -51,6 +51,7 @@
 
 #include "array-size.h"
 #include "cleanup.h"
+#include "isaligned.h"
 #include "minmax.h"
 #include "vector.h"
 
@@ -204,9 +205,9 @@ vddk_config (const char *key, const char *value)
     r64 = nbdkit_parse_size (value);
     if (r64 == -1)
       return -1;
-    if (r64 <= 0 || (r64 & 511) != 0) {
-      nbdkit_error ("create-size must be greater than zero and a multiple of "
-                    "512");
+    if (r64 <= 0 || !IS_ALIGNED (r64, VIXDISKLIB_SECTOR_SIZE)) {
+      nbdkit_error ("create-size must be greater than zero "
+                    "and a multiple of %d", VIXDISKLIB_SECTOR_SIZE);
       return -1;
     }
     create_size = r64;
