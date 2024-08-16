@@ -483,6 +483,18 @@ static int
 vddk_get_ready (void)
 {
   load_library (true);
+
+#ifdef __linux__
+  /* Check for possible VDDK crash if /sys/class/scsi_disk is missing. */
+  if (library_version >= 8 &&
+      /* snapshot_moref && XXX unclear if necessary to trigger the bug */
+      !transport_modes &&
+      access ("/sys/class/scsi_disk", F_OK) == -1)
+    nbdkit_debug ("if nbdkit crashes when you open a connection, "
+                  "read this link for workarounds: "
+                  "https://issues.redhat.com/browse/RHEL-54377");
+#endif
+
   return 0;
 }
 
