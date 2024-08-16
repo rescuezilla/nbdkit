@@ -93,7 +93,9 @@ VixDiskLib_InitEx (uint32_t major, uint32_t minor,
 NBDKIT_DLL_PUBLIC void
 VixDiskLib_Exit (void)
 {
-  /* Do nothing. */
+  /* Stop the background thread. */
+  pthread_cancel (thread);
+  pthread_join (thread, NULL);
 }
 
 NBDKIT_DLL_PUBLIC char *
