@@ -624,6 +624,22 @@ vddk_dump_plugin (void)
   }
 #endif
 
+  /* List transport modes if available. */
+  if (library_version > 0) {
+    const char *modes;
+    VixError err;
+
+    err = VixDiskLib_InitEx (VDDK_MAJOR, VDDK_MINOR,
+                             NULL, NULL, NULL,
+                             libdir, config);
+    if (err == VIX_OK) {
+      modes = VixDiskLib_ListTransportModes ();
+      if (modes)
+        printf ("vddk_transport_modes=%s\n", modes);
+      VixDiskLib_Exit ();
+    }
+  }
+
   /* Note we print all VDDK APIs found here, not just the optional
    * ones.  That is so if we update the baseline VDDK in future and
    * make optional into required APIs, the output doesn't change.

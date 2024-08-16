@@ -44,3 +44,4 @@ nbdkit vddk libdir=.libs --dump-plugin > $out
 cat $out
 
 grep ^vddk_default_libdir= $out
+grep ^vddk_transport_modes=file:nbdssl:nbd $out

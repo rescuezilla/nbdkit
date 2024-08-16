@@ -59,6 +59,7 @@ grep ^vddk_default_libdir= $out
 grep ^vddk_has_nfchostport= $out
 grep ^vddk_library_version= $out
 grep ^vddk_dll= $out
+grep ^vddk_transport_modes= $out
 grep ^VixDiskLib_Open=1 $out
 
 dll="$(grep ^vddk_dll $out | $CUT -d= -f2)"

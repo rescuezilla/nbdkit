@@ -51,6 +51,9 @@ STUB (VixDiskLib_InitEx,
 STUB (VixDiskLib_Exit,
       void,
       (void));
+STUB (VixDiskLib_ListTransportModes,
+      const char *,
+      (void));
 STUB (VixDiskLib_GetErrorText,
       char *,
       (VixError err, const char *unused));

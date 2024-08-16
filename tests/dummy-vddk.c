@@ -98,6 +98,12 @@ VixDiskLib_Exit (void)
   pthread_join (thread, NULL);
 }
 
+NBDKIT_DLL_PUBLIC const char *
+VixDiskLib_ListTransportModes (void)
+{
+  return "file:nbdssl:nbd";
+}
+
 NBDKIT_DLL_PUBLIC char *
 VixDiskLib_GetErrorText (VixError err, const char *unused)
 {

@@ -330,8 +330,9 @@ See L</THUMBPRINTS> below for how to get this.
 =item B<transports=>MODEB<:>MODEB<:>...
 
 List of one or more transport modes to use.  Possible values include
-‘nbd’, ‘nbdssl’, ‘san’, ‘hotadd’, ‘file’ (there may be others).  If
-not given, VDDK will try to choose the best transport mode.
+‘nbd’, ‘nbdssl’, ‘san’, ‘hotadd’, ‘file’ (see L</DUMP-PLUGIN OUTPUT>
+below).  If not given, VDDK will try to choose the best transport
+mode.
 
 =item B<unbuffered=true>
 
@@ -565,6 +566,14 @@ If this is omitted it means the library could not be loaded.
 
 Prints the full path to the VDDK shared library.  Since this requires
 a glibc extension it may not be available in all builds of the plugin.
+
+=item C<vddk_transport_modes=...>
+
+Print the list of transport modes supported by VDDK.  This is a
+colon-separated list such as C<file:san:hotadd:nbdssl:nbd>
+
+This is the default set of transport modes that are tried in turn,
+unless you override the list using the C<transports=...> parameter.
 
 =item C<VixDiskLib_...=1>
 
