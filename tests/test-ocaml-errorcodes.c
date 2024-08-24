@@ -40,6 +40,8 @@
 
 #include <libnbd.h>
 
+#include "array-size.h"
+
 /* This test checks the conversion from OCaml Unix.error to errno (in
  * the plugin) to NBD_E* (over the wire) and back to errno (in
  * libnbd).
@@ -48,12 +50,12 @@
  * (test_ocaml_errorcodes_plugin.ml) produces predictable error codes.
  */
 static struct { uint64_t offset; int expected_errno; } tests[] = {
+  { 0,     0 },
   { 1*512, EPERM },
   { 2*512, EIO },
   { 3*512, ENOMEM },
   { 4*512, ESHUTDOWN },
   { 5*512, EINVAL },
-  { 0 }
 };
 
 int
@@ -62,7 +64,6 @@ main (int argc, char *argv[])
   struct nbd_handle *nbd;
   char buf[512];
   size_t i;
-  int actual_errno;
 
 #ifdef __APPLE__
   printf ("%s: loading the OCaml plugin fails on macOS, skipping\n",
@@ -91,18 +92,36 @@ main (int argc, char *argv[])
     exit (EXIT_FAILURE);
   }
 
-  for (i = 0; tests[i].offset != 0; ++i) {
-    if (nbd_pread (nbd, buf, 512, tests[i].offset, 0) != -1) {
-      fprintf (stderr,
-               "%s: FAIL: reading sector %" PRIu64 "should have failed\n",
-               argv[0], tests[i].offset / 512);
-      exit (EXIT_FAILURE);
+  for (i = 0; i < ARRAY_SIZE(tests); ++i) {
+    int r;
+
+    r = nbd_pread (nbd, buf, 512, tests[i].offset, 0);
+    if (tests[i].expected_errno != 0) {
+      int actual_errno;
+
+      if (r != -1) {
+        fprintf (stderr,
+                 "%s: FAIL: reading sector %" PRIu64 "should have failed\n",
+                 argv[0], tests[i].offset / 512);
+        exit (EXIT_FAILURE);
+      }
+
+      actual_errno = nbd_get_errno ();
+      printf ("actual_errno = %d (\"%s\")\n", actual_errno, nbd_get_error ());
+      fflush (stdout);
+      if (actual_errno != tests[i].expected_errno) {
+        fprintf (stderr, "%s: FAIL: actual errno = %d expected errno = %d\n",
+                 argv[0], actual_errno, tests[i].expected_errno);
+        exit (EXIT_FAILURE);
+      }
     }
-    actual_errno = nbd_get_errno ();
-    if (actual_errno != tests[i].expected_errno) {
-      fprintf (stderr, "%s: FAIL: actual errno = %d expected errno = %d\n",
-               argv[0], actual_errno, tests[i].expected_errno);
-      exit (EXIT_FAILURE);
+    else {                      /* tests[i].expected_errno == 0 */
+      if (r != 0) {
+        fprintf (stderr,
+                 "%s: FAIL: reading sector %" PRIu64 "should have succeeded\n",
+                 argv[0], tests[i].offset / 512);
+        exit (EXIT_FAILURE);
+      }
     }
   }
 
