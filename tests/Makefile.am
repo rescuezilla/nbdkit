@@ -1242,6 +1242,7 @@ test_ocaml_CFLAGS = \
 test_ocaml_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
 test_ocaml_errorcodes_SOURCES = test-ocaml-errorcodes.c
+test_ocaml_errorcodes_CPPFLAGS = -I$(top_srcdir)/common/include
 test_ocaml_errorcodes_CFLAGS = $(WARNINGS_CFLAGS) $(LIBNBD_CFLAGS)
 test_ocaml_errorcodes_LDADD = $(LIBNBD_LIBS)
 

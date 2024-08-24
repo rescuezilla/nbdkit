@@ -30,26 +30,34 @@
  * SUCH DAMAGE.
  *)
 
+(* This plugin is used to test returning error codes from OCaml
+ * plugins.  Depending on the sector requested, it returns a different
+ * error code (except for sector 0 where it returns data).
+ *)
+
 open Unix
 
-let sector_size = 512
+let sector_size = 512_L
+
+(* This must match the table in test-ocaml-errorcodes.c *)
+let sectors = [|
+  (* 0 *) None (* no error *);
+  (* 1 *) Some (EPERM, "EPERM");
+  (* 2 *) Some (EIO, "EIO");
+  (* 3 *) Some (ENOMEM, "ENOMEM");
+  (* 4 *) Some (ESHUTDOWN, "ESHUTDOWN");
+  (* 5 *) Some (EINVAL, "EINVAL");
+|]
 
 let open_connection _ = ()
 
-let get_size () = Int64.of_int (6 * sector_size)
+let get_size () = Int64.mul (Array.length sectors |> Int64.of_int) sector_size
 
 let pread () buf offset _ =
-  (* Depending on the sector requested (offset), return a different
-   * error code.
-   *)
-  match (Int64.to_int offset) / sector_size with
-  | 0 -> (* good, return data *) Bigarray.Array1.fill buf '\000'
-  | 1 -> NBDKit.set_error EPERM;     failwith "EPERM"
-  | 2 -> NBDKit.set_error EIO;       failwith "EIO"
-  | 3 -> NBDKit.set_error ENOMEM;    failwith "ENOMEM"
-  | 4 -> NBDKit.set_error ESHUTDOWN; failwith "ESHUTDOWN"
-  | 5 -> NBDKit.set_error EINVAL;    failwith "EINVAL"
-  | _ -> assert false
+  let sector = Int64.div offset sector_size |> Int64.to_int in
+  match sectors.(sector) with
+  | None -> Bigarray.Array1.fill buf '\000'
+  | Some (err, str) -> NBDKit.set_error err; failwith str
 
 let () =
   NBDKit.register_plugin
