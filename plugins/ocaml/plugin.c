@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include <caml/alloc.h>
@@ -59,10 +60,13 @@
  * nbdkit_plugin struct and return it from our own plugin_init
  * function.
  */
+static int after_fork_wrapper (void);
 static void close_wrapper (void *h);
 static void unload_wrapper (void);
 static void free_strings (void);
 static void remove_roots (void);
+
+static pid_t original_pid;
 
 static struct nbdkit_plugin plugin = {
   ._struct_size = sizeof (plugin),
@@ -79,6 +83,7 @@ static struct nbdkit_plugin plugin = {
   /* We always call these, even if the OCaml code does not provide a
    * callback.
    */
+  .after_fork = after_fork_wrapper,
   .close = close_wrapper,
   .unload = unload_wrapper,
 };
@@ -96,6 +101,9 @@ plugin_init (void)
    * runtime system again.
    */
   do_caml_release_runtime_system ();
+
+  /* Save the PID so we know in after_fork if we forked. */
+  original_pid = getpid ();
 
   /* It is expected that top level statements in the OCaml code have
    * by this point called NBDKit.register_plugin.  We know if this was
@@ -258,6 +266,9 @@ get_ready_wrapper (void)
   CAMLreturnT (int, 0);
 }
 
+/* We always have an after_fork wrapper, since if we really forked
+ * then we must reinitialize the OCaml runtime.
+ */
 static int
 after_fork_wrapper (void)
 {
@@ -266,8 +277,18 @@ after_fork_wrapper (void)
   CAMLparam0 ();
   CAMLlocal1 (rv);
 
-  rv = caml_callback_exn (after_fork_fn, Val_unit);
-  EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
+#if OCAML_VERSION_MAJOR >= 5
+  /* If we forked, OCaml 5 requires that we reinitialize the runtime. */
+  if (getpid () != original_pid) {
+    extern void (*caml_atfork_hook)(void);
+    caml_atfork_hook ();
+  }
+#endif
+
+  if (after_fork_fn) {
+    rv = caml_callback_exn (after_fork_fn, Val_unit);
+    EXCEPTION_TO_ERROR (rv, CAMLreturnT (int, -1));
+  }
 
   CAMLreturnT (int, 0);
 }
