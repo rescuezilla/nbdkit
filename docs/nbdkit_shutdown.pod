@@ -22,22 +22,23 @@ by calling C<nbdkit_disconnect>.
 
 =head2 nbdkit_shutdown
 
-C<nbdkit_shutdown> requests an asynchronous shutdown and returns
-(B<note that it does not exit the process immediately>).  It ensures
-that the plugin and all filters are unloaded cleanly which may take
-some time.  Further callbacks from nbdkit into the plugin or filter
-may occur after you have called this.
+C<nbdkit_shutdown> requests nbdkit to shut down asynchronously and
+returns (B<note> that it does B<not> exit the process immediately).
+
+It ensures that the plugin and all filters are unloaded cleanly which
+may take some time.  Further callbacks from nbdkit into the plugin or
+filter may occur after you have called this.
 
 =head2 nbdkit_disconnect
 
 C<nbdkit_disconnect> requests that the current client connection be
-disconnected.
+disconnected.  It does not affect other connections, and it does not
+stop the same client from trying to reconnect.
 
-It does not affect other connections, and it does not stop the same
-client from trying to reconnect.
-
-It is only useful from connected callbacks (that is, after C<.open>
-and before C<.close>).
+It is only useful from connected callbacks — that is, after (but not
+including) C<.open>, and before C<.close>.  To reject a client in
+C<.preconnect>, C<.open> or C<.list_exports> you should return an
+error instead.
 
 If C<force> is true, nbdkit will disconnect the client immediately,
 and the client will not receive any response to the current command or
