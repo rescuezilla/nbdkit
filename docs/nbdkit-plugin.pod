@@ -498,7 +498,7 @@ should probably look at other plugins and follow the same conventions.
 If the value is a relative path, then note that the server changes
 directory when it starts up.  See L<nbdkit_realpath(3)>.
 
-If L<nbdkit_stdio_safe(1)> returns 1, the value of the configuration
+If L<nbdkit_stdio_safe(3)> returns 1, the value of the configuration
 parameter may be used to trigger reading additional data through stdin
 (such as a password or inline script).
 
