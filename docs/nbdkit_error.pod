@@ -14,7 +14,7 @@ nbdkit_set_error - return an error from nbdkit plugins
 
 =head1 DESCRIPTION
 
-If thre is an error in your plugin, the plugin should call
+If there is an error in your plugin, the plugin should call
 C<nbdkit_error> to report an error message.  Then the callback should
 return the appropriate error indication, eg. C<NULL> or C<-1>.
 
