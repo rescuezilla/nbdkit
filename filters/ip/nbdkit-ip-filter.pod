@@ -274,7 +274,8 @@ lifecycle in more detail.
 However if your allow or deny patterns contain any C<dn:> or
 C<issuer-dn:> rules then I<all> filtering has to be done later in the
 connection lifecycle, since we must wait until TLS negotiation has
-been completed.  Filtering happens in the C<.open> callback instead.
+been completed.  Filtering happens in the C<.open> or C<.list_exports>
+callback instead.
 
 In practice this makes filtering more expensive and potentially makes
 it easier to cause Denial of Service (DoS) attacks.  You should try to

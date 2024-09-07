@@ -786,7 +786,25 @@ ip_preconnect (nbdkit_next_preconnect *next, nbdkit_backend *nxdata,
   return 0;
 }
 
-/* Late filtering, if there are dn:/issuer-dn: rules. */
+/* Late filtering. */
+static int
+ip_list_exports (nbdkit_next_list_exports *next, nbdkit_backend *nxdata,
+                 int readonly, int is_tls,
+                 struct nbdkit_exports *exports)
+{
+  if (late_filtering) {
+    /* Follow the rules. */
+    if (check_if_allowed () == false) {
+      nbdkit_error ("client not permitted to connect "
+                    "because of source address restriction");
+      return -1;
+    }
+  }
+
+  return next (nxdata, readonly, exports);
+}
+
+/* Late filtering. */
 static void *
 ip_open (nbdkit_next_open *next, nbdkit_context *nxdata,
          int readonly, const char *exportname, int is_tls)
@@ -821,6 +839,7 @@ static struct nbdkit_filter filter = {
   .config_complete   = ip_config_complete,
   .config_help       = ip_config_help,
   .preconnect        = ip_preconnect,
+  .list_exports      = ip_list_exports,
   .open              = ip_open,
 };
 
