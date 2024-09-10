@@ -392,6 +392,8 @@ free_connection (struct connection *conn)
     free (conn->default_exportname[b->i]);
   free (conn->default_exportname);
 
+  conn->magic = 0;
+
   free (conn);
   threadlocal_set_conn (NULL);
 }
