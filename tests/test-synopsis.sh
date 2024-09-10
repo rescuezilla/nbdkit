@@ -65,6 +65,7 @@ for i in $(nbdkit --long-options | $nocr); do
         --show-uri) ;;          # alias of --print-uri
         --show-url) ;;          # alias of --print-uri
         --stdin) ;;             # alias of -s, --single
+        --time-out) ;;          # alias of --timeout
 
         # Anything else is tested.
         *)

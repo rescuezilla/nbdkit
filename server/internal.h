@@ -139,6 +139,7 @@ extern const char *run;
 extern bool listen_stdin;
 extern const char *selinux_label;
 extern unsigned threads;
+extern unsigned timeout_secs, timeout_nsecs;
 extern int tls;
 extern const char *tls_certificates_dir;
 extern const char *tls_psk;
@@ -191,6 +192,13 @@ extern void run_command (void);
 /* socket-activation.c */
 #define FIRST_SOCKET_ACTIVATION_FD 3 /* defined by systemd ABI */
 extern unsigned int get_socket_activation (void);
+
+/* timeout.c */
+struct connection;
+extern int start_timeout (struct connection *conn)
+  __attribute__ ((__nonnull__ (1)));
+extern void cancel_timeout (struct connection *conn)
+  __attribute__ ((__nonnull__ (1)));
 
 /* usergroup.c */
 extern void change_user (void);
@@ -281,6 +289,10 @@ struct connection {
   uint32_t cflags;
   uint16_t eflags;
   bool handshake_complete;
+#ifdef HAVE_TIMER_CREATE
+  timer_t timer;
+  bool timer_set;
+#endif
   bool using_tls;
   bool structured_replies;
   bool meta_context_base_allocation;

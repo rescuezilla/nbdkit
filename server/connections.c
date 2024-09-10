@@ -172,6 +172,13 @@ handle_single_connection (int sockin, int sockout)
   if (top->preconnect (top, read_only) == -1)
     goto done;
 
+  /* Start the timeout just before the NBD handshake, but after
+   * preconnect (so we don't bother to create a timer if the client
+   * was rejected by IP rules etc).
+   */
+  if (start_timeout (conn) == -1)
+    goto done;
+
   /* NBD handshake.
    *
    * Note that this calls the backend .open callback when it is safe
@@ -180,6 +187,8 @@ handle_single_connection (int sockin, int sockout)
   if (protocol_handshake () == -1)
     goto done;
   conn->handshake_complete = true;
+
+  cancel_timeout (conn);
 
   if (!nworkers) {
     /* No need for a separate thread. */
@@ -359,6 +368,8 @@ free_connection (struct connection *conn)
 
   if (!conn)
     return;
+
+  cancel_timeout (conn);
 
   conn->close (SHUT_RDWR);
 

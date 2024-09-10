@@ -30,32 +30,28 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test each option appears in the main nbdkit(1) manual page.
-
 source ./functions.sh
-set -e
 set -x
 
-requires tr --version
+requires_run
+requires_plugin null
+requires_nbdinfo
 
-# If these fail it's probably because you ran the script by hand.
-test -n "$srcdir"
-podfile=$srcdir/../docs/nbdkit.pod
-test -f "$podfile"
+# Check nbdkit supports the --timeout option as it is
+# not supported on all platforms.
+requires nbdkit null --timeout=10 --run true
 
-# Windows uses CRLF line endings, so we have to remove the CR.
-nocr="tr -d '\r'"
+# Check we have Python with Unix domain socket support.
+requires $PYTHON --version
+requires $PYTHON -c 'from socket import AF_UNIX'
 
-for i in $(nbdkit --short-options | $nocr) $(nbdkit --long-options | $nocr); do
-    case "$i" in
-        # Skip some options that we don't want to document.
-        --print-url) ;;         # alias of --print-uri
-        --show-uri) ;;          # alias of --print-uri
-        --show-url) ;;          # alias of --print-uri
-        --time-out) ;;          # alias of --timeout
+# Test ordinary connection with a reasonable timeout.
+nbdkit --timeout=60 null --run 'nbdinfo "$uri"'
 
-        # Anything else is tested.
-        *)
-            grep '^=item B<'$i'[=>]' $podfile
-    esac
-done
+# Test parse_delay format.
+nbdkit --timeout='60000ms' null --run 'nbdinfo "$uri"'
+
+# Open a connection and check it is timed out.
+export PYTHON
+nbdkit -v --timeout=5 null \
+       --run '$PYTHON $srcdir/test-timeout.py "$unixsocket"'
