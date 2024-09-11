@@ -474,6 +474,25 @@ once.  Only matters for plugins with thread_model=parallel (where it
 defaults to 16).  To force serialized behavior (useful if the client
 is not prepared for out-of-order responses), set this to 1.
 
+=item B<--timeout> TIMEOUT
+
+If the client does not negotiate a full NBD session within C<TIMEOUT>
+seconds, then drop the connection.  This can be used as an additional
+security measure to ensure that clients don't consume resources by
+opening lots of connections and then not negotiating (or negotiating
+slowly) the full NBD session.  It is particularly useful in
+conjunction with TLS client authentication (see L<nbdkit-tls(1)>).
+
+The timeout is measured from the point of the initial TCP connection
+to the point where NBD session negotiation ends (including TLS, if
+used).  If the timeout is exceeded during this negotiation, the
+connection is dropped.  Setting this too low will cause problems for
+clients listing lots of exports.
+
+The default is I<no timeout>.
+
+C<TIMEOUT> can be any format supported by L<nbdkit_parse_delay(3)>.
+
 =item B<--tls=off>
 
 =item B<--tls=on>

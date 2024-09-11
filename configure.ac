@@ -426,6 +426,17 @@ AC_CHECK_FUNCS([\
         posix_memalign \
         valloc])
 
+dnl Check for timer_create
+dnl It may require -lrt.
+old_LIBS="$LIBS"
+AC_SEARCH_LIBS([timer_create], [rt], [
+        AS_IF([test "x$ac_cv_search_timer_create" != "xnone required"],
+            [RT_LIBS="$ac_cv_search_timer_create"], [RT_LIBS=])
+        AC_SUBST([RT_LIBS])
+    ], [])
+AC_CHECK_FUNCS([timer_create])
+LIBS="$old_LIBS"
+
 dnl Check for structs and members.
 AC_CHECK_MEMBERS([struct dirent.d_type], [], [], [[#include <dirent.h>]])
 AC_CHECK_MEMBERS([struct ucred.uid], [], [],

@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # nbdkit
 # Copyright Red Hat
 #
@@ -30,32 +29,40 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test each option appears in the main nbdkit(1) manual page.
+# Used in conjunction with test-timeout.sh
 
-source ./functions.sh
-set -e
-set -x
+import select
+import socket
+import sys
+import time
 
-requires tr --version
+unixsocket = sys.argv[1]
 
-# If these fail it's probably because you ran the script by hand.
-test -n "$srcdir"
-podfile=$srcdir/../docs/nbdkit.pod
-test -f "$podfile"
+sockets = []
+t1 = time.monotonic()
+for i in range(5):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    print("test-timeout: opened socket %d" % s.fileno(),
+          file=sys.stderr, flush=True)
+    s.connect(unixsocket)
+    # Read and discard the initial greeting from nbdkit.
+    b = s.recv(18)
+    sockets.append(s)
 
-# Windows uses CRLF line endings, so we have to remove the CR.
-nocr="tr -d '\r'"
+while sockets:
+    ready = select.select(sockets, [], [], 30)[0]
+    for s in ready:
+        b = s.recv(1024)
+        if not b:
+            t2 = time.monotonic()
+            print("test-timeout: closed socket %d after %ds" %
+                  (s.fileno(), t2-t1),
+                  file=sys.stderr, flush=True)
+            sockets.remove(s)
+            s.close()
 
-for i in $(nbdkit --short-options | $nocr) $(nbdkit --long-options | $nocr); do
-    case "$i" in
-        # Skip some options that we don't want to document.
-        --print-url) ;;         # alias of --print-uri
-        --show-uri) ;;          # alias of --print-uri
-        --show-url) ;;          # alias of --print-uri
-        --time-out) ;;          # alias of --timeout
-
-        # Anything else is tested.
-        *)
-            grep '^=item B<'$i'[=>]' $podfile
-    esac
-done
+# At least 5 seconds must have passed before all sockets closed.
+t2 = time.monotonic()
+print("test-timeout: total elapsed time: %ds" % (t2-t1),
+      file=sys.stderr, flush=True)
+assert t2-t1 >= 5

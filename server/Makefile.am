@@ -64,6 +64,7 @@ nbdkit_SOURCES = \
 	socket-activation.c \
 	sockets.c \
 	threadlocal.c \
+	timeout.c \
 	uri.c \
 	usergroup.c \
 	vfprintf.c \
@@ -100,6 +101,7 @@ nbdkit_LDADD = \
 	$(GNUTLS_LIBS) \
 	$(LIBSELINUX_LIBS) \
 	$(DL_LIBS) \
+	$(RT_LIBS) \
 	$(top_builddir)/common/protocol/libprotocol.la \
 	$(top_builddir)/common/utils/libutils.la \
 	$(top_builddir)/common/replacements/libcompat.la \

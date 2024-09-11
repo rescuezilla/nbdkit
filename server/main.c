@@ -112,6 +112,7 @@ bool listen_stdin;              /* -s */
 const char *selinux_label;      /* --selinux-label */
 bool swap;                      /* --swap */
 unsigned threads;               /* -t */
+unsigned timeout_secs, timeout_nsecs; /* --timeout */
 int tls;                        /* --tls : 0=off 1=on 2=require */
 const char *tls_certificates_dir; /* --tls-certificates */
 const char *tls_psk;            /* --tls-psk */
@@ -397,6 +398,18 @@ main (int argc, char *argv[])
     case SWAP_OPTION:
       swap = 1;
       break;
+
+    case TIMEOUT_OPTION:
+#ifdef HAVE_TIMER_CREATE
+      if (nbdkit_parse_delay ("timeout", optarg,
+                              &timeout_secs, &timeout_nsecs) == -1)
+        exit (EXIT_FAILURE);
+      break;
+#else
+      fprintf (stderr, "%s: --timeout is not supported on this platform\n",
+               program_name);
+      exit (EXIT_FAILURE);
+#endif
 
     case TLS_OPTION:
       tls_set_on_cli = true;
