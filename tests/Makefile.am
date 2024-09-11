@@ -294,6 +294,7 @@ TESTS += \
 	test-nbd-client-tls.sh \
 	test-last-error.sh \
 	test-timeout.sh \
+	test-timeout-cancel.sh \
 	$(NULL)
 if !IS_WINDOWS
 TESTS += \
@@ -352,6 +353,7 @@ EXTRA_DIST += \
 	test-swap.sh \
 	test-timeout.sh \
 	test-timeout.py \
+	test-timeout-cancel.sh \
 	test-tls-psk.sh \
 	test-tls.sh \
 	test-version-example1.sh \
