@@ -41,6 +41,10 @@ requires_run
 requires_plugin null
 requires_nbdsh_uri
 
+# Check nbdkit supports the --timeout option as it is
+# not supported on all platforms.
+requires nbdkit null --timeout=10 --run true
+
 nbdkit -v --timeout=10 null size=512 \
        --run 'nbdsh -u "$uri" -c -' <<'EOF'
 import time
