@@ -474,7 +474,9 @@ once.  Only matters for plugins with thread_model=parallel (where it
 defaults to 16).  To force serialized behavior (useful if the client
 is not prepared for out-of-order responses), set this to 1.
 
-=item B<--timeout> TIMEOUT
+=item B<--timeout=>TIMEOUT
+
+(nbdkit E<ge> 1.42, not Windows)
 
 If the client does not negotiate a full NBD session within C<TIMEOUT>
 seconds, then drop the connection.  This can be used as an additional
