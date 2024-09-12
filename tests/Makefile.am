@@ -2098,6 +2098,10 @@ EXTRA_DIST += \
 TESTS += test-time-limit.sh
 EXTRA_DIST += test-time-limit.sh
 
+# tls-fallback filter test.
+TESTS += test-tls-fallback.sh
+EXTRA_DIST += test-tls-fallback.sh
+
 # truncate filter tests.
 TESTS += \
 	test-truncate1.sh \
@@ -2113,10 +2117,6 @@ EXTRA_DIST += \
 	test-truncate4.sh \
 	test-truncate-extents.sh \
 	$(NULL)
-
-# tls-fallback filter test.
-TESTS += test-tls-fallback.sh
-EXTRA_DIST += test-tls-fallback.sh
 
 # xz filter test.
 LIBGUESTFS_TESTS += test-xz
