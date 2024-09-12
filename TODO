@@ -288,6 +288,14 @@ nbdkit-spinning-filter:
 * fix multiconn / multiple connections so there is a single view of
   heads across all NBD clients
 
+nbdkit-time-limit-filter:
+
+* start counting at preconnect
+
+* fix idle connection issue mentioned in the man page
+
+* separate overall time limit and idle time limit
+
 Filters for security
 --------------------
 

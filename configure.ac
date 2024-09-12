@@ -154,6 +154,7 @@ filters="\
         stats \
         swab \
         tar \
+        time-limit \
         tls-fallback \
         truncate \
         xz \
@@ -1706,6 +1707,7 @@ AC_CONFIG_FILES([Makefile
                  filters/stats/Makefile
                  filters/swab/Makefile
                  filters/tar/Makefile
+                 filters/time-limit/Makefile
                  filters/tls-fallback/Makefile
                  filters/truncate/Makefile
                  filters/xz/Makefile

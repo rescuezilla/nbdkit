@@ -50,6 +50,7 @@ L<nbdkit-exitwhen-filter(1)>,
 L<nbdkit-ip-filter(1)>,
 L<nbdkit-noparallel-filter(1)>,
 L<nbdkit-rate-filter(1)>,
+L<nbdkit-time-limit-filter(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-plugin(3)>.
 

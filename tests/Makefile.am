@@ -2094,6 +2094,10 @@ EXTRA_DIST += \
 	test-tar-limit.sh \
 	$(NULL)
 
+# time-limit filter test.
+TESTS += test-time-limit.sh
+EXTRA_DIST += test-time-limit.sh
+
 # truncate filter tests.
 TESTS += \
 	test-truncate1.sh \
