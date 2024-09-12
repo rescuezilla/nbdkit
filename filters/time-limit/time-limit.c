@@ -127,7 +127,11 @@ check_time_limit (struct handle *h, int *err)
        * we are shutting the connection down asynchronously it won't
        * actually receive it.
        */
+#ifdef ESHUTDOWN
       *err = ESHUTDOWN;
+#else
+      *err = EIO;
+#endif
       nbdkit_disconnect (1);
       return -1;
     }
