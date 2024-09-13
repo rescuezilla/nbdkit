@@ -64,6 +64,12 @@ requires test -f "$f"
 requires test "$(uname -m)" = "$test_arch"
 requires test "$(uname -s)" = "$test_os"
 
+# Basic features of the plugin.
+nbdkit $f --version
+nbdkit $f --help
+nbdkit $f --dump-plugin
+
+# Test read, write, trim with libguestfs.
 disk="$(mktemp /tmp/nbdkit-test-disk.XXXXXX)"
 files="$disk"
 cleanup_fn rm -f $files
