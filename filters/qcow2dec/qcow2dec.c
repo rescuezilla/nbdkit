@@ -678,7 +678,7 @@ inflate_compressed_cluster (void *buf,
   if (strm.avail_out != 0) {
     nbdkit_error ("deflate: incomplete compressed stream read "
                   "at qcow2 offset 0x%" PRIx64 ": "
-                  "read %zu bytes of input, wrote %zu bytes of output",
+                  "read %zu bytes of input, wrote %" PRIu64 " bytes of output",
                   file_offset,
                   compressed_size - strm.avail_in,
                   cluster_size - strm.avail_out);
