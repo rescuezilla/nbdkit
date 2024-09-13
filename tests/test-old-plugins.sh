@@ -50,7 +50,7 @@ if [ -z "$1" ]; then
 fi
 test_arch=$(echo "$1" | $CUT -d - -f 1)
 test_os=$(echo "$1" | $CUT -d - -f 2)
-test_version=$(echo "$1" | $CUT -d - -f 3-)
+test_version=$(echo "$1" | $CUT -d - -f 3)
 d="old-plugins/$test_arch/$test_os/$test_version"
 f="$d/nbdkit-file-plugin.so"
 
