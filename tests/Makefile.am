@@ -2238,19 +2238,78 @@ endif HAVE_PLUGINS
 #----------------------------------------------------------------------
 # Tests of old plugins.
 
+# These test scripts are automatically created.
+#
+# The name is significant.  It should have the form:
+#   test-old-plugins-<ARCH>-<OS>-<VERSION>-<TESTTYPE>.sh
+# where
+#   <ARCH> is `uname -m`
+#   <OS> is `uname -s`
+#   <VERSION> is the old plugin version (may not contain '-')
+#   <TESTTYPE> is 'version', 'help', 'dump', 'nbd' or 'fs'.
+#
+# The plugin being tested can be found in old-plugins/<ARCH>/<OS>/<VERSION>/
 TESTS += \
-	test-old-plugins-i686-Linux-v1.0.0.sh \
-	test-old-plugins-i686-Linux-v1.2.8_3_g0560f8f.sh \
-	test-old-plugins-i686-Linux-v1.8.4_3_g11f5a90d.sh \
-	test-old-plugins-i686-Linux-v1.12.8_2_g1e2ccc27.sh \
-	test-old-plugins-i686-Linux-v1.18.4.sh \
-	test-old-plugins-i686-Linux-v1.38.4.sh \
-	test-old-plugins-x86_64-Linux-v1.0.0.sh \
-	test-old-plugins-x86_64-Linux-v1.2.8.sh \
-	test-old-plugins-x86_64-Linux-v1.8.4.sh \
-	test-old-plugins-x86_64-Linux-v1.12.8.sh \
-	test-old-plugins-x86_64-Linux-v1.18.2.sh \
-	test-old-plugins-x86_64-Linux-v1.38.4.sh \
+	test-old-plugins-i686-Linux-v1.0.0-version.sh \
+	test-old-plugins-i686-Linux-v1.0.0-help.sh \
+	test-old-plugins-i686-Linux-v1.0.0-dump.sh \
+	test-old-plugins-i686-Linux-v1.0.0-nbd.sh \
+	test-old-plugins-i686-Linux-v1.0.0-fs.sh \
+	test-old-plugins-i686-Linux-v1.2.8_3_g0560f8f-version.sh \
+	test-old-plugins-i686-Linux-v1.2.8_3_g0560f8f-help.sh \
+	test-old-plugins-i686-Linux-v1.2.8_3_g0560f8f-dump.sh \
+	test-old-plugins-i686-Linux-v1.2.8_3_g0560f8f-nbd.sh \
+	test-old-plugins-i686-Linux-v1.2.8_3_g0560f8f-fs.sh \
+	test-old-plugins-i686-Linux-v1.8.4_3_g11f5a90d-version.sh \
+	test-old-plugins-i686-Linux-v1.8.4_3_g11f5a90d-help.sh \
+	test-old-plugins-i686-Linux-v1.8.4_3_g11f5a90d-dump.sh \
+	test-old-plugins-i686-Linux-v1.8.4_3_g11f5a90d-nbd.sh \
+	test-old-plugins-i686-Linux-v1.8.4_3_g11f5a90d-fs.sh \
+	test-old-plugins-i686-Linux-v1.12.8_2_g1e2ccc27-version.sh \
+	test-old-plugins-i686-Linux-v1.12.8_2_g1e2ccc27-help.sh \
+	test-old-plugins-i686-Linux-v1.12.8_2_g1e2ccc27-dump.sh \
+	test-old-plugins-i686-Linux-v1.12.8_2_g1e2ccc27-nbd.sh \
+	test-old-plugins-i686-Linux-v1.12.8_2_g1e2ccc27-fs.sh \
+	test-old-plugins-i686-Linux-v1.18.4-version.sh \
+	test-old-plugins-i686-Linux-v1.18.4-help.sh \
+	test-old-plugins-i686-Linux-v1.18.4-dump.sh \
+	test-old-plugins-i686-Linux-v1.18.4-nbd.sh \
+	test-old-plugins-i686-Linux-v1.18.4-fs.sh \
+	test-old-plugins-i686-Linux-v1.38.4-version.sh \
+	test-old-plugins-i686-Linux-v1.38.4-help.sh \
+	test-old-plugins-i686-Linux-v1.38.4-dump.sh \
+	test-old-plugins-i686-Linux-v1.38.4-nbd.sh \
+	test-old-plugins-i686-Linux-v1.38.4-fs.sh \
+	test-old-plugins-x86_64-Linux-v1.0.0-version.sh \
+	test-old-plugins-x86_64-Linux-v1.0.0-help.sh \
+	test-old-plugins-x86_64-Linux-v1.0.0-dump.sh \
+	test-old-plugins-x86_64-Linux-v1.0.0-nbd.sh \
+	test-old-plugins-x86_64-Linux-v1.0.0-fs.sh \
+	test-old-plugins-x86_64-Linux-v1.2.8-version.sh \
+	test-old-plugins-x86_64-Linux-v1.2.8-help.sh \
+	test-old-plugins-x86_64-Linux-v1.2.8-dump.sh \
+	test-old-plugins-x86_64-Linux-v1.2.8-nbd.sh \
+	test-old-plugins-x86_64-Linux-v1.2.8-fs.sh \
+	test-old-plugins-x86_64-Linux-v1.8.4-version.sh \
+	test-old-plugins-x86_64-Linux-v1.8.4-help.sh \
+	test-old-plugins-x86_64-Linux-v1.8.4-dump.sh \
+	test-old-plugins-x86_64-Linux-v1.8.4-nbd.sh \
+	test-old-plugins-x86_64-Linux-v1.8.4-fs.sh \
+	test-old-plugins-x86_64-Linux-v1.12.8-version.sh \
+	test-old-plugins-x86_64-Linux-v1.12.8-help.sh \
+	test-old-plugins-x86_64-Linux-v1.12.8-dump.sh \
+	test-old-plugins-x86_64-Linux-v1.12.8-nbd.sh \
+	test-old-plugins-x86_64-Linux-v1.12.8-fs.sh \
+	test-old-plugins-x86_64-Linux-v1.18.2-version.sh \
+	test-old-plugins-x86_64-Linux-v1.18.2-help.sh \
+	test-old-plugins-x86_64-Linux-v1.18.2-dump.sh \
+	test-old-plugins-x86_64-Linux-v1.18.2-nbd.sh \
+	test-old-plugins-x86_64-Linux-v1.18.2-fs.sh \
+	test-old-plugins-x86_64-Linux-v1.38.4-version.sh \
+	test-old-plugins-x86_64-Linux-v1.38.4-help.sh \
+	test-old-plugins-x86_64-Linux-v1.38.4-dump.sh \
+	test-old-plugins-x86_64-Linux-v1.38.4-nbd.sh \
+	test-old-plugins-x86_64-Linux-v1.38.4-fs.sh \
 	$(NULL)
 
 test-old-plugins-%.sh:

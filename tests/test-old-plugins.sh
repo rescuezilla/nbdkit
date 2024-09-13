@@ -37,13 +37,13 @@ set -e
 set -x
 
 requires_run
-requires guestfish --version
 requires $CUT --version
 requires test -f disk
 
 # This script is called with one parameter in the form
-# <ARCH>-<OS>-<VERSION> corresponding to a test in
-# tests/old-plugins/<ARCH>/<OS>/<VERSION>/
+# <ARCH>-<OS>-<VERSION>-<TESTTYPE> corresponding to a test in
+# tests/old-plugins/<ARCH>/<OS>/<VERSION>/ and the type of test we are
+# going to perform here.
 if [ -z "$1" ]; then
     echo "$0: do not call this script directly"
     exit 1
@@ -51,6 +51,7 @@ fi
 test_arch=$(echo "$1" | $CUT -d - -f 1)
 test_os=$(echo "$1" | $CUT -d - -f 2)
 test_version=$(echo "$1" | $CUT -d - -f 3)
+test_type=$(echo "$1" | $CUT -d - -f 4)
 d="old-plugins/$test_arch/$test_os/$test_version"
 f="$d/nbdkit-file-plugin.so"
 
@@ -64,25 +65,50 @@ requires test -f "$f"
 requires test "$(uname -m)" = "$test_arch"
 requires test "$(uname -s)" = "$test_os"
 
-# Basic features of the plugin.
-nbdkit $f --version
-nbdkit $f --help
-nbdkit $f --dump-plugin
+# Which test to perform?
+case "$test_type" in
+    # Basic features of the plugin.
+    version)
+        nbdkit $f --version
+        ;;
+    help)
+        nbdkit $f --help
+        ;;
+    dump)
+        nbdkit $f --dump-plugin
+        ;;
 
-# Test read, write, trim with libguestfs.
-disk="$(mktemp /tmp/nbdkit-test-disk.XXXXXX)"
-files="$disk"
-cleanup_fn rm -f $files
+    # Do a basic readonly test using nbdinfo.
+    nbd)
+        requires_nbdinfo
 
-cp disk $disk
+        nbdkit -fvr $f file=disk --run 'nbdinfo "$uri"'
+        ;;
 
-nbdkit -fv $f file=$disk \
-       --run '
-    guestfish \
-        add "" protocol:nbd server:unix:$unixsocket : \
-        run : \
-        mount /dev/sda1 / : \
-        write /hello "hello,world" : \
-        cat /hello : \
-        fstrim /
+    # Test read, write, trim with libguestfs.
+    fs)
+        requires guestfish --version
+
+        disk="$(mktemp /tmp/nbdkit-test-disk.XXXXXX)"
+        files="$disk"
+        cleanup_fn rm -f $files
+
+        cp disk $disk
+
+        nbdkit -fv $f file=$disk \
+               --run '
+                   guestfish \
+                       add "" protocol:nbd server:unix:$unixsocket : \
+                       run : \
+                       mount /dev/sda1 / : \
+                       write /hello "hello,world" : \
+                       cat /hello : \
+                       fstrim /
 '
+        ;;
+
+    *)
+        echo "$0: bad test type: $test_type"
+        exit 1
+        ;;
+esac
