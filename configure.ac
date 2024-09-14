@@ -132,6 +132,7 @@ filters="\
         limit \
         log \
         luks \
+        lzip \
         multi-conn \
         nocache \
         noextents \
@@ -1429,10 +1430,10 @@ AC_ARG_ENABLE([nbd-plugin],
 AM_CONDITIONAL([HAVE_LIBNBD],
   [test "x$LIBNBD_LIBS" != "x" && test "x$enable_nbd_plugin" = "xyes"])
 
-dnl Check for liblzma (only if you want to compile the xz filter).
+dnl Check for liblzma (only if you want to compile the xz and lzip filters).
 AC_ARG_WITH([liblzma],
     [AS_HELP_STRING([--without-liblzma],
-                    [disable xz filter @<:@default=check@:>@])],
+                    [disable xz and lzip filters @<:@default=check@:>@])],
     [],
     [with_liblzma=check])
 AS_IF([test "$with_liblzma" != "no"],[
@@ -1441,9 +1442,22 @@ AS_IF([test "$with_liblzma" != "no"],[
         AC_SUBST([LIBLZMA_LIBS])
         AC_DEFINE([HAVE_LIBLZMA],[1],[liblzma found at compile time.])
     ],
-    [AC_MSG_WARN([liblzma not found, xz filter will be disabled])])
+    [AC_MSG_WARN([liblzma not found, xz and lzip filters will be disabled])])
 ])
 AM_CONDITIONAL([HAVE_LIBLZMA],[test "x$LIBLZMA_LIBS" != "x"])
+
+AS_IF([test "x$LIBLZMA_LIBS" != "x"],[
+    old_LIBS="$LIBS"
+    LIBS="$LIBLZMA_LIBS $LIBS"
+    AC_CHECK_FUNCS([lzma_lzip_decoder])
+    LIBS="$old_LIBS"
+    AS_IF([test "x$ac_cv_func_lzma_lzip_decoder" != "xyes"], [
+        AC_MSG_WARN([liblzma without lzip support, lzip filter will be disabled])
+    ])
+])
+AM_CONDITIONAL([HAVE_LZMA_LZIP_DECODER],
+               [test "x$LIBLZMA_LIBS" != "x" && \
+                test "x$ac_cv_func_lzma_lzip_decoder" = "xyes"])
 
 dnl Check for zstd (only if you want to compile allocator=zstd).
 AC_ARG_WITH([libzstd],
@@ -1685,6 +1699,7 @@ AC_CONFIG_FILES([Makefile
                  filters/limit/Makefile
                  filters/log/Makefile
                  filters/luks/Makefile
+                 filters/lzip/Makefile
                  filters/multi-conn/Makefile
                  filters/nocache/Makefile
                  filters/noextents/Makefile
@@ -1792,6 +1807,7 @@ feature "bzip2"               test "x$HAVE_BZLIB_TRUE" = "x"
 feature "ext2"                test "x$HAVE_EXT2_TRUE" = "x"
 feature "gzip"                test "x$HAVE_ZLIB_TRUE" = "x"
 feature "luks"                test "x$HAVE_GNUTLS_PBKDF2_TRUE" = "x"
+feature "lzip"                test "x$HAVE_LZMA_LZIP_DECODER_TRUE" = "x"
 feature "stats"               test "x$HAVE_CXX_TRUE" = "x"
 feature "xz"                  test "x$HAVE_LIBLZMA_TRUE" = "x"
 

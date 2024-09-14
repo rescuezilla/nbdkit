@@ -47,7 +47,8 @@ server use:
 =head2 Open a compressed tar file (read-only)
 
 This filter cannot handle compressed tar files itself, but you can
-combine it with L<nbdkit-gzip-filter(1)> or L<nbdkit-xz-filter(1)>:
+combine it with a decompression filter such as L<nbdkit-gzip-filter(1)>
+or L<nbdkit-xz-filter(1)>:
 
  nbdkit file filename.tar.gz \
         --filter=tar tar-entry=disk.img --filter=gzip
@@ -136,6 +137,7 @@ L<nbdkit(1)>,
 L<nbdkit-curl-plugin(1)>,
 L<nbdkit-file-plugin(1)>,
 L<nbdkit-gzip-filter(1)>,
+L<nbdkit-lzip-filter(1)>,
 L<nbdkit-offset-filter(1)>,
 L<nbdkit-plugin(3)>,
 L<nbdkit-ssh-plugin(1)>,

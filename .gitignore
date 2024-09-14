@@ -91,6 +91,7 @@ plugins/*/*.3
 /docs/filter-links.pod
 /docs/lang-plugin-links.pod
 /docs/plugin-links.pod
+/filters/lzip/blkcache.c
 /fuzzing/sync_dir/
 /fuzzing/testcase_dir/[0-f]*
 /html/*.html

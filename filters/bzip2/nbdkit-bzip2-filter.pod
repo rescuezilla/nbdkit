@@ -14,6 +14,14 @@ of L<nbdkit-file-plugin(1)> to decompress a local F<.bz2> file.
 
 The filter only allows read-only connections.
 
+B<Note> that bzip2 files are not very good for random access in large
+files because seeking to a position in the bzip2 file involves
+decompressing all data before that point in the file.  A more
+practical method to compress large disk images is to use L<xz(1)>
+or L<plzip(1)>.  Both L<nbdkit-xz-filter(1)> and L<nbdkit-lzip-filter(1)>
+support block-level decompression if the file was compressed using the
+right options.
+
 To allow seeking this filter has to keep the contents of the complete
 uncompressed file, which it does in a hidden temporary file under
 C<$TMPDIR>.
@@ -56,6 +64,7 @@ from the C<nbdkit-gzip-filter> which first appeared in nbdkit 1.22.
 
 L<nbdkit-file-plugin(1)>,
 L<nbdkit-gzip-filter(1)>,
+L<nbdkit-lzip-filter(1)>,
 L<nbdkit-tar-filter(1)>,
 L<nbdkit-xz-filter(1)>,
 L<nbdkit(1)>,

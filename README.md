@@ -73,7 +73,7 @@ For the bzip2 filter:
 
 * bzip2
 
-For the xz filter:
+For the xz and lzip filters:
 
 * liblzma
 

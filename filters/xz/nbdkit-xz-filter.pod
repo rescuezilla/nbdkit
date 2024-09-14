@@ -102,6 +102,7 @@ L<nbdkit-filter(3)>,
 L<nbdkit-curl-plugin(1)>,
 L<nbdkit-file-plugin(1)>,
 L<nbdkit-gzip-filter(1)>,
+L<nbdkit-lzip-filter(1)>,
 L<nbdkit-bzip2-filter(1)>,
 L<xz(1)>.
 
