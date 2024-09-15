@@ -1459,6 +1459,9 @@ AM_CONDITIONAL([HAVE_LZMA_LZIP_DECODER],
                [test "x$LIBLZMA_LIBS" != "x" && \
                 test "x$ac_cv_func_lzma_lzip_decoder" = "xyes"])
 
+AC_CHECK_PROG([LZIP],[lzip],[lzip],[no])
+AM_CONDITIONAL([HAVE_LZIP], [test "x$LZIP" != "xno"])
+
 dnl Check for zstd (only if you want to compile allocator=zstd).
 AC_ARG_WITH([libzstd],
     [AS_HELP_STRING([--without-libzstd],

@@ -158,6 +158,20 @@ disk.tar.xz: disk.tar
 	xz --best --block-size=32768 --keep $<
 endif HAVE_LIBLZMA
 
+if HAVE_LZIP
+check_DATA += disk.lz disk.tar.lz
+CLEANFILES += disk.lz disk.tar.lz
+EXTRA_DIST += chunked-lzip.sh
+disk.lz: disk chunked-lzip.sh
+	rm -f $@ $@-t
+	$(srcdir)/chunked-lzip.sh 32768 $< $@-t
+	mv $@-t $@
+disk.tar.lz: disk.tar chunked-lzip.sh
+	rm -f $@ $@-t
+	$(srcdir)/chunked-lzip.sh 32768 $< $@-t
+	mv $@-t $@
+endif HAVE_LZIP
+
 endif HAVE_MKE2FS_WITH_D
 endif !IS_WINDOWS
 
@@ -1866,6 +1880,22 @@ EXTRA_DIST += \
 	test-luks-copy-zero.sh \
 	$(NULL)
 
+# lzip filter test.
+if HAVE_LIBLZMA
+TESTS += \
+	test-lzip-aligned.sh \
+	test-lzip-unaligned.sh \
+	$(NULL)
+LIBGUESTFS_TESTS += test-lzip
+test_lzip_SOURCES = test-lzip.c test.h
+test_lzip_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
+test_lzip_LDADD = libtest.la $(LIBGUESTFS_LIBS)
+endif HAVE_LIBLZMA
+EXTRA_DIST += \
+	test-lzip-aligned.sh \
+	test-lzip-unaligned.sh \
+	$(NULL)
+
 # multi-conn filter test.
 TESTS += \
 	test-multi-conn.sh \
@@ -2125,12 +2155,14 @@ test_xz_SOURCES = test-xz.c test.h
 test_xz_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_xz_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
-# tar filter + gzip or xz filter + curl.
+# tar filter + gzip, lzip or xz filter + curl.
 if HAVE_CURL
 
 LIBGUESTFS_TESTS += \
 	test-gzip-curl \
 	test-tar-gzip-curl \
+	test-lzip-curl \
+	test-tar-lzip-curl \
 	test-xz-curl \
 	test-tar-xz-curl \
 	$(NULL)
@@ -2179,6 +2211,54 @@ test_tar_gzip_curl_LDFLAGS = \
 	$(PTHREAD_LIBS) \
 	$(NULL)
 test_tar_gzip_curl_LDADD = \
+	libtest.la \
+	$(LIBGUESTFS_LIBS) \
+	$(NULL)
+
+test_lzip_curl_SOURCES = \
+	test-lzip-curl.c \
+	web-server.c \
+	web-server.h \
+	test.h \
+	$(NULL)
+test_lzip_curl_CPPFLAGS = \
+	-I$(top_srcdir)/common/utils \
+	-I$(top_srcdir)/common/include \
+	$(NULL)
+test_lzip_curl_CFLAGS = \
+	$(WARNINGS_CFLAGS) \
+	$(LIBGUESTFS_CFLAGS) \
+	$(PTHREAD_CFLAGS) \
+	$(NULL)
+test_lzip_curl_LDFLAGS = \
+	$(top_builddir)/common/utils/libutils.la \
+	$(PTHREAD_LIBS) \
+	$(NULL)
+test_lzip_curl_LDADD = \
+	libtest.la \
+	$(LIBGUESTFS_LIBS) \
+	$(NULL)
+
+test_tar_lzip_curl_SOURCES = \
+	test-tar-lzip-curl.c \
+	web-server.c \
+	web-server.h \
+	test.h \
+	$(NULL)
+test_tar_lzip_curl_CPPFLAGS = \
+	-I$(top_srcdir)/common/utils \
+	-I$(top_srcdir)/common/include \
+	$(NULL)
+test_tar_lzip_curl_CFLAGS = \
+	$(WARNINGS_CFLAGS) \
+	$(LIBGUESTFS_CFLAGS) \
+	$(PTHREAD_CFLAGS) \
+	$(NULL)
+test_tar_lzip_curl_LDFLAGS = \
+	$(top_builddir)/common/utils/libutils.la \
+	$(PTHREAD_LIBS) \
+	$(NULL)
+test_tar_lzip_curl_LDADD = \
 	libtest.la \
 	$(LIBGUESTFS_LIBS) \
 	$(NULL)

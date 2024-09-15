@@ -187,6 +187,7 @@ For non-essential enhancements to the test suite:
 * jq
 * libc_malloc_debug.so.0 (from glibc-utils)
 * losetup (from util-linux)
+* lzip
 * mke2fs (from e2fsprogs)
 * nbdcopy, nbdinfo, nbdsh (from libnbd)
 * qemu-img, qemu-io, qemu-nbd (usually shipped with qemu)

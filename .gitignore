@@ -127,8 +127,10 @@ plugins/*/*.3
 /tests/disk
 /tests/disk.bz2
 /tests/disk.gz
+/tests/disk.lz
 /tests/disk.tar
 /tests/disk.tar.gz
+/tests/disk.tar.lz
 /tests/disk.tar.xz
 /tests/disk.xz
 /tests/ext2.img
@@ -163,6 +165,8 @@ plugins/*/*.3
 /tests/test-just-plugin-header
 /tests/test-layers
 /tests/test-lua
+/tests/test-lzip
+/tests/test-lzip-curl
 /tests/test-memory
 /tests/test-memory-allocator-malloc
 /tests/test-memory-allocator-zstd
@@ -187,6 +191,7 @@ plugins/*/*.3
 /tests/test-socket-activation
 /tests/test-split
 /tests/test-tar-gzip-curl
+/tests/test-tar-lzip-curl
 /tests/test-tar-xz-curl
 /tests/test-tcl
 /tests/test-tmpdisk
