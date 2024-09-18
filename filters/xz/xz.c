@@ -78,7 +78,7 @@ xz_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
 
 #define xz_config_help \
   "xz-max-block=<SIZE> (optional) Maximum block size allowed (default: 512M)\n"\
-  "xz-max-depth=<N>    (optional) Maximum blocks in cache (default: 4)\n"
+  "xz-max-depth=<N>    (optional) Maximum blocks in cache (default: 8)\n"
 
 /* The per-connection handle. */
 struct xz_handle {
