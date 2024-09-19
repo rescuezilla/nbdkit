@@ -49,7 +49,7 @@ Use C<nbdkit --dump-config> to find the location of C<$filterdir>.
 
 =head1 VERSION
 
-C<nbdkit-bzip2-filter> first appeared in nbdkit ???.  It is derived
+C<nbdkit-bzip2-filter> first appeared in nbdkit 1.40.  It is derived
 from the C<nbdkit-gzip-filter> which first appeared in nbdkit 1.22.
 
 =head1 SEE ALSO
