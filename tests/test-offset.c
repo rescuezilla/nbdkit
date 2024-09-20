@@ -159,6 +159,7 @@ main (int argc, char *argv[])
              program_name, filename, data, content);
     exit (EXIT_FAILURE);
   }
+  free (data);
 
   if (guestfs_fill_dir (g, "/", 1000) == -1)
     exit (EXIT_FAILURE);

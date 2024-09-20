@@ -198,6 +198,8 @@ main (int argc, char *argv[])
     exit (EXIT_FAILURE);
   }
 
+  free (data);
+
   /* Run sync to test flush path. */
   if (guestfs_sync (g) == -1)
     exit (EXIT_FAILURE);

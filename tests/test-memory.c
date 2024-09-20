@@ -101,6 +101,7 @@ main (int argc, char *argv[])
              program_name, filename, data, content);
     exit (EXIT_FAILURE);
   }
+  free (data);
 
 #ifdef GUESTFS_HAVE_FSTRIM
   /* Delete the file and fstrim to test zeroing/trimming. */
