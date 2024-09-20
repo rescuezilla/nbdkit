@@ -98,6 +98,7 @@ main (int argc, char *argv[])
     exit (EXIT_FAILURE);
   }
 
+  free (data);
   guestfs_close (g);
 
   exit (EXIT_SUCCESS);
