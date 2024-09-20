@@ -92,7 +92,7 @@ lzipfile_open (nbdkit_next *next)
   size = lz->idx.combined_data_size;
   nbdkit_debug ("lzip: size %" PRIu64 " bytes (%.1fM)",
                 size, size / 1024.0 / 1024.0);
-  nbdkit_debug ("lzip: %zu members", lz->idx.member_count);
+  nbdkit_debug ("lzip: %zu members", lz->idx.members.len);
   nbdkit_debug ("lzip: maximum uncompressed block size %" PRIu64 " bytes (%.1fM)",
                 lz->max_uncompressed_block_size,
                 lz->max_uncompressed_block_size / 1024.0 / 1024.0);
@@ -191,8 +191,7 @@ setup_index (nbdkit_next *next, lzip_index *idx)
     member.member_size = member_size;
     member.data_size = data_size;
 
-    err = lzip_index_prepend (idx, &member);
-    if (err) {
+    if (lzip_index_prepend (idx, &member) == -1) {
       nbdkit_error ("lzip: allocation failure while growing index");
       goto err;
     }
@@ -215,8 +214,8 @@ get_max_uncompressed_block_size (lzip_index const *idx)
     return idx->indexable_data_size;
   }
 
-  for (size_t i = 0; i < idx->member_count; ++i) {
-    size = MAX (size, idx->members[i].data_size);
+  for (size_t i = 0; i < idx->members.len; ++i) {
+    size = MAX (size, idx->members.ptr[i].data_size);
   }
 
   return size;
@@ -266,7 +265,7 @@ lzipfile_read_block (lzipfile *lz,
   *size_rtn = member->data_size;
 
   nbdkit_debug ("seek: member %td at file offset %" PRIu64,
-                member - lz->idx.members, member->data_offset);
+                member - lz->idx.members.ptr, member->data_offset);
 
   ret = lzma_lzip_decoder (&strm, UINT64_MAX, 0);
   if (ret != LZMA_OK) {

@@ -36,6 +36,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "vector.h"
+
 /**
  * Holds the position information of one archive member.
  *
@@ -57,6 +59,8 @@ typedef struct lzip_index_member {
   /** The size of this archive member in the compressed file. */
   uint64_t member_size;
 } lzip_index_member;
+
+DEFINE_VECTOR_TYPE (lzip_index_members, lzip_index_member);
 
 /**
  * Index structure for a multimember lzip archive.
@@ -93,9 +97,7 @@ typedef struct lzip_index {
    */
   uint64_t indexable_data_size;
   /** The list of archive members in reverse order. */
-  struct lzip_index_member *members;
-  /** The number of archive members in `members`. */
-  size_t member_count;
+  lzip_index_members members;
 } lzip_index;
 
 /**

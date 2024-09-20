@@ -34,6 +34,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "vector.h"
+
 #include "lzipindex.h"
 
 int
@@ -42,13 +44,7 @@ lzip_index_prepend (lzip_index *index, lzip_index_member const *member)
   assert (index);
   assert (member);
 
-  lzip_index_member *new_members =
-    realloc (index->members, (index->member_count + 1) * sizeof (index->members[0]));
-  if (!new_members) return 1;
-
-  index->members = new_members;
-  index->members[index->member_count++] = *member;
-  return 0;
+  return lzip_index_members_append (&index->members, *member);
 }
 
 void
@@ -59,9 +55,9 @@ lzip_index_finalize (lzip_index *index)
   uint64_t combined_data_size = 0;
   uint64_t indexable_data_size = 0;
 
-  for (size_t j = 0; j < index->member_count; ++j) {
-    size_t i = index->member_count - j - 1;
-    lzip_index_member *member = &index->members[i];
+  for (size_t j = 0; j < index->members.len; ++j) {
+    size_t i = index->members.len - j - 1;
+    lzip_index_member *member = &index->members.ptr[i];
 
     member->data_offset = combined_data_size;
     combined_data_size += member->data_size;
@@ -85,12 +81,10 @@ lzip_index_finalize (lzip_index *index)
 }
 
 static int
-comparator (void const *key, void const *element)
+comparator (void const *key, lzip_index_member const *member)
 {
   uint64_t const *data_offset_ptr = key;
   uint64_t data_offset = *data_offset_ptr;
-
-  lzip_index_member const *member = element;
 
   if (data_offset < member->data_offset) return +1;
   if (data_offset < member->data_offset + member->data_size) return 0;
@@ -105,17 +99,17 @@ lzip_index_search (lzip_index const *index, uint64_t data_offset)
 
   if (index->indexable_data_size) {
     size_t member_index = data_offset / index->indexable_data_size;
-    return &index->members[index->member_count - member_index - 1];
+    return &index->members.ptr[index->members.len - member_index - 1];
   }
 
-  return bsearch (&data_offset, index->members, index->member_count,
-                  sizeof(index->members[0]), comparator);
+  return lzip_index_members_search (&index->members, &data_offset,
+                                    comparator);
 }
 
 void
 lzip_index_destroy (lzip_index *index)
 {
   if (!index) return;
-  free (index->members);
+  lzip_index_members_reset (&index->members);
   *index = (lzip_index) {};
 }
