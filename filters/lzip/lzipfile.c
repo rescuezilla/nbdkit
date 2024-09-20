@@ -225,7 +225,7 @@ void
 lzipfile_close (lzipfile *lz)
 {
   if (lz) {
-    lzip_index_finalize (&lz->idx);
+    lzip_index_destroy (&lz->idx);
     free (lz);
   }
 }
