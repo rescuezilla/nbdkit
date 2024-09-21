@@ -122,7 +122,7 @@ ondemand_config (const char *key, const char *value)
   }
 
   /* Any other parameter will be forwarded to a shell variable. */
-  else {
+  else if (is_shell_variable (key)) {
     struct var *new_var;
 
     new_var = malloc (sizeof *new_var);
@@ -145,6 +145,11 @@ ondemand_config (const char *key, const char *value)
       last_var->next = new_var;
       last_var = new_var;
     }
+  }
+
+  else {
+    nbdkit_error ("unknown parameter '%s'", key);
+    return -1;
   }
 
   return 0;
@@ -322,11 +327,9 @@ run_command (const char *disk)
 
   /* The other parameters/shell variables. */
   for (v = vars; v != NULL; v = v->next) {
-    /* Keys probably can never contain shell-unsafe chars (because of
-     * nbdkit's own restrictions), but quoting it makes it safe.
-     */
-    shell_quote (v->key, fp);
-    putc ('=', fp);
+    /* We test in ondemand_config that the key is valid. */
+    assert (is_shell_variable (v->key));
+    fprintf (fp, "%s=", v->key);
     shell_quote (v->value, fp);
     putc ('\n', fp);
   }
