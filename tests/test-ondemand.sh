@@ -68,7 +68,7 @@ test -f $dir/default
 test -f $dir/test
 
 # These should fail because the exportname is invalid.
-for e in /bad .bad bad. bad:bad ; do
+for e in /bad .bad . .. ./etc ; do
     if nbdinfo "nbd+unix:///$e?socket=$sock" ||
        qemu-img info "nbd+unix:///$e?socket=$sock" ||
        qemu-img info nbd:unix:$sock:exportname=$e
