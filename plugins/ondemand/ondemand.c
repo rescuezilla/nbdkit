@@ -372,9 +372,17 @@ run_command (const char *disk)
   return -1;
 }
 
+/* This lock ensures disk creation is serialized and the command is
+ * not run in parallel.  Although it would probably be safe to do this
+ * for different exports, it's easier to have one lock, and makes some
+ * external commands safer too.
+ */
+static pthread_mutex_t open_lock = PTHREAD_MUTEX_INITIALIZER;
+
 static void *
 ondemand_open (int readonly)
 {
+  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&open_lock);
   struct handle *h;
   CLEANUP_FREE char *disk = NULL;
   int flags, err;
