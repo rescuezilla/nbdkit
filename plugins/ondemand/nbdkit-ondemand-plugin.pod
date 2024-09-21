@@ -38,10 +38,10 @@ client-configurable in future.  The filesystem type and label may also
 be specified, otherwise C<ext4> and no label is used.
 
 Export names must be E<le> C<NAME_MAX> (usually 255) bytes in length
-and must not contain certain characters including C<.>, C</> and C<:>.
-There may be other limitations added in future.  Client requests which
-do not obey these restrictions are rejected.  As a special case,
-export name C<""> is mapped to the file name F<default>.
+and must not contain certain characters including C<.> at the start,
+and C</>.  There may be other limitations added in future.  Client
+requests which do not obey these restrictions are rejected.  As a
+special case, export name C<""> is mapped to the file name F<default>.
 
 =head2 Security considerations
 
