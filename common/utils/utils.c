@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
@@ -49,6 +50,7 @@
 
 #include <nbdkit-plugin.h>
 
+#include "ascii-ctype.h"
 #include "windows-compat.h"
 
 #ifndef WIN32
@@ -232,3 +234,31 @@ make_temporary_directory (void)
 }
 
 #endif /* WIN32 */
+
+/* Returns true if this is a valid shell variable name.  While shell
+ * variables aren't environment variables, for this I used the
+ * definition in "POSIX section 8.1 Environment Variable Definition",
+ * but also allowing lowercase.  See also
+ * https://stackoverflow.com/questions/2821043
+ */
+bool
+is_shell_variable (const char *name)
+{
+  size_t i, len;
+
+  len = strlen (name);
+  if (len == 0)
+    return false;
+
+  /* Cannot start with a digit. */
+  if (ascii_isdigit (name[0]))
+    return false;
+
+  /* Must contain only ASCII alphanumeric and underscore. */
+  for (i = 0; i < len; ++i) {
+    if (ascii_isalnum (name[i]) || name[i] == '_')
+      continue;
+    return false;
+  }
+  return true;
+}

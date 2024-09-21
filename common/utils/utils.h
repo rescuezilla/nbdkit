@@ -33,9 +33,12 @@
 #ifndef NBDKIT_UTILS_H
 #define NBDKIT_UTILS_H
 
+#include <stdbool.h>
+
 extern void shell_quote (const char *str, FILE *fp);
 extern void uri_quote (const char *str, FILE *fp);
 extern void c_string_quote (const char *str, FILE *fp);
+extern bool is_shell_variable (const char *name);
 extern int exit_status_to_nbd_error (int status, const char *cmd);
 extern int set_cloexec (int fd);
 extern int set_nonblock (int fd);
