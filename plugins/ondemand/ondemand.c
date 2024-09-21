@@ -346,22 +346,30 @@ run_command (const char *disk)
   r = system (cmd);
   if (r == -1) {
     nbdkit_error ("failed to execute command: %m");
-    return -1;
+    goto err_cleanup;
   }
   if (WIFEXITED (r) && WEXITSTATUS (r) != 0) {
     nbdkit_error ("command exited with code %d", WEXITSTATUS (r));
-    return -1;
+    goto err_cleanup;
   }
   else if (WIFSIGNALED (r)) {
     nbdkit_error ("command killed by signal %d", WTERMSIG (r));
-    return -1;
+    goto err_cleanup;
   }
   else if (WIFSTOPPED (r)) {
     nbdkit_error ("command stopped by signal %d", WSTOPSIG (r));
-    return -1;
+    goto err_cleanup;
   }
 
   return 0;
+
+ err_cleanup:
+  /* If the external command failed, delete the disk since it may be
+   * incomplete and we want to recreate it cleanly the next time a
+   * client connects.
+   */
+  unlink (disk);
+  return -1;
 }
 
 static void *
