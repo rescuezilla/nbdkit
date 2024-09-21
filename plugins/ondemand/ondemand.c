@@ -272,6 +272,28 @@ ondemand_can_fua (void *handle)
   return NBDKIT_FUA_NATIVE;
 }
 
+/* Verify that the export name is valid. */
+static int
+check_exportname (const char *exportname)
+{
+  size_t len = strlen (exportname);
+
+  assert (len > 0); /* see .default_export */
+
+  if (len > NAME_MAX)
+    return -1;
+
+  /* Don't allow hidden files, or access to "." or "..". */
+  if (exportname[0] == '.')
+    return -1;
+
+  /* Don't allow directories. */
+  if (strchr (exportname, '/'))
+    return -1;
+
+  return 0;
+}
+
 /* This creates and runs the full "mkfs" (or whatever) command. */
 static int
 run_command (const char *disk)
@@ -367,13 +389,9 @@ ondemand_open (int readonly)
     nbdkit_error ("internal error: expected nbdkit_export_name () != NULL");
     goto error;
   }
-  assert (strcmp (h->exportname, "") != 0); /* see .default_export */
 
   /* Verify that the export name is valid. */
-  if (strlen (h->exportname) > NAME_MAX ||
-      strchr (h->exportname, '.') ||
-      strchr (h->exportname, '/') ||
-      strchr (h->exportname, ':')) {
+  if (check_exportname (h->exportname) == -1) {
     nbdkit_error ("invalid exportname ‘%s’ rejected", h->exportname);
     goto error;
   }
