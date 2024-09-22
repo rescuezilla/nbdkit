@@ -68,15 +68,22 @@ test -f $dir/default
 test -f $dir/test
 
 # These should fail because the exportname is invalid.
+errors=0
 for e in /bad .bad . .. ./etc ; do
-    if nbdinfo "nbd+unix:///$e?socket=$sock" ||
-       qemu-img info "nbd+unix:///$e?socket=$sock" ||
-       qemu-img info nbd:unix:$sock:exportname=$e
-    then
-        echo "$0: expected failure trying to create bad exportname"
-        exit 1
+    if nbdinfo "nbd+unix:///$e?socket=$sock"; then ((errors++)) ||:; fi
+    # QEMU 9.1 fails to parse exportnames starting with "." correctly:
+    # https://gitlab.com/qemu-project/qemu/-/issues/2584
+    if test "$e" != "." && test "$e" != ".." && test "$e" != "./etc"; then
+        if qemu-img info "nbd+unix:///$e?socket=$sock"
+        then ((errors++)) ||:; fi
+        if qemu-img info nbd:unix:$sock:exportname=$e
+        then ((errors++)) ||:; fi
     fi
 done
+if test "$errors" -gt 0; then
+    echo "$0: expected failure trying to create bad exportname"
+    exit 1
+fi
 
 # Check the filesystem is persistent.
 guestfish --format=raw -a "nbd://?socket=$sock" -m /dev/sda <<EOF
