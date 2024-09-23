@@ -432,6 +432,14 @@ accept_connection (int listen_sock)
    */
   setsockopt (thread_data->sock, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof flag);
 
+#ifdef SO_KEEPALIVE
+  /* Enable keepalive if requested, but don't fail. */
+  if (keepalive) {
+    int opt = 1;
+    setsockopt (thread_data->sock, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof opt);
+  }
+#endif
+
   /* Start a thread to handle this connection.  Note we always do this
    * even for non-threaded plugins.  There are mutexes in plugins.c
    * which ensure that non-threaded plugins are handled correctly.

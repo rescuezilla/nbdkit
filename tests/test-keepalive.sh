@@ -30,46 +30,16 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test each option appears in the synopsis.
-
 source ./functions.sh
-set -e
 set -x
 
-# If these fail it's probably because you ran the script by hand.
-test -n "$srcdir"
-synopsis=$srcdir/../docs/synopsis.txt
-test -f "$synopsis"
+requires_run
+requires_plugin null
+requires_nbdinfo
 
-# Windows uses CRLF line endings, so we have to remove the CR.
-nocr="tr -d '\r'"
+# It's not practical to test functionality of the --keepalive option,
+# so all we can do here is to ensure the option itself does not break.
+# This also tests with a Unix domain socket which doesn't use
+# SO_KEEPALIVE.
 
-for i in $(nbdkit --short-options | $nocr); do
-    grep '[^-]'$i $synopsis
-done
-
-for i in $(nbdkit --long-options | $nocr); do
-    case "$i" in
-        # Only one version of each long option is shown in the
-        # synopsis, so ignore other versions.
-        --export-name) ;;       # alias of -e, --exportname
-        --no-fork) ;;           # alias of -f
-        --ip-addr) ;;           # alias of -i, --ipaddr
-        --keep-alive) ;;        # alias of --keepalive
-        --new-style) ;;         # alias of -n, --newstyle
-        --no-mc) ;;             # alias of --no-meta-contexts
-        --no-sr) ;;             # alias of --no-structured-replies
-        --old-style) ;;         # alias of -o, --oldstyle
-        --pid-file) ;;          # alias of -P, --pidfile
-        --print-url) ;;         # alias of --print-uri
-        --read-only) ;;         # alias of -r, --readonly
-        --show-uri) ;;          # alias of --print-uri
-        --show-url) ;;          # alias of --print-uri
-        --stdin) ;;             # alias of -s, --single
-        --time-out) ;;          # alias of --timeout
-
-        # Anything else is tested.
-        *)
-            grep -- "$i" $synopsis
-    esac
-done
+nbdkit --keepalive null --run 'nbdinfo "$uri"'
