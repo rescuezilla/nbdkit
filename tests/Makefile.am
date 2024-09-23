@@ -309,6 +309,7 @@ TESTS += \
 	test-last-error.sh \
 	test-timeout.sh \
 	test-timeout-cancel.sh \
+	test-keepalive.sh \
 	$(NULL)
 if !IS_WINDOWS
 TESTS += \
@@ -341,6 +342,7 @@ EXTRA_DIST += \
 	test-help-plugin.sh \
 	test-ipv4-lo.sh \
 	test-ipv6-lo.sh \
+	test-keepalive.sh \
 	test-last-error.sh \
 	test-long-name.sh \
 	test-nbd-client-tls.sh \

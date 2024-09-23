@@ -301,6 +301,18 @@ See also I<-u>.
 Listen on the specified interface.  The default is to listen on all
 interfaces.  See also I<-4>, I<-6>, and I<-p>.
 
+=item B<--keep-alive>
+
+=item B<--keepalive>
+
+Enable TCP keepalive (C<SO_KEEPALIVE>) on TCP sockets.  This can allow
+clients that reboot to be detected earlier.  You may also have to
+adjust kernel parameters.  For Linux see:
+L<https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/usingkeepalive.html>
+
+Only has an effect if nbdkit uses a TCP socket (so not for I<-U>,
+I<-s>, etc.)
+
 =item B<--log=stderr>
 
 =item B<--log=syslog>

@@ -98,6 +98,7 @@ bool exit_with_parent;          /* --exit-with-parent */
 const char *export_name;        /* -e */
 bool foreground;                /* -f */
 const char *ipaddr;             /* -i */
+bool keepalive;                 /* --keepalive */
 enum log_to log_to = LOG_TO_DEFAULT; /* --log */
 unsigned mask_handshake = ~0U;  /* --mask-handshake */
 bool newstyle = true;           /* false = -o, true = -n */
@@ -331,6 +332,10 @@ main (int argc, char *argv[])
 
     case HELP_OPTION:
       help = true;
+      break;
+
+    case KEEPALIVE_OPTION:
+      keepalive = true;
       break;
 
     case LOG_OPTION:

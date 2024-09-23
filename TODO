@@ -79,6 +79,10 @@ General ideas for improvements
 * Add separate man pages for a few missing NBDKIT_EXTERN_DECL
   functions, including those for extents, contexts, and exports.
 
+* Enhance --keepalive by allowing more socket options to be set, in
+  particular SOL_TCP + TCP_KEEPCNT, SOL_TCP + TCP_KEEPIDLE, and
+  SOL_TCP + TCP_KEEPINTVL.
+
 Suggestions for plugins
 -----------------------
 
