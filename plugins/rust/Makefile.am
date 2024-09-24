@@ -33,7 +33,6 @@ include $(top_srcdir)/common-rules.mk
 
 EXTRA_DIST = \
 	CHANGELOG.md \
-	Cargo.lock.msrv \
 	Cargo.toml \
 	LICENSE \
 	README.md \
@@ -58,7 +57,7 @@ noinst_SCRIPTS = \
 	$(NULL)
 
 Cargo.lock: Cargo.toml
-	if [ `rustc --version | cut -d . -f 2` -lt 64 ]; then cp Cargo.lock.msrv Cargo.lock; else cargo update; fi
+	cargo update
 
 target/release/libnbdkit.rlib: Cargo.lock Cargo.toml src/lib.rs
 	cargo build --release

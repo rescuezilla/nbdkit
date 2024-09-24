@@ -36,6 +36,7 @@
 //! ramdisk.rs in the source code for a complete example.
 //!
 //! ```no_run
+//! # use std::ffi::CStr;
 //! # use nbdkit::*;
 //! #[derive(Default)]
 //! struct MyPlugin {
@@ -48,8 +49,8 @@
 //!         # Ok(0)
 //!     }
 //!
-//!     fn name() -> &'static str {
-//!         "my_plugin"
+//!     fn name() -> &'static CStr {
+//!         c"my_plugin"
 //!     }
 //!
 //!     fn open(_readonly: bool) -> Result<Box<dyn Server>> {
@@ -146,19 +147,13 @@ mod unreachable {
 static mut AFTER_FORK: fn() -> Result<()> = unreachable::config_complete;
 static mut CONFIG: fn(k: &str, v: &str) -> Result<()> = unreachable::config;
 static mut CONFIG_COMPLETE: fn() -> Result<()> = unreachable::config_complete;
-static mut CONFIG_HELP: Vec<u8> = Vec::new();
-static mut DESCRIPTION: Vec<u8> = Vec::new();
 static mut DUMP_PLUGIN: fn() = unreachable::dump_plugin;
 static mut GET_READY: fn() -> Result<()> = unreachable::config_complete;
 static mut LOAD: fn() = unreachable::dump_plugin;
-static mut LONGNAME: Vec<u8> = Vec::new();
-static mut MAGIC_CONFIG_KEY: Vec<u8> = Vec::new();
-static mut NAME: Vec<u8> = Vec::new();
 static mut OPEN: fn(readonly: bool) -> Result<Box<dyn Server>> = unreachable::open;
 static mut PRECONNECT: fn(readonly: bool) -> Result<()> = unreachable::preconnect;
 static mut THREAD_MODEL: fn() -> Result<ThreadModel> = unreachable::thread_model;
 static mut UNLOAD: fn() = unreachable::dump_plugin;
-static mut VERSION: Vec<u8> = Vec::new();
 static INIT: Once = Once::new();
 
 bitflags! {
@@ -756,10 +751,10 @@ pub trait Server {
     /// This optional multi-line help message should summarize any key=value
     /// parameters that it takes. It does not need to repeat what already
     /// appears in [`Server::description`].
-    fn config_help() -> Option<&'static str> where Self: Sized { None }
+    fn config_help() -> Option<&'static CStr> where Self: Sized { None }
 
     /// An optional multi-line description of the plugin.
-    fn description() -> Option<&'static str> where Self: Sized { None }
+    fn description() -> Option<&'static CStr> where Self: Sized { None }
 
     /// During the data serving phase, this callback is used to detect
     /// allocated, sparse and zeroed regions of the disk.
@@ -826,7 +821,7 @@ pub trait Server {
 
     /// An optional free text name of the plugin. This field is used in error
     /// messages.
-    fn longname() -> Option<&'static str> where Self: Sized { None }
+    fn longname() -> Option<&'static CStr> where Self: Sized { None }
 
     /// This optional string can be used to set a "magic" key used when parsing
     /// plugin parameters. It affects how "bare parameters" (those which do not
@@ -839,13 +834,13 @@ pub trait Server {
     /// the first parameter on the command line is bare then it is passed to the
     /// `Server::config` method as: `config("script", value);`. Any other bare
     /// parameters give errors.
-    fn magic_config_key() -> Option<&'static str> where Self: Sized { None }
+    fn magic_config_key() -> Option<&'static CStr> where Self: Sized { None }
 
     /// The name of the plugin.
     ///
     /// It must contain only ASCII alphanumeric characters and be unique amongst
     /// all plugins.
-    fn name() -> &'static str where Self: Sized;
+    fn name() -> &'static CStr where Self: Sized;
 
     /// Allocate and return a new `Server` handle to the client.
     ///
@@ -908,7 +903,7 @@ pub trait Server {
 
     /// An optional version string which is displayed in help and debugging
     /// output.
-    fn version() -> Option<&'static str> where Self: Sized { None }
+    fn version() -> Option<&'static CStr> where Self: Sized { None }
 
     /// Write data to the backing store.
     ///
@@ -1001,46 +996,30 @@ impl Builder {
                 PRECONNECT = S::preconnect;
                 THREAD_MODEL = S::thread_model;
                 UNLOAD = S::unload;
-                NAME = CString::new(S::name()).unwrap().into_bytes_with_nul();
-                if let Some(s) = S::config_help() {
-                    CONFIG_HELP = CString::new(s).unwrap().into_bytes_with_nul();
-                }
-                if let Some(s) = S::description() {
-                    DESCRIPTION = CString::new(s).unwrap().into_bytes_with_nul();
-                }
-                if let Some(s) = S::longname() {
-                    LONGNAME = CString::new(s).unwrap().into_bytes_with_nul();
-                }
-                if let Some(s) = S::magic_config_key() {
-                    MAGIC_CONFIG_KEY = CString::new(s).unwrap()
-                        .into_bytes_with_nul();
-                }
-                if let Some(s) = S::version() {
-                    VERSION = CString::new(s).unwrap().into_bytes_with_nul();
-                }
             };
         });
 
+        let name = S::name().as_ptr();
         let config_help = S::config_help()
-            .map(|_| unsafe {CONFIG_HELP.as_ptr()} as *const c_char)
+            .map(CStr::as_ptr)
             .unwrap_or(ptr::null());
         let description = S::description()
-            .map(|_| unsafe {DESCRIPTION.as_ptr()} as *const c_char)
+            .map(CStr::as_ptr)
             .unwrap_or(ptr::null());
         let longname = S::longname()
-            .map(|_| unsafe {LONGNAME.as_ptr()} as *const c_char)
+            .map(CStr::as_ptr)
             .unwrap_or(ptr::null());
         let magic_config_key = S::magic_config_key()
-            .map(|_| unsafe {MAGIC_CONFIG_KEY.as_ptr()} as *const c_char)
+            .map(CStr::as_ptr)
             .unwrap_or(ptr::null());
         let version = S::version()
-            .map(|_| unsafe {VERSION.as_ptr()} as *const c_char)
+            .map(CStr::as_ptr)
             .unwrap_or(ptr::null());
         let plugin = Plugin {
             _struct_size: mem::size_of::<Plugin>() as u64,
             _api_version: 2,
             _thread_model: ThreadModel::Parallel as c_int,
-            name: unsafe{ NAME.as_ptr() } as *const c_char,
+            name,
             longname,
             version,
             description,
@@ -1379,6 +1358,7 @@ pub struct Plugin {
 /// # Examples
 ///
 /// ```
+/// # use std::ffi::CStr;
 /// # use nbdkit::*;
 /// struct MyPlugin{
 ///     // ...
@@ -1389,8 +1369,8 @@ pub struct Plugin {
 ///         // ...
 ///     }
 ///
-///     fn name() -> &'static str {
-///         "my_plugin"
+///     fn name() -> &'static CStr {
+///         c"my_plugin"
 ///     }
 ///
 ///     fn open(_readonly: bool) -> Result<Box<dyn Server>> {

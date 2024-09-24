@@ -55,7 +55,6 @@ include:
     RUSTDOCFLAGS: -Dwarnings
   script:
     - cd plugins/rust
-    - rustc --version | grep -q 1.59.0 && mv Cargo.lock.msrv Cargo.lock
     - cargo build
     - cargo test
     - cargo build --examples
