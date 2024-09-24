@@ -81,22 +81,22 @@ pub fn initialize() {
         let _m = MOCK_SERVER_MTX.lock().unwrap();
         let config_help_ctx = MockServer::config_help_context();
         config_help_ctx.expect()
-            .return_const(Some("Mock config help"));
+            .return_const(Some(c"Mock config help"));
         let desc_ctx = MockServer::description_context();
         desc_ctx.expect()
-            .return_const(Some("Mock description"));
+            .return_const(Some(c"Mock description"));
         let longname_ctx = MockServer::longname_context();
         longname_ctx.expect()
-            .return_const(Some("Mock long name"));
+            .return_const(Some(c"Mock long name"));
         let magic_config_key_ctx = MockServer::magic_config_key_context();
         magic_config_key_ctx.expect()
-            .return_const(Some("magic_config_key"));
+            .return_const(Some(c"magic_config_key"));
         let name_ctx = MockServer::name_context();
         name_ctx.expect()
-            .return_const("Mock NBD Server");
+            .return_const(c"Mock NBD Server");
         let version_ctx = MockServer::version_context();
         version_ctx.expect()
-            .return_const("3.14.159");
+            .return_const(c"3.14.159");
         unsafe {
             PLUGIN = Some(plugin_init());
         }

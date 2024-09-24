@@ -66,8 +66,8 @@ mock!{
         fn can_zero(&self) -> Result<bool>;
         fn config(k: &str, v: &str) -> Result<()> where Self: Sized;
         fn config_complete() -> Result<()> where Self: Sized;
-        fn config_help() -> Option<&'static str> where Self: Sized;
-        fn description() -> Option<&'static str> where Self: Sized;
+        fn config_help() -> Option<&'static CStr> where Self: Sized;
+        fn description() -> Option<&'static CStr> where Self: Sized;
         fn dump_plugin() where Self: Sized;
         fn extents(&self, c: u32, o: u64, f: Flags, e: &mut ExtentHandle)
             -> Result<()>;
@@ -76,16 +76,16 @@ mock!{
         fn get_size(&self) -> Result<i64>;
         fn is_rotational(&self) -> Result<bool>;
         fn load() where Self: Sized;
-        fn longname() -> Option<&'static str> where Self: Sized;
-        fn magic_config_key() -> Option<&'static str> where Self: Sized;
-        fn name() -> &'static str where Self: Sized;
+        fn longname() -> Option<&'static CStr> where Self: Sized;
+        fn magic_config_key() -> Option<&'static CStr> where Self: Sized;
+        fn name() -> &'static CStr where Self: Sized;
         fn open(readonly: bool) -> Result<Box<dyn Server>> where Self: Sized;
         fn preconnect(readonly: bool) -> Result<()> where Self: Sized;
         fn read_at(&self, buf: &mut [u8], offset: u64) -> Result<()>;
         fn thread_model() -> Result<ThreadModel> where Self: Sized;
         fn trim(&self, count: u32, offset: u64, flags: Flags) -> Result<()>;
         fn unload() where Self: Sized;
-        fn version() -> Option<&'static str> where Self: Sized;
+        fn version() -> Option<&'static CStr> where Self: Sized;
         fn write_at(&self, _buf: &[u8], _offset: u64, _flags: Flags) -> Result<()>;
         fn zero(&self, count: u32, offset: u64, flags: Flags) -> Result<()>;
     }

@@ -7,7 +7,12 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- The MSRV is now 1.63.0
+- `Server` methods that return fixed strings, like `Server::name`, now return
+  `&static CStr` strings instead of `&'static str`.
+  (#[67](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/67))
+
+- The MSRV is now 1.77.0
+  (#[67](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/67))
   (#[49](https://gitlab.com/nbdkit/nbdkit/-/merge_requests/49))
  
 ## [0.3.0] - 20 July 2023
