@@ -69,14 +69,15 @@ test -f $dir/test
 
 # These should fail because the exportname is invalid.
 errors=0
-for e in /bad .bad . .. ./etc ; do
+for e in /bad bad/bad .bad . .. ./etc ; do
     if nbdinfo "nbd+unix:///$e?socket=$sock"; then ((errors++)) ||:; fi
-    # QEMU 9.1 fails to parse exportnames starting with "." correctly:
+    if qemu-img info nbd:unix:$sock:exportname=$e; then ((errors++)) ||:; fi
+    # QEMU 9.1 switched to glib to parse URIs, and this munges URIs
+    # that contain ".", "..", and various other things:
     # https://gitlab.com/qemu-project/qemu/-/issues/2584
+    # So we must skip URI-based tests for some URIs.
     if test "$e" != "." && test "$e" != ".." && test "$e" != "./etc"; then
         if qemu-img info "nbd+unix:///$e?socket=$sock"
-        then ((errors++)) ||:; fi
-        if qemu-img info nbd:unix:$sock:exportname=$e
         then ((errors++)) ||:; fi
     fi
 done
