@@ -36,6 +36,11 @@ containing:
 
  [Socket]
  ListenStream=10809
+ # Optional settings to detect dead clients:
+ #KeepAlive=true
+ #KeepAliveTimeSec=60
+ #KeepAliveIntervalSec=10
+ #KeepAliveProbes=5
 
  [Install]
  WantedBy=sockets.target
@@ -48,6 +53,9 @@ containing:
 
  [Service]
  ExecStart=/usr/sbin/nbdkit file /path/to/serve
+ # Optional settings to run as non-root:
+ #User=nbd
+ #Group=nbd
 
 For more information on systemd and socket activation, see
 L<http://0pointer.de/blog/projects/socket-activation.html>
