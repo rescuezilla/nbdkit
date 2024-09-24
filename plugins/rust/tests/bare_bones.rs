@@ -56,10 +56,10 @@ pub fn initialize() {
             .return_const(None);
         let magic_config_key_ctx = MockServer::magic_config_key_context();
         magic_config_key_ctx.expect()
-            .return_const(Some("magic_config_key"));
+            .return_const(Some(c"magic_config_key"));
         let name_ctx = MockServer::name_context();
         name_ctx.expect()
-            .return_const("Mock NBD Server");
+            .return_const(c"Mock NBD Server");
         let version_ctx = MockServer::version_context();
         version_ctx.expect()
             .return_const(None);

@@ -26,7 +26,10 @@
 // SUCH DAMAGE.
 
 use lazy_static::lazy_static;
-use std::sync::Mutex;
+use std::{
+    ffi::CStr,
+    sync::Mutex
+};
 use nbdkit::*;
 
 // The RAM disk.
@@ -44,8 +47,8 @@ struct RamDisk {
 }
 
 impl Server for RamDisk {
-    fn name() -> &'static str {
-        "ramdisk"
+    fn name() -> &'static CStr {
+        c"ramdisk"
     }
 
     fn config(key: &str, val: &str) -> Result<()> {

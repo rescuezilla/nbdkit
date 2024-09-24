@@ -3,14 +3,14 @@ name = "nbdkit"
 version = "0.3.0"
 authors = ["Alan Somers <asomers@gmail.com>"]
 license = "BSD-2-Clause"
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 repository = "https://gitlab.com/nbdkit/nbdkit"
 categories = ["api-bindings", "filesystem"]
 keywords = ["network-block-device", "nbd"]
 homepage = "http://libguestfs.org/"
-rust-version = "1.63"
-exclude = ["nbdkit-rust-plugin.*", "Makefile*", "run-cargo-tests.sh", "test-ramdisk.sh", "Cargo.lock.msrv"]
+rust-version = "1.77"
+exclude = ["nbdkit-rust-plugin.*", "Makefile*", "run-cargo-tests.sh", "test-ramdisk.sh"]
 description = """
 Rust bindings to the NBDKit framework for creating Network Block Device servers
 """
