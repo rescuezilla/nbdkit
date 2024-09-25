@@ -15,6 +15,7 @@ x86_64-almalinux-9:
   allow_failure: false
   variables:
     NAME: almalinux-9
+    RUST: skip
     TARGET_BASE_IMAGE: docker.io/library/almalinux:9
 
 
@@ -27,6 +28,7 @@ x86_64-alpine-319:
   variables:
     GOLANG: skip
     NAME: alpine-319
+    RUST: skip
     TARGET_BASE_IMAGE: docker.io/library/alpine:3.19
 
 
@@ -85,6 +87,7 @@ x86_64-debian-12:
   allow_failure: false
   variables:
     NAME: debian-12
+    RUST: skip
     TARGET_BASE_IMAGE: docker.io/library/debian:12-slim
 
 
@@ -96,6 +99,7 @@ x86_64-debian-sid:
   allow_failure: true
   variables:
     NAME: debian-sid
+    RUST: skip
     TARGET_BASE_IMAGE: docker.io/library/debian:sid-slim
 
 
@@ -178,6 +182,7 @@ x86_64-ubuntu-2204:
   allow_failure: false
   variables:
     NAME: ubuntu-2204
+    RUST: skip
     TARGET_BASE_IMAGE: docker.io/library/ubuntu:22.04
 
 
@@ -189,6 +194,7 @@ x86_64-ubuntu-2404:
   allow_failure: false
   variables:
     NAME: ubuntu-2404
+    RUST: skip
     TARGET_BASE_IMAGE: docker.io/library/ubuntu:24.04
 
 

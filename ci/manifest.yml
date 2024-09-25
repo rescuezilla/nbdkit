@@ -8,7 +8,12 @@ gitlab:
     check-dco: false
 
 targets:
-  almalinux-9: x86_64
+  almalinux-9:
+    jobs:
+      - arch: x86_64
+        variables:
+          # rustc 1.75.0 < MSRV
+          RUST: skip
 
   alpine-319:
     jobs:
@@ -16,6 +21,8 @@ targets:
         variables:
           # cgo does not play well with musl: https://github.com/golang/go/issues/13492
           GOLANG: skip
+          # rustc 1.76.0 < MSRV
+          RUST: skip
 
   alpine-320:
     jobs:
@@ -40,9 +47,19 @@ targets:
           # https://listman.redhat.com/archives/libguestfs/2023-January/thread.html#30476
           RUST: skip
 
-  debian-12: x86_64
+  debian-12:
+    jobs:
+      - arch: x86_64
+        variables:
+          # rustc 1.63.0 < MSRV
+          RUST: skip
 
-  debian-sid: x86_64
+  debian-sid:
+    jobs:
+      - arch: x86_64
+        variables:
+          # rustc 1.74.0 < MSRV
+          RUST: skip
 
   fedora-39:
     jobs:
@@ -112,6 +129,16 @@ targets:
           RUST: skip
           GOLANG: skip
 
-  ubuntu-2204: x86_64
+  ubuntu-2204:
+    jobs:
+      - arch: x86_64
+        variables:
+          # rustc 1.75.0 < MSRV
+          RUST: skip
 
-  ubuntu-2404: x86_64
+  ubuntu-2404:
+    jobs:
+      - arch: x86_64
+        variables:
+          # rustc 1.75.0 < MSRV
+          RUST: skip
