@@ -34,11 +34,12 @@
 (** Interface between plugins written in OCaml and the nbdkit server.
 
     Read these man pages for additional information:
-    {{:http://libguestfs.org/nbdkit-ocaml-plugin.3.html}[nbdkit-ocaml-plugin(3)]}
+    {{:https://libguestfs.org/nbdkit-ocaml-plugin.3.html}[nbdkit-ocaml-plugin(3)]}
     and
-    {{:http://libguestfs.org/nbdkit-plugin.3.html}[nbdkit-plugin(3)]} *)
+    {{:https://libguestfs.org/nbdkit-plugin.3.html}[nbdkit-plugin(3)]} *)
 
-(** Flags passed from the server to various callbacks. *)
+(** {2 Flags passed from the server to various callbacks} *)
+
 type flags = flag list
 and flag = May_trim | FUA | Req_one
 
@@ -46,7 +47,9 @@ type fua_flag = FuaNone | FuaEmulate | FuaNative
 
 type cache_flag = CacheNone | CacheEmulate | CacheNop
 
-(** The type of the extent list returned by [extents] *)
+(** {2 Other types} *)
+
+(** The type of the extent list returned by [~extents] *)
 type extent = {
   offset : int64;
   length : int64;
@@ -54,46 +57,45 @@ type extent = {
   is_zero : bool;
 }
 
-(** The type of the export list returned by [list_exports] *)
+(** The type of the export list returned by [~list_exports] *)
 type export = {
   name : string;
   description : string option;
 }
 
-(** The type of the thread model returned by [thread_model] *)
+(** The type of the thread model returned by [~thread_model] *)
 type thread_model =
 | THREAD_MODEL_SERIALIZE_CONNECTIONS
 | THREAD_MODEL_SERIALIZE_ALL_REQUESTS
 | THREAD_MODEL_SERIALIZE_REQUESTS
 | THREAD_MODEL_PARALLEL
 
-(** Define a convenient type name for the buffer type passed to
-    the [~pread] and [~pwrite] methods. *)
+(** {2 Buffer used for pread and pwrite} *)
+
 type buf =
   (char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+(** Define a convenient type name for the buffer type passed to
+    the [~pread] and [~pwrite] methods. *)
 
-(** Return the length of the [~pread] and [~pwrite] [buf] parameter. *)
 val buf_len : buf -> int
+(** Return the length of the [~pread] and [~pwrite] [buf] parameter. *)
 
-(** Helper functions to blit between bytes/string and buf.
-
-    [blit_string_to_buf src src_pos buf buf_pos len] copies
-    [len] bytes from string [src+src_pos] to [buf+buf_pos].
-
-    [blit_bytes_to_buf src src_pos buf buf_pos len] is the
-    same but the source is bytes.
-
-    [blit_buf_to_bytes buf buf_pos dst dst_pos len] copies
-    [len] bytes from [buf+buf_pos] to bytes [dst+dst_pos].
-*)
 val blit_string_to_buf : string -> int -> buf -> int -> int -> unit
 val blit_bytes_to_buf : bytes -> int -> buf -> int -> int -> unit
 val blit_buf_to_bytes : buf -> int -> bytes -> int -> int -> unit
+(** Helper functions to blit between bytes/string and buf.
 
-(** Register the plugin with nbdkit.
+    {ul
+     {- [blit_string_to_buf src src_pos buf buf_pos len] copies
+        [len] bytes from string [src+src_pos] to [buf+buf_pos]}
+     {- [blit_bytes_to_buf src src_pos buf buf_pos len] is the
+        same but the source is bytes}
+     {- [blit_buf_to_bytes buf buf_pos dst dst_pos len] copies
+        [len] bytes from [buf+buf_pos] to bytes [dst+dst_pos]}}
+*)
 
-    The ['a] parameter is the handle type returned by your
-    [open_connection] method and passed back to all connected calls. *)
+(** {2 Plugin} *)
+
 val register_plugin :
   (* Plugin description. *)
   name: string ->
@@ -151,95 +153,145 @@ val register_plugin :
 
   unit ->
   unit
+(** Register the plugin with nbdkit.
 
+    The ['a] parameter is the handle type returned by your
+    [open_connection] method and passed back to all connected calls. *)
+
+(** {2 Errors and debugging} *)
+
+val set_error : Unix.error -> unit
 (** Set the errno returned over the NBD protocol to the client.
 
     Notice however that the NBD protocol only supports a small
     handful of errno values.  Any other errno will be translated
     into [EINVAL]. *)
-val set_error : Unix.error -> unit
 
-(** Bindings for
-    {{:http://libguestfs.org/nbdkit_parse_size.3.html}[nbdkit_parse_size(3)]},
-    {{:http://libguestfs.org/nbdkit_parse_probability.3.html}[nbdkit_parse_probability(3)]},
-    {{:http://libguestfs.org/nbdkit_parse_bool.3.html}[nbdkit_parse_bool(3)]},
-    {{:http://libguestfs.org/nbdkit_parse_delay.3.html}[nbdkit_parse_delay(3)]}
-    and
-    {{:http://libguestfs.org/nbdkit_read_password.3.html}[nbdkit_read_password(3)]}.
+val debug : ('a, unit, string, unit) format4 -> 'a
+(** Print a debug message when nbdkit is in verbose mode.
 
-    On error these functions all raise [Invalid_argument].  The
-    actual error is sent to the nbdkit error log and is not
-    available from the OCaml code.  It is usually best to let
-    the exception escape. *)
+    @see <https://libguestfs.org/nbdkit_debug.3.html> nbdkit_debug(3) *)
+
+(** {2 Parsing and configuration} *)
+
 (* Note OCaml has functions already for parsing other integers, so
  * there is no need to bind them here.  We only bind the functions
  * which have special abilities in nbdkit: [parse_size] can parse
  * human sizes, [parse_probability] and [parse_bool] parses a range
  * of nbdkit-specific strings, and [read_password] suppresses echo.
  *)
+
 val parse_size : string -> int64
 val parse_probability : string -> string -> float
 val parse_bool : string -> bool
 val parse_delay : string -> string -> int * int
 val read_password : string -> string
+(** Parse plugin parameters
 
-(** Binding for [nbdkit_stdio_safe].
-    Returns true if it is safe to interact with stdin and stdout
-    during the configuration phase. *)
-val stdio_safe : unit -> bool
+    @see <https://libguestfs.org/nbdkit_parse_size.3.html> nbdkit_parse_size(3)
 
-(** Binding for [nbdkit_realpath].
-    Returns the canonical path from a path parameter. *)
+    @see <https://libguestfs.org/nbdkit_parse_probability.3.html> nbdkit_parse_probability(3)
+
+    @see <https://libguestfs.org/nbdkit_parse_bool.3.html> nbdkit_parse_bool(3)
+
+    @see <https://libguestfs.org/nbdkit_parse_delay.3.html> nbdkit_parse_delay(3)
+
+    @see <https://libguestfs.org/nbdkit_read_password.3.html> nbdkit_read_password(3)
+
+    @raise Invalid_argument on error.  The actual error is sent to
+    the nbdkit error log and is not available from the OCaml code.
+    It is usually best to let the exception escape. *)
+
 (* OCaml's [Filename] module can handle [absolute_path]. *)
+
 val realpath : string -> string
+(** Binding for [nbdkit_realpath].
 
-(** Binding for [nbdkit_nanosleep].
-    Sleeps for seconds and nanoseconds. *)
-val nanosleep : int -> int -> unit
+    @see <https://libguestfs.org/nbdkit_realpath.3.html> nbdkit_realpath(3)
 
-(** Binding for [nbdkit_export_name].
-    Returns the name of the export as requested by the client. *)
-val export_name : unit -> string
+    @return the canonical path from a path parameter. *)
 
-(** Binding for [nbdkit_is_tls].
-    Returns true if the client completed TLS authentication. *)
-val is_tls : unit -> bool
+val stdio_safe : unit -> bool
+(** Binding for [nbdkit_stdio_safe].
 
-(** Binding for [nbdkit_shutdown].
-    Requests the server shut down. *)
+    @return true if it is safe to interact with stdin and stdout
+    during the configuration phase. *)
+
+(** {2 Shutdown and client disconnect} *)
+
 val shutdown : unit -> unit
+(** Requests the server shut down.
 
-(** Binding for [nbdkit_disconnect].
-    Requests disconnecting current client. *)
+    @see <https://libguestfs.org/nbdkit_shutdown.3.html> nbdkit_shutdown(3) *)
+
 val disconnect : bool -> unit
+(** Requests disconnecting current client.
 
-(** Print a debug message when nbdkit is in verbose mode. *)
-val debug : ('a, unit, string, unit) format4 -> 'a
+    @see <https://libguestfs.org/nbdkit_disconnect.3.html> nbdkit_disconnect(3) *)
 
-(** Return the version of nbdkit that the plugin was compiled with. *)
-val version : unit -> string
+(** {2 Client information} *)
 
-(** Return the nbdkit API version used by the plugin.
+val export_name : unit -> string
+(** Binding for [nbdkit_export_name].
 
-    See [NBDKIT_API_VERSION] in
-    {{:http://libguestfs.org/nbdkit-plugin.3.html}[nbdkit-plugin(3)]}. *)
-val api_version : unit -> int
+    @see <https://libguestfs.org/nbdkit_export_name.3.html> nbdkit_export_name(3)
 
-(** Binding for [nbdkit_peer_name]. *)
+    @return the name of the export as requested by the client. *)
+
+val is_tls : unit -> bool
+(** Binding for [nbdkit_is_tls].
+
+    @see <https://libguestfs.org/nbdkit_is_tls.3.html> nbdkit_is_tls(3)
+
+    @return true if the client completed TLS authentication. *)
+
 val peer_name : unit -> Unix.sockaddr
+(** Binding for [nbdkit_peer_name].
 
-(** Binding for [nbdkit_peer_pid]. *)
+    @see <https://libguestfs.org/nbdkit_peer_name.3.html> nbdkit_peer_name(3) *)
+
 val peer_pid : unit -> int64
+(** Binding for [nbdkit_peer_pid]
 
-(** Binding for [nbdkit_peer_uid]. *)
+    @see <https://libguestfs.org/nbdkit_peer_pid.3.html> nbdkit_peer_pid(3) *)
+
 val peer_uid : unit -> int64
+(** Binding for [nbdkit_peer_uid].
 
-(** Binding for [nbdkit_peer_gid]. *)
+    @see <https://libguestfs.org/nbdkit_peer_uid.3.html> nbdkit_peer_uid(3) *)
+
 val peer_gid : unit -> int64
+(** Binding for [nbdkit_peer_gid].
 
-(** Binding for [nbdkit_peer_security_context]. *)
+    @see <https://libguestfs.org/nbdkit_peer_gid.3.html> nbdkit_peer_gid(3) *)
+
 val peer_security_context : unit -> string
+(** Binding for [nbdkit_peer_security_context].
 
-(** Binding for [nbdkit_peer_tls_dn] and [nbdkit_peer_tls_issuer_dn]. *)
+    @see <https://libguestfs.org/nbdkit_peer_security_context.3.html> nbdkit_peer_security_context(3) *)
+
 val peer_tls_dn : unit -> string
 val peer_tls_issuer_dn : unit -> string
+(** Bindings for [nbdkit_peer_tls_dn] and [nbdkit_peer_tls_issuer_dn].
+
+    @see <https://libguestfs.org/nbdkit_peer_tls_dn.3.html> nbdkit_peer_tls_dn(3)
+
+    @see <https://libguestfs.org/nbdkit_peer_tls_issuer_dn.3.html> nbdkit_peer_tls_issuer_dn(3) *)
+
+(** {2 Sleeping} *)
+
+val nanosleep : int -> int -> unit
+(** Sleeps for seconds and nanoseconds.
+
+    @see <https://libguestfs.org/nbdkit_nanosleep.3.html> nbdkit_nanosleep(3) *)
+
+(** {2 Version} *)
+
+val version : unit -> string
+(** @return the version of nbdkit that the plugin was compiled with. *)
+
+val api_version : unit -> int
+(** @return the nbdkit API version used by the plugin.
+
+    @see <https://libguestfs.org/nbdkit-plugin.3.html>
+    The description of [NBDKIT_API_VERSION] in nbdkit-plugin(3). *)
