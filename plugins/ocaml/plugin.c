@@ -131,8 +131,15 @@ static void
 destroy_thread (void *val)
 {
   if (val == &thread_key_non_main) {
-    /* Unregister this non-main thread. */
-    if (caml_c_thread_unregister () == 0) abort ();
+    /* Unregister this non-main thread.
+     *
+     * Originally we called abort() on failure here, but that causes
+     * problems under valgrind (only).  Since unregistering the thread
+     * is essentially optional, and the failure isn't actionable,
+     * don't worry about it.
+     */
+    /*if (caml_c_thread_unregister () == 0) abort ();*/
+    caml_c_thread_unregister ();
     pthread_setspecific (thread_key, NULL);
   }
 }
