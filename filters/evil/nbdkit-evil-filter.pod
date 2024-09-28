@@ -159,7 +159,8 @@ L<nbdkit(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-delay-filter(1)>,
 L<nbdkit-noextents-filter(1)>,
-L<nbdkit-error-filter(1)>.
+L<nbdkit-error-filter(1)>,
+L<nbdkit_parse_probability(3)>.
 
 =head1 AUTHORS
 
