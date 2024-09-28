@@ -47,10 +47,10 @@ ocamllibdir = $(OCAMLLIB)
 ocamllib_DATA = NBDKit.mli NBDKit.cmi NBDKit.cmx NBDKit.o
 
 NBDKit.cmi: NBDKit.mli
-	$(OCAMLC) -c $< -o $@
+	$(OCAMLC) $(OCAML_STD_INCLUDES) -c $< -o $@
 
 NBDKit.cmx: NBDKit.ml NBDKit.cmi
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) -c $< -o $@
+	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAML_STD_INCLUDES) -c $< -o $@
 NBDKit.o: NBDKit.cmx
 
 # NB: libnbdkitocaml is not a plugin.  It's a library that you have to
@@ -86,13 +86,13 @@ noinst_SCRIPTS = nbdkit-ocamlexample-plugin.so
 nbdkit-ocamlexample-plugin.so: example.cmx \
 	    example-debug-flag.o \
 	    libnbdkitocaml.la NBDKit.cmi NBDKit.cmx
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) \
+	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAML_STD_INCLUDES) \
 	  -output-obj -runtime-variant _pic -o $@ \
 	  $(OCAML_PLUGIN_LIBRARIES) NBDKit.cmx \
 	  $< example-debug-flag.o \
 	  -cclib -L.libs -cclib -lnbdkitocaml
 example.cmx: example.ml NBDKit.cmi NBDKit.cmx
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) -c $< -o $@
+	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAML_STD_INCLUDES) -c $< -o $@
 example-debug-flag.o: example-debug-flag.c
 	$(CC) $(CFLAGS) \
 	  -DCAML_NAME_SPACE -I$(OCAMLLIB) \
@@ -112,12 +112,13 @@ nbdkit-ocaml-plugin.3: nbdkit-ocaml-plugin.pod \
 		$(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
+	    --replace "__OCAML_STD_INCLUDES__:$(OCAML_STD_INCLUDES)" \
 	    --replace "__OCAML_PLUGIN_LIBRARIES__:$(OCAML_PLUGIN_LIBRARIES)" \
 	    $<
 
 if HAVE_OCAMLDOC
 NBDKit.3: NBDKit.mli
-	$(OCAMLDOC) -man -man-mini -man-suffix 3 $<
+	$(OCAMLDOC) $(OCAML_STD_INCLUDES) -man -man-mini -man-suffix 3 $<
 endif HAVE_OCAMLDOC
 
 endif HAVE_POD

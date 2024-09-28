@@ -76,6 +76,7 @@ nbdkit-cc-plugin.3: nbdkit-cc-plugin.pod \
 		$(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
+	    --replace "__OCAML_STD_INCLUDES__:$(OCAML_STD_INCLUDES)" \
 	    --replace "__OCAML_PLUGIN_LIBRARIES__:$(OCAML_PLUGIN_LIBRARIES)" \
 	    $<
 

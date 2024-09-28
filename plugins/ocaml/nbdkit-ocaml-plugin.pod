@@ -53,7 +53,7 @@ using this command:
 
  ocamlopt.opt -output-obj -runtime-variant _pic \
               -o nbdkit-myplugin-plugin.so \
-              __OCAML_PLUGIN_LIBRARIES__ \
+              __OCAML_STD_INCLUDES__ __OCAML_PLUGIN_LIBRARIES__ \
               NBDKit.cmx myplugin.ml \
               -cclib -lnbdkitocaml
 

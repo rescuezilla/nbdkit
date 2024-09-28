@@ -1017,12 +1017,15 @@ AS_IF([test "x$OCAMLC" != "xno" && test "x$OCAMLFIND" != "xno" && \
 
     AC_MSG_CHECKING([for what libraries are needed for OCaml plugins])
     AS_IF([test $OCAML_MAJOR -ge 5],[
+        OCAML_STD_INCLUDES="-I +unix -I +threads"
         # bigarray is part of the stdlib in OCaml >= 5
-        OCAML_PLUGIN_LIBRARIES="-I +unix unix.cmxa -I +threads threads.cmxa"
+        OCAML_PLUGIN_LIBRARIES="unix.cmxa threads.cmxa"
     ],[
+        OCAML_STD_INCLUDES=""
         OCAML_PLUGIN_LIBRARIES="unix.cmxa bigarray.cmxa"
     ])
-    AC_MSG_RESULT([$OCAML_PLUGIN_LIBRARIES])
+    AC_MSG_RESULT([$OCAML_STD_INCLUDES $OCAML_PLUGIN_LIBRARIES])
+    AC_SUBST([OCAML_STD_INCLUDES])
     AC_SUBST([OCAML_PLUGIN_LIBRARIES])
 
     dnl Check if OCaml has caml_alloc_initialized_string (added 2017).

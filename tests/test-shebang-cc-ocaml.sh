@@ -42,6 +42,7 @@ requires_plugin cc
 requires_run
 requires_nbdsh_uri
 
+export OCAML_STD_INCLUDES
 export OCAML_PLUGIN_LIBRARIES
 
 # For unclear reasons linking the OCaml plugin fails on macOS. XXX
