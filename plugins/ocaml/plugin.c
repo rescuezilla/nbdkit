@@ -90,10 +90,13 @@
 
 /* The key can have the following values:
  * NULL = new thread, not registered
- * (void*)1 = this is the main thread, do not register
- * (void*)2 = this is a non-main thread that has been registered
+ * &thread_key_main = this is the main thread, do not register
+ * &thread_key_non_main = this is a non-main thread that has been registered
  */
 static pthread_key_t thread_key;
+/* These globals are just used as addresses: */
+static char thread_key_main;
+static char thread_key_non_main;
 
 static void destroy_thread (void *val);
 
@@ -103,7 +106,7 @@ init_threads (void)
   pthread_key_create (&thread_key, destroy_thread);
 
   /* Mark this as the main thread. */
-  pthread_setspecific (thread_key, (void*)1);
+  pthread_setspecific (thread_key, &thread_key_main);
 }
 
 static void
@@ -113,7 +116,7 @@ register_thread (void)
   if (val == NULL) {
     /* Register this non-main thread, and remember that we did it. */
     if (caml_c_thread_register () == 0) abort ();
-    pthread_setspecific (thread_key, (void*)2);
+    pthread_setspecific (thread_key, &thread_key_non_main);
   }
 }
 
@@ -127,7 +130,7 @@ unregister_thread (void)
 static void
 destroy_thread (void *val)
 {
-  if (val == (void*)2) {
+  if (val == &thread_key_non_main) {
     /* Unregister this non-main thread. */
     if (caml_c_thread_unregister () == 0) abort ();
     pthread_setspecific (thread_key, NULL);
