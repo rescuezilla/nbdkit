@@ -188,31 +188,31 @@ let register_plugin ~name
   may (set_field "zero") zero
 
 (* Bindings to nbdkit server functions. *)
-external set_error : Unix.error -> unit = "ocaml_nbdkit_set_error" [@@noalloc]
-external parse_size : string -> int64 = "ocaml_nbdkit_parse_size"
-external parse_probability : string -> string -> float =
-  "ocaml_nbdkit_parse_probability"
+external api_version : unit -> int = "ocaml_nbdkit_api_version"
+external _debug : string -> unit = "ocaml_nbdkit_debug" [@@noalloc]
+let debug fs = ksprintf _debug fs
+external disconnect : bool -> unit = "ocaml_nbdkit_disconnect" [@@noalloc]
+external export_name : unit -> string = "ocaml_nbdkit_export_name"
+external is_tls : unit -> bool = "ocaml_nbdkit_is_tls"
+external nanosleep : int -> int -> unit = "ocaml_nbdkit_nanosleep"
 external parse_bool : string -> bool = "ocaml_nbdkit_parse_bool"
 external parse_delay : string -> string -> int * int =
   "ocaml_nbdkit_parse_delay"
-external read_password : string -> string = "ocaml_nbdkit_read_password"
-external stdio_safe : unit -> bool = "ocaml_nbdkit_stdio_safe"
-external realpath : string -> string = "ocaml_nbdkit_realpath"
-external nanosleep : int -> int -> unit = "ocaml_nbdkit_nanosleep"
-external export_name : unit -> string = "ocaml_nbdkit_export_name"
-external is_tls : unit -> bool = "ocaml_nbdkit_is_tls"
-external shutdown : unit -> unit = "ocaml_nbdkit_shutdown" [@@noalloc]
-external disconnect : bool -> unit = "ocaml_nbdkit_disconnect" [@@noalloc]
-external _debug : string -> unit = "ocaml_nbdkit_debug" [@@noalloc]
-let debug fs = ksprintf _debug fs
-external version : unit -> string = "ocaml_nbdkit_version"
-external api_version : unit -> int = "ocaml_nbdkit_api_version"
+external parse_probability : string -> string -> float =
+  "ocaml_nbdkit_parse_probability"
+external parse_size : string -> int64 = "ocaml_nbdkit_parse_size"
+external peer_gid : unit -> int64 = "ocaml_nbdkit_peer_gid"
 external peer_name : unit -> Unix.sockaddr = "ocaml_nbdkit_peer_name"
 external peer_pid : unit -> int64 = "ocaml_nbdkit_peer_pid"
-external peer_uid : unit -> int64 = "ocaml_nbdkit_peer_uid"
-external peer_gid : unit -> int64 = "ocaml_nbdkit_peer_gid"
 external peer_security_context : unit -> string =
   "ocaml_nbdkit_peer_security_context"
 external peer_tls_dn : unit -> string = "ocaml_nbdkit_peer_tls_dn"
 external peer_tls_issuer_dn : unit -> string =
   "ocaml_nbdkit_peer_tls_issuer_dn"
+external peer_uid : unit -> int64 = "ocaml_nbdkit_peer_uid"
+external read_password : string -> string = "ocaml_nbdkit_read_password"
+external realpath : string -> string = "ocaml_nbdkit_realpath"
+external set_error : Unix.error -> unit = "ocaml_nbdkit_set_error" [@@noalloc]
+external shutdown : unit -> unit = "ocaml_nbdkit_shutdown" [@@noalloc]
+external stdio_safe : unit -> bool = "ocaml_nbdkit_stdio_safe"
+external version : unit -> string = "ocaml_nbdkit_version"
