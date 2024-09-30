@@ -69,6 +69,7 @@ h2 = nbd.NBD()
 h2.set_export_name("export1")
 try:
     h2.connect_unix(sock)
+    assert False
 except nbd.Error:
     pass
 
