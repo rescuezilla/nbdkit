@@ -234,15 +234,16 @@ ondemand_list_exports (int readonly, int default_only,
 
   /* XXX Output is not sorted.  Does it matter? */
   while (errno = 0, (d = readdir (exportsdir)) != NULL) {
-    /* Skip any file containing non-permitted characters '.' and ':'.
-     * As a side effect this skips all dot-files.  Commands can use
-     * dot-files to "hide" files in the export dir (eg. if needing to
-     * keep state).
+    /* Skip any file that would be an invalid exportname.  Commands
+     * can use dot-files to "hide" files in the export dir (eg. if
+     * needing to keep state).
      */
-    if (strchr (d->d_name, '.') || strchr (d->d_name, ':'))
+    if (! is_valid_exportname (d->d_name))
       continue;
 
-    /* Skip the "default" filename which refers to the "" export. */
+    /* Skip the "default" filename which refers to the "" export,
+     * since we returned it first in the list above.
+     */
     if (strcmp (d->d_name, "default") == 0)
       continue;
 
