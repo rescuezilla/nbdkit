@@ -186,6 +186,30 @@ ondemand_get_ready (void)
   "wait=true                   Wait instead of rejecting second client.\n" \
   "command=<COMMAND>           Alternate command instead of mkfs."
 
+/* Return true if the exportname is valid. */
+static bool
+is_valid_exportname (const char *exportname)
+{
+  size_t len = strlen (exportname);
+
+  /* This should never happen, see .default_export */
+  if (len == 0)
+    return false;
+
+  if (len > NAME_MAX)
+    return false;
+
+  /* Don't allow hidden files, or access to "." or "..". */
+  if (exportname[0] == '.')
+    return false;
+
+  /* Don't allow directories. */
+  if (strchr (exportname, '/'))
+    return false;
+
+  return true;
+}
+
 /* Because we rewind the exportsdir handle, we need a lock to protect
  * list_exports from being called in parallel.
  */
@@ -275,28 +299,6 @@ static int
 ondemand_can_fua (void *handle)
 {
   return NBDKIT_FUA_NATIVE;
-}
-
-/* Verify that the export name is valid. */
-static int
-check_exportname (const char *exportname)
-{
-  size_t len = strlen (exportname);
-
-  assert (len > 0); /* see .default_export */
-
-  if (len > NAME_MAX)
-    return -1;
-
-  /* Don't allow hidden files, or access to "." or "..". */
-  if (exportname[0] == '.')
-    return -1;
-
-  /* Don't allow directories. */
-  if (strchr (exportname, '/'))
-    return -1;
-
-  return 0;
 }
 
 /* This creates and runs the full "mkfs" (or whatever) command. */
@@ -410,7 +412,7 @@ ondemand_open (int readonly)
   }
 
   /* Verify that the export name is valid. */
-  if (check_exportname (h->exportname) == -1) {
+  if (! is_valid_exportname (h->exportname)) {
     nbdkit_error ("invalid exportname ‘%s’ rejected", h->exportname);
     goto error;
   }
