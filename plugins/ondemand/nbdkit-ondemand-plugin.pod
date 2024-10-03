@@ -15,10 +15,10 @@ on demand.  Clients may simply connect to the server, requesting a
 particular export name, and a new filesystem is created if it does not
 exist already.  Clients can also disconnect and reconnect with the
 same export name and the same filesystem will still be available.
-Filesystems are stored in a directory on the server, so they also
-persist over nbdkit and server restarts.
+Filesystems are stored in a directory on the server, so they persist
+over server restarts.
 
-By default each filesystem is locked while it is in use by a client,
+By default each export is locked while it is in use by a client,
 preventing two clients from accessing the same filesystem (which would
 cause corruption).
 
@@ -53,8 +53,8 @@ L<nbdkit-ip-filter(1)>, firewalls, or TLS client certificates.
 
 =head2 The command parameter
 
-Instead of running mkfs you can run an arbitrary command (a shell
-script fragment) to create the disk.
+Instead of running mkfs you can run an arbitrary command or shell
+script to create the disk.
 
 The other parameters to the plugin are turned into shell variables
 passed to the command.  For example C<type> becomes the shell variable
@@ -82,6 +82,16 @@ to bytes.  Note the final size served to the client is whatever disk
 size C<command> creates.
 
 =back
+
+=head2 Dead client detection
+
+Clients which "go away" without disconnecting (such as clients which
+reboot) may cause exports to remain locked when they are no longer
+used.  Practically this can cause problems such as the same client
+being unable to reconnect after a reboot.  To avoid this you should
+enable keepalives to detect dead clients.  Use the nbdkit
+I<--keepalive> option, or for more fine-grained control see the
+discussion of keepalives in L<nbdkit-service(1)>.
 
 =head1 EXAMPLE
 
@@ -121,8 +131,7 @@ the server admin should delete them (or use a tmp cleaner).
 
 Instead of running L<mkfs(8)> to create the initial filesystem, run
 C<COMMAND> (a shell script fragment which usually must be quoted to
-protect it from the shell).  See L</The command parameter> and
-L</EXAMPLES> sections above.
+protect it from the shell).  See L</The command parameter> above.
 
 =item B<dir=>EXPORTSDIR
 
@@ -208,6 +217,7 @@ L<nbdkit-limit-filter(1)>,
 L<nbdkit-linuxdisk-plugin(1)>,
 L<nbdkit-memory-plugin(1)>,
 L<nbdkit-tmpdisk-plugin(1)>,
+L<nbdkit-service(1)>,
 L<nbdkit-tls(1)>,
 L<mkfs(8)>,
 L<mke2fs(8)>.
