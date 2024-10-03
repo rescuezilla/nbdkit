@@ -61,6 +61,7 @@
 
 static char *dir;                   /* dir parameter */
 static DIR *exportsdir;             /* opened exports dir */
+static int share;                   /* don't lock */
 static int64_t requested_size = -1; /* size parameter on the command line */
 static int waitlock;                /* wait if locked */
 
@@ -110,6 +111,12 @@ ondemand_config (const char *key, const char *value)
   else if (strcmp (key, "wait") == 0) {
     waitlock = nbdkit_parse_bool (value);
     if (waitlock == -1)
+      return -1;
+  }
+
+  else if (strcmp (key, "share") == 0) {
+    share = nbdkit_parse_bool (value);
+    if (share == -1)
       return -1;
   }
 
@@ -183,6 +190,7 @@ ondemand_get_ready (void)
   "size=<SIZE>      (required) Virtual filesystem size.\n" \
   "label=<LABEL>               The filesystem label.\n" \
   "type=ext4|...               The filesystem type.\n" \
+  "share=true                  Don't lock filesystem (unsafe).\n" \
   "wait=true                   Wait instead of rejecting second client.\n" \
   "command=<COMMAND>           Alternate command instead of mkfs."
 
@@ -375,6 +383,54 @@ run_command (const char *disk)
   return -1;
 }
 
+/* Lock the file to prevent filesystem corruption.
+ *
+ * This uses a currently Linux-specific extension.  It requires
+ * Linux >= 3.15 (released in 2014, later backported to RHEL 7).
+ * There is no sensible way to do this in pure POSIX.
+ */
+static int
+lock_export (int readonly, const char *exportname, int fd)
+{
+#ifdef F_OFD_SETLK
+  struct flock lock = {0};
+  int cmd;
+
+  /* While we do check the readonly flag here, it's not very useful
+   * because NBD clients cannot specify that they want to open a
+   * connection readonly, and using the -r command line flag is not
+   * very useful with this plugin.
+   */
+  if (readonly)
+    lock.l_type = F_RDLCK;
+  else
+    lock.l_type = F_WRLCK;
+  lock.l_whence = SEEK_SET;
+  lock.l_start = 0;
+  lock.l_len = 0;
+ again:
+  cmd = waitlock ? F_OFD_SETLKW : F_OFD_SETLK;
+  if (fcntl (fd, cmd, &lock) == -1) {
+    if (errno == EINTR && cmd == F_OFD_SETLKW)
+      goto again;
+    if (errno == EACCES || errno == EAGAIN) {
+      nbdkit_error ("%s: filesystem is locked by another client", exportname);
+      /* XXX Would be nice if NBD protocol supported some kind of "is
+       * locked" indication.  If it did we could use it here.
+       */
+      errno = EINVAL;
+      return -1;
+    }
+    else {
+      nbdkit_error ("fcntl: %s/%s: %m", dir, exportname);
+      return -1;
+    }
+  }
+#endif
+
+  return 0;
+}
+
 /* This lock ensures disk creation is serialized and the command is
  * not run in parallel.  Although it would probably be safe to do this
  * for different exports, it's easier to have one lock, and makes some
@@ -389,10 +445,6 @@ ondemand_open (int readonly)
   struct handle *h;
   CLEANUP_FREE char *disk = NULL;
   int flags, err;
-#ifdef F_OFD_SETLK
-  struct flock lock;
-  int cmd;
-#endif
 
   h = malloc (sizeof *h);
   if (h == NULL) {
@@ -447,46 +499,10 @@ ondemand_open (int readonly)
     }
   }
 
-  /* Lock the file to prevent filesystem corruption.
-   *
-   * This uses a currently Linux-specific extension.  It requires
-   * Linux >= 3.15 (released in 2014, later backported to RHEL 7).
-   * There is no sensible way to do this in pure POSIX.
-   */
-#ifdef F_OFD_SETLK
-  memset (&lock, 0, sizeof lock);
-  /* While we do check the readonly flag here, it's not very useful
-   * because NBD clients cannot specify that they want to open a
-   * connection readonly, and using the -r command line flag is not
-   * very useful with this plugin.
-   */
-  if (readonly)
-    lock.l_type = F_RDLCK;
-  else
-    lock.l_type = F_WRLCK;
-  lock.l_whence = SEEK_SET;
-  lock.l_start = 0;
-  lock.l_len = 0;
- again:
-  cmd = waitlock ? F_OFD_SETLKW : F_OFD_SETLK;
-  if (fcntl (h->fd, cmd, &lock) == -1) {
-    if (errno == EINTR && cmd == F_OFD_SETLKW)
-      goto again;
-    if (errno == EACCES || errno == EAGAIN) {
-      nbdkit_error ("%s: filesystem is locked by another client",
-                    h->exportname);
-      /* XXX Would be nice if NBD protocol supported some kind of "is
-       * locked" indication.  If it did we could use it here.
-       */
-      errno = EINVAL;
+  if (!share) {
+    if (lock_export (readonly, h->exportname, h->fd) == -1)
       goto error;
-    }
-    else {
-      nbdkit_error ("fcntl: %s/%s: %m", dir, h->exportname);
-      goto error;
-    }
   }
-#endif
 
   /* Find the size of the disk. */
   h->size = device_size (h->fd, NULL);

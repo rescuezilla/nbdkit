@@ -4,7 +4,7 @@ nbdkit-ondemand-plugin - create filesystems on demand
 
 =head1 SYNOPSIS
 
- nbdkit ondemand dir=EXPORTSDIR [size=]SIZE [wait=true]
+ nbdkit ondemand dir=EXPORTSDIR [size=]SIZE [wait=true] [share=true]
                  { [type=ext4|xfs|vfat|...] [label=LABEL]
                    | command=COMMAND [VAR=VALUE ...] }
 
@@ -18,9 +18,9 @@ same export name and the same filesystem will still be available.
 Filesystems are stored in a directory on the server, so they also
 persist over nbdkit and server restarts.
 
-Each filesystem is locked while it is in use by a client, preventing
-two clients from accessing the same filesystem (which would cause
-corruption).
+By default each filesystem is locked while it is in use by a client,
+preventing two clients from accessing the same filesystem (which would
+cause corruption).
 
 Similar plugins include L<nbdkit-file-plugin(1)> which can serve a
 predefined set of exports (clients cannot create more),
@@ -136,6 +136,13 @@ This parameter is required.
 
 Select the filesystem label.  The default is not set.
 
+=item B<share=true>
+
+If set, the export is not locked.  Two or more clients may connect to
+the same export.  This usually results in filesystem corruption (if
+using a regular filesystem like ext4), so you have to use some other
+means to guarantee exclusive access or to ensure sharing is safe.
+
 =item [B<size=>]SIZE
 
 Specify the virtual size of all of the filesystems.
@@ -169,6 +176,9 @@ connections and at the network level the first connection does not
 fully disconnect before the next connection starts.  This can also
 happen as a side-effect of using C<guestfish --ro> which opens two NBD
 connections in quick succession.
+
+If C<share=true> then locking is not used and the C<wait> parameter
+has no effect.
 
 =back
 

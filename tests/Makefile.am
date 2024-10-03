@@ -1040,11 +1040,13 @@ TESTS += \
 	test-ondemand.sh \
 	test-ondemand-list.sh \
 	test-ondemand-locking.sh \
+	test-ondemand-share.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-ondemand.sh \
 	test-ondemand-list.sh \
 	test-ondemand-locking.sh \
+	test-ondemand-share.sh \
 	$(NULL)
 
 # ones plugin test.
