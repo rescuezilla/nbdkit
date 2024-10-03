@@ -31,8 +31,8 @@ label may be set using C<label>.
 
 =head2 The command parameter
 
-Instead of running mkfs you can run an arbitrary command (a shell
-script fragment) to create the disk.
+Instead of running mkfs you can run an arbitrary command or shell
+script to create the disk.
 
 The other parameters to the plugin are turned into shell variables
 passed to the command.  For example C<type> becomes the shell variable
@@ -201,6 +201,7 @@ L<nbdkit-memory-plugin(1)>,
 L<nbdkit-ondemand-plugin(1)>,
 L<nbdkit-sh-plugin(3)>,
 L<nbdkit-loop(1)>,
+L<nbdkit-service(1)>,
 L<nbdkit-tls(1)>,
 L<mkfs(8)>,
 L<mke2fs(8)>,
