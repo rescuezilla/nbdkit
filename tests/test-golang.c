@@ -41,6 +41,7 @@
 
 #include <guestfs.h>
 
+#include "requires.h"
 #include "test.h"
 
 static const char *plugin =
@@ -63,10 +64,7 @@ main (int argc, char *argv[])
   }
 
   /* Skip the test if the "disk" plugin/example wasn't built. */
-  if (access (plugin, R_OK) == -1) {
-    perror (plugin);
-    exit (77);
-  }
+  requires_exists (plugin);
 
   if (test_start_nbdkit (plugin, "size=1048576", NULL) == -1)
     exit (EXIT_FAILURE);

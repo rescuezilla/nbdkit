@@ -45,6 +45,7 @@
 #include "cleanup.h"
 #include "web-server.h"
 
+#include "requires.h"
 #include "test.h"
 
 int
@@ -57,10 +58,7 @@ main (int argc, char *argv[])
   char *data;
   CLEANUP_FREE char *usp_param = NULL;
 
-  if (access (disk, F_OK) == -1) {
-    fprintf (stderr, "%s: %s not found, test skipped\n", argv[0], disk);
-    exit (77);
-  }
+  requires_exists (disk);
 
 #ifndef HAVE_CURLOPT_UNIX_SOCKET_PATH
   fprintf (stderr, "%s: curl does not support CURLOPT_UNIX_SOCKET_PATH\n",

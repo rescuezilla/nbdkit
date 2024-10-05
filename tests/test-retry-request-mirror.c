@@ -50,6 +50,7 @@
 #include "cleanup.h"
 #include "web-server.h"
 
+#include "requires.h"
 #include "test.h"
 
 int
@@ -67,10 +68,7 @@ main (int argc, char *argv[])
   exit (77);
 #endif
 
-  if (access ("disk", F_OK) == -1) {
-    fprintf (stderr, "%s: 'disk' not built test skipped\n", argv[0]);
-    exit (77);
-  }
+  requires_exists ("disk");
 
   sockpath = web_server ("disk" /* not used but must be set */, NULL, false);
   if (sockpath == NULL) {

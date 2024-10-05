@@ -51,6 +51,7 @@
 #include "cleanup.h"
 #include "web-server.h"
 
+#include "requires.h"
 #include "test.h"
 
 static char buf[1024];
@@ -70,12 +71,8 @@ main (int argc, char *argv[])
   exit (77);
 #endif
 
+  requires_exists ("disk");
   if (stat ("disk", &statbuf) == -1) {
-    if (errno == ENOENT) {
-      fprintf (stderr, "%s: test skipped because \"disk\" is missing\n",
-               program_name);
-      exit (77);
-    }
     perror ("disk");
     exit (EXIT_FAILURE);
   }

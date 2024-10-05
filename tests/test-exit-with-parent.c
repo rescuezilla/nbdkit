@@ -46,6 +46,7 @@
 #include <sys/wait.h>
 #endif
 
+#include "requires.h"
 #include "test.h"
 
 #ifndef WIN32
@@ -57,12 +58,7 @@ static void run_test (void);
 int
 main (int argc, char *argv[])
 {
-  if (system ("nbdkit --exit-with-parent --version") != 0) {
-    printf ("%s: --exit-with-parent is not implemented on this platform, "
-            "skipping\n",
-            argv[0]);
-    exit (77);
-  }
+  requires ("nbdkit --exit-with-parent --version");
 
   run_test ();
   exit (EXIT_SUCCESS);

@@ -30,56 +30,57 @@
  * SUCH DAMAGE.
  */
 
+/* Check for a requirement or skip the test. */
+
 #include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <string.h>
 #include <unistd.h>
-
-#include <libnbd.h>
+#include <errno.h>
 
 #include "requires.h"
 
-int
-main (int argc, char *argv[])
+void
+requires (const char *cmd)
 {
-  struct nbd_handle *nbd;
-  int64_t size;
-
-  requires ("nbdkit --exit-with-parent --version");
-
-  nbd = nbd_create ();
-  if (nbd == NULL) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
+  printf ("requires %s\n", cmd);
+  fflush (stdout);
+  if (system (cmd) != 0) {
+    printf ("Test skipped because prerequisite is missing or not working.\n");
+    exit (77);
   }
+}
 
-  if (nbd_connect_command (nbd,
-                           (char *[]) {
-                             "nbdkit", "-s", "--exit-with-parent",
-                             "example1", NULL }) == -1) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
+void
+requires_not (const char *cmd)
+{
+  printf ("requires_not %s\n", cmd);
+  fflush (stdout);
+  if (system (cmd) == 0) {
+    printf ("Test skipped because prerequisite is missing or not working.\n");
+    exit (77);
   }
+}
 
-  /* The example1 plugin makes a static virtual disk which is 100 MB
-   * in size.
-   */
-  size = nbd_get_size (nbd);
-  if (size == -1) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
+void
+requires_exists (const char *filename)
+{
+  printf ("requires_exists %s\n", filename);
+  fflush (stdout);
+  if (access (filename, F_OK) == -1) {
+    printf ("Test skipped because file '%s' not found.\n", filename);
+    exit (77);
   }
-  if (size != 104857600) {
-    fprintf (stderr,
-             "%s FAILED: incorrect disk size (actual: %" PRIi64
-             ", expected: 104857600)\n", argv[0], size);
-    exit (EXIT_FAILURE);
-  }
+}
 
-  nbd_close (nbd);
-  exit (EXIT_SUCCESS);
+void
+requires_not_exists (const char *filename)
+{
+  printf ("requires_not_exists %s\n", filename);
+  fflush (stdout);
+  if (access (filename, F_OK) == 0) {
+    printf ("Test skipped because file '%s' exists.\n", filename);
+    exit (77);
+  }
 }

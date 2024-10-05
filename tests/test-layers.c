@@ -60,6 +60,8 @@
 #include "byte-swapping.h"
 #include "cleanup.h"
 
+#include "requires.h"
+
 /* Declare program_name. */
 #if HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME == 1
 #include <errno.h>
@@ -101,11 +103,7 @@ main (int argc, char *argv[])
   int orig_stderr;
   char data[512];
 
-  if (system ("nbdkit --exit-with-parent --version") != 0) {
-    printf ("%s: this test requires --exit-with-parent functionality\n",
-            program_name);
-    exit (77);
-  }
+  requires ("nbdkit --exit-with-parent --version");
 
   /* Prepare libnbd. */
   fprintf (stderr, "%s: beginning test\n", program_name);
