@@ -51,6 +51,13 @@ main (int argc, char *argv[])
   int r;
   char *label;
 
+  /* Check we have an mkfs command. */
+  if (system ("mkfs --version") != 0) {
+    printf ("%s: test skipped because there is no 'mkfs' command.\n",
+            argv[0]);
+    exit (77);
+  }
+
   /* Start nbdkit. */
   if (test_start_nbdkit ("tmpdisk", "1G", "label=TEST", NULL) == -1)
     exit (EXIT_FAILURE);
