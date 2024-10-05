@@ -655,7 +655,7 @@ EXTRA_DIST += \
 
 # Common test library.
 check_LTLIBRARIES += libtest.la
-libtest_la_SOURCES = test.c test.h
+libtest_la_SOURCES = test.c test.h requires.c requires.h
 libtest_la_CFLAGS = $(WARNINGS_CFLAGS)
 
 # Basic connection test.
@@ -726,6 +726,8 @@ test_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \
@@ -773,6 +775,8 @@ test_curl_header_script_SOURCES = \
 	test-curl-header-script.c \
 	web-server.c \
 	web-server.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_curl_header_script_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
@@ -795,6 +799,8 @@ test_curl_cookie_script_SOURCES = \
 	test-curl-cookie-script.c \
 	web-server.c \
 	web-server.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_curl_cookie_script_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
@@ -1268,7 +1274,7 @@ test_ocaml_CFLAGS = \
 	$(NULL)
 test_ocaml_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
-test_ocaml_errorcodes_SOURCES = test-ocaml-errorcodes.c
+test_ocaml_errorcodes_SOURCES = test-ocaml-errorcodes.c requires.c requires.h
 test_ocaml_errorcodes_CPPFLAGS = -I$(top_srcdir)/common/include
 test_ocaml_errorcodes_CFLAGS = $(WARNINGS_CFLAGS) $(LIBNBD_CFLAGS)
 test_ocaml_errorcodes_LDADD = $(LIBNBD_LIBS)
@@ -1780,6 +1786,11 @@ if !IS_WINDOWS
 check_PROGRAMS += test-exitwhen-pipe-closed
 TESTS += test-exitwhen-pipe-closed
 test_exitwhen_pipe_closed_CFLAGS = $(WARNINGS_CFLAGS)
+test_exitwhen_pipe_closed_SOURCES = \
+	test-exitwhen-pipe-closed.c \
+	requires.c \
+	requires.h \
+	$(NULL)
 endif
 
 # exportname filter test.

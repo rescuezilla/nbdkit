@@ -36,20 +36,33 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
 
 #include "requires.h"
 
 void
+skip_because (const char *fs, ...)
+{
+  va_list args;
+
+  printf ("Test skipped because: ");
+  va_start (args, fs);
+  vprintf (fs, args);
+  va_end (args);
+  putchar ('\n');
+  fflush (stdout);
+  exit (77);
+}
+
+void
 requires (const char *cmd)
 {
   printf ("requires %s\n", cmd);
   fflush (stdout);
-  if (system (cmd) != 0) {
-    printf ("Test skipped because prerequisite is missing or not working.\n");
-    exit (77);
-  }
+  if (system (cmd) != 0)
+    skip_because ("prerequisite is missing or not working");
 }
 
 void
@@ -57,10 +70,8 @@ requires_not (const char *cmd)
 {
   printf ("requires_not %s\n", cmd);
   fflush (stdout);
-  if (system (cmd) == 0) {
-    printf ("Test skipped because prerequisite is missing or not working.\n");
-    exit (77);
-  }
+  if (system (cmd) == 0)
+    skip_because ("prerequisite is missing or not working");
 }
 
 void
@@ -68,10 +79,8 @@ requires_exists (const char *filename)
 {
   printf ("requires_exists %s\n", filename);
   fflush (stdout);
-  if (access (filename, F_OK) == -1) {
-    printf ("Test skipped because file '%s' not found.\n", filename);
-    exit (77);
-  }
+  if (access (filename, F_OK) == -1)
+    skip_because ("file '%s' not found", filename);
 }
 
 void
@@ -79,8 +88,6 @@ requires_not_exists (const char *filename)
 {
   printf ("requires_not_exists %s\n", filename);
   fflush (stdout);
-  if (access (filename, F_OK) == 0) {
-    printf ("Test skipped because file '%s' exists.\n", filename);
-    exit (77);
-  }
+  if (access (filename, F_OK) == 0)
+    skip_because ("file '%s' exists", filename);
 }

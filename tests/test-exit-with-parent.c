@@ -225,10 +225,8 @@ run_test (void)
 int
 main (int argc, char *argv[])
 {
-  printf ("%s: neither --exit-with-parent nor this test "
-          "are implemented on Windows, skipping\n",
-          argv[0]);
-  exit (77);
+  skip_because ("neither --exit-with-parent nor this test "
+                "are implemented on Windows");
 }
 
 #endif /* WIN32 */

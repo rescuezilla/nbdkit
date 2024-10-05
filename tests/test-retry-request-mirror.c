@@ -63,9 +63,7 @@ main (int argc, char *argv[])
   struct nbd_handle *nbd = NULL;
 
 #ifndef HAVE_CURLOPT_UNIX_SOCKET_PATH
-  fprintf (stderr, "%s: curl does not support CURLOPT_UNIX_SOCKET_PATH\n",
-           argv[0]);
-  exit (77);
+  skip_because ("curl does not support CURLOPT_UNIX_SOCKET_PATH");
 #endif
 
   requires_exists ("disk");

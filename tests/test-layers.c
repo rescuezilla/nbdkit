@@ -763,9 +763,7 @@ log_free (void)
 int
 main (int argc, char *argv[])
 {
-  fprintf (stderr, "%s: test skipped because not ported to Windows.\n",
-           argv[0]);
-  exit (77);
+  skip_because ("not ported to Windows");
 }
 
 #endif /* WIN32 */

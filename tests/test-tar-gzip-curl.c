@@ -58,13 +58,11 @@ main (int argc, char *argv[])
   char *data;
   CLEANUP_FREE char *usp_param = NULL;
 
-  requires_exists (disk);
-
 #ifndef HAVE_CURLOPT_UNIX_SOCKET_PATH
-  fprintf (stderr, "%s: curl does not support CURLOPT_UNIX_SOCKET_PATH\n",
-           argv[0]);
-  exit (77);
+  skip_because ("curl does not support CURLOPT_UNIX_SOCKET_PATH");
 #endif
+
+  requires_exists (disk);
 
   sockpath = web_server (disk, NULL, false);
   if (sockpath == NULL) {

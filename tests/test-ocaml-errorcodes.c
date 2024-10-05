@@ -42,6 +42,8 @@
 
 #include "array-size.h"
 
+#include "requires.h"
+
 /* This test checks the conversion from OCaml Unix.error to errno (in
  * the plugin) to NBD_E* (over the wire) and back to errno (in
  * libnbd).
@@ -66,9 +68,7 @@ main (int argc, char *argv[])
   size_t i;
 
 #ifdef __APPLE__
-  printf ("%s: loading the OCaml plugin fails on macOS, skipping\n",
-          argv[0]);
-  exit (77);
+  skip_because ("loading the OCaml plugin fails on macOS");
 #endif
 
   nbd = nbd_create ();
