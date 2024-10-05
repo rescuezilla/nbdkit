@@ -61,12 +61,10 @@ main (int argc, char *argv[])
   size_t len;
   int64_t size;
 
-  /* This test can only be run as root, and will be skipped otherwise. */
-  if (geteuid () != 0) {
-    fprintf (stderr, "%s: this test has to be run as root.\n",
-             argv[0]);
-    exit (77);
-  }
+  /* This test must be run as root (usually 'sudo make check-root'),
+   * otherwise skip.
+   */
+  requires_root ();
 
   /* /dev/loop-control must be accessible. */
   r = access ("/dev/loop-control", W_OK);

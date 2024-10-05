@@ -38,6 +38,7 @@ extern void requires_not (const char *cmd);
 extern void requires_exists (const char *filename);
 extern void requires_not_exists (const char *filename);
 extern void requires_not_valgrind (const char *reason);
+extern void requires_root (void);
 
 extern void skip_because (const char *fs, ...) __attribute__((noreturn));
 

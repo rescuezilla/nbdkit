@@ -100,3 +100,11 @@ requires_not_valgrind (const char *reason)
   if (s && strcmp (s, "1") == 0)
     skip_because ("%s", reason ? reason : "running under valgrind");
 }
+
+void
+requires_root (void)
+{
+  if (geteuid () != 0)
+    skip_because ("not running as root.\n"
+                  "Use ‘sudo make check-root’ to run these tests.");
+}
