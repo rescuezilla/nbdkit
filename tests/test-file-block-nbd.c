@@ -42,6 +42,8 @@
 
 #include <libnbd.h>
 
+#include "requires.h"
+
 #define DISK_SIZE (100 * 1024 * 1024)
 
 static char *loopdev;                   /* Name of the loop device. */
@@ -75,12 +77,7 @@ main (int argc, char *argv[])
   }
 
   /* losetup must be available. */
-  r = system ("losetup --version");
-  if (r != 0) {
-    fprintf (stderr, "%s: losetup program must be installed.\n",
-             argv[0]);
-    exit (77);
-  }
+  requires ("losetup --version");
 
   /* Create the temporary backing disk. */
   fd = mkstemp (disk);

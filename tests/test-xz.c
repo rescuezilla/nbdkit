@@ -41,6 +41,7 @@
 
 #include <guestfs.h>
 
+#include "requires.h"
 #include "test.h"
 
 int
@@ -51,10 +52,7 @@ main (int argc, char *argv[])
   int r;
   char *data;
 
-  if (access (disk, F_OK) == -1) {
-    fprintf (stderr, "%s: %s not found, test skipped\n", argv[0], disk);
-    exit (77);
-  }
+  requires_exists (disk);
 
   if (test_start_nbdkit ("--filter=xz", "file", disk, NULL) == -1)
     exit (EXIT_FAILURE);

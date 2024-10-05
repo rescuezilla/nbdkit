@@ -30,56 +30,64 @@
  * SUCH DAMAGE.
  */
 
+/* Check for a requirement or skip the test. */
+
 #include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
-
-#include <libnbd.h>
+#include <errno.h>
 
 #include "requires.h"
 
-int
-main (int argc, char *argv[])
+void
+skip_because (const char *fs, ...)
 {
-  struct nbd_handle *nbd;
-  int64_t size;
+  va_list args;
 
-  requires ("nbdkit --exit-with-parent --version");
+  printf ("Test skipped because: ");
+  va_start (args, fs);
+  vprintf (fs, args);
+  va_end (args);
+  putchar ('\n');
+  fflush (stdout);
+  exit (77);
+}
 
-  nbd = nbd_create ();
-  if (nbd == NULL) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
-  }
+void
+requires (const char *cmd)
+{
+  printf ("requires %s\n", cmd);
+  fflush (stdout);
+  if (system (cmd) != 0)
+    skip_because ("prerequisite is missing or not working");
+}
 
-  if (nbd_connect_command (nbd,
-                           (char *[]) {
-                             "nbdkit", "-s", "--exit-with-parent",
-                             "example1", NULL }) == -1) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
-  }
+void
+requires_not (const char *cmd)
+{
+  printf ("requires_not %s\n", cmd);
+  fflush (stdout);
+  if (system (cmd) == 0)
+    skip_because ("prerequisite is missing or not working");
+}
 
-  /* The example1 plugin makes a static virtual disk which is 100 MB
-   * in size.
-   */
-  size = nbd_get_size (nbd);
-  if (size == -1) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
-  }
-  if (size != 104857600) {
-    fprintf (stderr,
-             "%s FAILED: incorrect disk size (actual: %" PRIi64
-             ", expected: 104857600)\n", argv[0], size);
-    exit (EXIT_FAILURE);
-  }
+void
+requires_exists (const char *filename)
+{
+  printf ("requires_exists %s\n", filename);
+  fflush (stdout);
+  if (access (filename, F_OK) == -1)
+    skip_because ("file '%s' not found", filename);
+}
 
-  nbd_close (nbd);
-  exit (EXIT_SUCCESS);
+void
+requires_not_exists (const char *filename)
+{
+  printf ("requires_not_exists %s\n", filename);
+  fflush (stdout);
+  if (access (filename, F_OK) == 0)
+    skip_because ("file '%s' exists", filename);
 }

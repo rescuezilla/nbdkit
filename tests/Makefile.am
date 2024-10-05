@@ -602,7 +602,7 @@ check_PROGRAMS += test-exit-with-parent
 TESTS += test-exit-with-parent
 
 test_exit_with_parent_SOURCES = \
-	test-exit-with-parent.c test.h \
+	test-exit-with-parent.c test.h requires.c requires.h \
 	$(NULL)
 test_exit_with_parent_CFLAGS = \
 	$(WARNINGS_CFLAGS) \
@@ -655,13 +655,13 @@ EXTRA_DIST += \
 
 # Common test library.
 check_LTLIBRARIES += libtest.la
-libtest_la_SOURCES = test.c test.h
+libtest_la_SOURCES = test.c test.h requires.c requires.h
 libtest_la_CFLAGS = $(WARNINGS_CFLAGS)
 
 # Basic connection test.
 LIBNBD_TESTS += test-connect
 
-test_connect_SOURCES = test-connect.c
+test_connect_SOURCES = test-connect.c requires.c requires.h
 test_connect_CFLAGS = $(WARNINGS_CFLAGS) $(LIBNBD_CFLAGS)
 test_connect_LDADD = $(LIBNBD_LIBS)
 
@@ -726,6 +726,8 @@ test_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \
@@ -749,6 +751,8 @@ test_curl_head_forbidden_SOURCES = \
 	test-curl-head-forbidden.c \
 	web-server.c \
 	web-server.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_curl_head_forbidden_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
@@ -771,6 +775,8 @@ test_curl_header_script_SOURCES = \
 	test-curl-header-script.c \
 	web-server.c \
 	web-server.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_curl_header_script_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
@@ -793,6 +799,8 @@ test_curl_cookie_script_SOURCES = \
 	test-curl-cookie-script.c \
 	web-server.c \
 	web-server.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_curl_cookie_script_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
@@ -901,11 +909,11 @@ EXTRA_DIST += \
 LIBGUESTFS_TESTS += test-file-block
 LIBNBD_TESTS += test-file-block-nbd
 
-test_file_block_SOURCES = test-file-block.c test.h
+test_file_block_SOURCES = test-file-block.c test.h requires.c requires.h
 test_file_block_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_file_block_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
-test_file_block_nbd_SOURCES = test-file-block-nbd.c
+test_file_block_nbd_SOURCES = test-file-block-nbd.c requires.c requires.h
 test_file_block_nbd_CFLAGS = $(WARNINGS_CFLAGS) $(LIBNBD_CFLAGS)
 test_file_block_nbd_LDADD = $(LIBNBD_LIBS)
 
@@ -1167,6 +1175,8 @@ EXTRA_DIST += test-tmpdisk-command.sh
 test_tmpdisk_SOURCES = \
 	test-tmpdisk.c \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_tmpdisk_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils
@@ -1264,7 +1274,7 @@ test_ocaml_CFLAGS = \
 	$(NULL)
 test_ocaml_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
-test_ocaml_errorcodes_SOURCES = test-ocaml-errorcodes.c
+test_ocaml_errorcodes_SOURCES = test-ocaml-errorcodes.c requires.c requires.h
 test_ocaml_errorcodes_CPPFLAGS = -I$(top_srcdir)/common/include
 test_ocaml_errorcodes_CFLAGS = $(WARNINGS_CFLAGS) $(LIBNBD_CFLAGS)
 test_ocaml_errorcodes_LDADD = $(LIBNBD_LIBS)
@@ -1456,7 +1466,7 @@ if HAVE_GOLANG
 
 LIBGUESTFS_TESTS += test-golang
 
-test_golang_SOURCES = test-golang.c test.h
+test_golang_SOURCES = test-golang.c test.h requires.c requires.h
 test_golang_CFLAGS = \
 	$(WARNINGS_CFLAGS) \
 	$(LIBGUESTFS_CFLAGS) \
@@ -1500,6 +1510,8 @@ LIBNBD_TESTS += test-layers
 
 test_layers_SOURCES = \
 	test-layers.c \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_layers_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
@@ -1629,7 +1641,7 @@ if HAVE_BZLIB
 # bzip2 filter test.
 LIBGUESTFS_TESTS += test-bzip2
 
-test_bzip2_SOURCES = test-bzip2.c test.h
+test_bzip2_SOURCES = test-bzip2.c requires.c requires.h test.h
 test_bzip2_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_bzip2_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 endif HAVE_BZLIB
@@ -1774,6 +1786,11 @@ if !IS_WINDOWS
 check_PROGRAMS += test-exitwhen-pipe-closed
 TESTS += test-exitwhen-pipe-closed
 test_exitwhen_pipe_closed_CFLAGS = $(WARNINGS_CFLAGS)
+test_exitwhen_pipe_closed_SOURCES = \
+	test-exitwhen-pipe-closed.c \
+	requires.c \
+	requires.h \
+	$(NULL)
 endif
 
 # exportname filter test.
@@ -1822,7 +1839,7 @@ EXTRA_DIST += test-fua.sh
 # gzip filter test.
 LIBGUESTFS_TESTS += test-gzip
 
-test_gzip_SOURCES = test-gzip.c test.h
+test_gzip_SOURCES = test-gzip.c test.h requires.c requires.h
 test_gzip_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_gzip_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
@@ -1893,7 +1910,7 @@ TESTS += \
 	test-lzip-unaligned.sh \
 	$(NULL)
 LIBGUESTFS_TESTS += test-lzip
-test_lzip_SOURCES = test-lzip.c test.h
+test_lzip_SOURCES = test-lzip.c test.h requires.c requires.h
 test_lzip_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_lzip_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 endif HAVE_LIBLZMA
@@ -1967,7 +1984,7 @@ test_pause_LDADD = $(LIBNBD_LIBS)
 # protect filter test.
 LIBNBD_TESTS += test-protect
 
-test_protect_SOURCES = test-protect.c
+test_protect_SOURCES = test-protect.c requires.c requires.h
 test_protect_CFLAGS = $(WARNINGS_CFLAGS) $(LIBNBD_CFLAGS)
 test_protect_LDADD = $(LIBNBD_LIBS)
 
@@ -2049,6 +2066,8 @@ test_retry_request_mirror_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_retry_request_mirror_CPPFLAGS = \
 	-I$(top_srcdir)/common/include \
@@ -2157,7 +2176,7 @@ EXTRA_DIST += \
 # xz filter test.
 LIBGUESTFS_TESTS += test-xz
 
-test_xz_SOURCES = test-xz.c test.h
+test_xz_SOURCES = test-xz.c test.h requires.c requires.h
 test_xz_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_xz_LDADD = libtest.la $(LIBGUESTFS_LIBS)
 
@@ -2178,6 +2197,8 @@ test_gzip_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_gzip_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \
@@ -2202,6 +2223,8 @@ test_tar_gzip_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_tar_gzip_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \
@@ -2226,6 +2249,8 @@ test_lzip_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_lzip_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \
@@ -2250,6 +2275,8 @@ test_tar_lzip_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_tar_lzip_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \
@@ -2274,6 +2301,8 @@ test_xz_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_xz_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \
@@ -2298,6 +2327,8 @@ test_tar_xz_curl_SOURCES = \
 	web-server.c \
 	web-server.h \
 	test.h \
+	requires.c \
+	requires.h \
 	$(NULL)
 test_tar_xz_curl_CPPFLAGS = \
 	-I$(top_srcdir)/common/utils \

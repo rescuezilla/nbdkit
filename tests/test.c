@@ -50,6 +50,7 @@
 #include <sys/wait.h>
 #endif
 
+#include "requires.h"
 #include "test.h"
 
 #ifndef WIN32
@@ -251,9 +252,7 @@ test_start_nbdkit (const char *arg, ...)
 int
 test_start_nbdkit (const char *arg, ...)
 {
-  fprintf (stderr, "%s: test skipped because not ported to Windows.\n",
-           program_name);
-  exit (77);
+  skip_because ("not ported to Windows");
 }
 
 #endif

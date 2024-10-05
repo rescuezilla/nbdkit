@@ -42,6 +42,7 @@
 
 #include <guestfs.h>
 
+#include "requires.h"
 #include "test.h"
 
 #define DISK_SIZE (100 * 1024 * 1024)
@@ -79,12 +80,7 @@ main (int argc, char *argv[])
   }
 
   /* losetup must be available. */
-  r = system ("losetup --version");
-  if (r != 0) {
-    fprintf (stderr, "%s: losetup program must be installed.\n",
-             program_name);
-    exit (77);
-  }
+  requires ("losetup --version");
 
   /* Create the temporary backing disk. */
   fd = mkstemp (disk);

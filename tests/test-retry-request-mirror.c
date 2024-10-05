@@ -50,6 +50,7 @@
 #include "cleanup.h"
 #include "web-server.h"
 
+#include "requires.h"
 #include "test.h"
 
 int
@@ -62,15 +63,10 @@ main (int argc, char *argv[])
   struct nbd_handle *nbd = NULL;
 
 #ifndef HAVE_CURLOPT_UNIX_SOCKET_PATH
-  fprintf (stderr, "%s: curl does not support CURLOPT_UNIX_SOCKET_PATH\n",
-           argv[0]);
-  exit (77);
+  skip_because ("curl does not support CURLOPT_UNIX_SOCKET_PATH");
 #endif
 
-  if (access ("disk", F_OK) == -1) {
-    fprintf (stderr, "%s: 'disk' not built test skipped\n", argv[0]);
-    exit (77);
-  }
+  requires_exists ("disk");
 
   sockpath = web_server ("disk" /* not used but must be set */, NULL, false);
   if (sockpath == NULL) {

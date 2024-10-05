@@ -45,6 +45,7 @@
 #include "cleanup.h"
 #include "web-server.h"
 
+#include "requires.h"
 #include "test.h"
 
 static int iteration;
@@ -99,9 +100,7 @@ main (int argc, char *argv[])
   CLEANUP_FREE char *usp_param = NULL;
 
 #ifndef HAVE_CURLOPT_UNIX_SOCKET_PATH
-  fprintf (stderr, "%s: curl does not support CURLOPT_UNIX_SOCKET_PATH\n",
-           program_name);
-  exit (77);
+  skip_because ("curl does not support CURLOPT_UNIX_SOCKET_PATH");
 #endif
 
   sockpath = web_server ("disk", check_request, false);

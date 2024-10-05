@@ -37,6 +37,7 @@ set -x
 requires_run
 requires_plugin tmpdisk
 requires_nbdsh_uri
+requires "$TRUNCATE" --version
 
 # - If multiple parameters appear, last one is used.
 # - Test quoting.

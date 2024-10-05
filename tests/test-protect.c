@@ -42,6 +42,8 @@
 
 #include <libnbd.h>
 
+#include "requires.h"
+
 int
 main (int argc, char *argv[])
 {
@@ -50,10 +52,7 @@ main (int argc, char *argv[])
   int r;
 
   /* Check "disk" was created before running the test. */
-  if (access ("disk", R_OK) == -1 && errno == ENOENT) {
-    printf ("%s: test skipped because \"disk\" was not created\n", argv[0]);
-    exit (77);
-  }
+  requires_exists ("disk");
 
   nbd = nbd_create ();
   if (nbd == NULL) {

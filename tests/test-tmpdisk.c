@@ -42,6 +42,7 @@
 
 #include <guestfs.h>
 
+#include "requires.h"
 #include "test.h"
 
 int
@@ -50,6 +51,9 @@ main (int argc, char *argv[])
   guestfs_h *g1, *g2;
   int r;
   char *label;
+
+  /* Check we have an mkfs command. */
+  requires ("mkfs --version");
 
   /* Start nbdkit. */
   if (test_start_nbdkit ("tmpdisk", "1G", "label=TEST", NULL) == -1)

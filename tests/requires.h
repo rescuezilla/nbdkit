@@ -30,56 +30,14 @@
  * SUCH DAMAGE.
  */
 
-#include <config.h>
+#ifndef NBDKIT_REQUIRES
+#define NBDKIT_REQUIRES
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <string.h>
-#include <unistd.h>
+extern void requires (const char *cmd);
+extern void requires_not (const char *cmd);
+extern void requires_exists (const char *filename);
+extern void requires_not_exists (const char *filename);
 
-#include <libnbd.h>
+extern void skip_because (const char *fs, ...) __attribute__((noreturn));
 
-#include "requires.h"
-
-int
-main (int argc, char *argv[])
-{
-  struct nbd_handle *nbd;
-  int64_t size;
-
-  requires ("nbdkit --exit-with-parent --version");
-
-  nbd = nbd_create ();
-  if (nbd == NULL) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
-  }
-
-  if (nbd_connect_command (nbd,
-                           (char *[]) {
-                             "nbdkit", "-s", "--exit-with-parent",
-                             "example1", NULL }) == -1) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
-  }
-
-  /* The example1 plugin makes a static virtual disk which is 100 MB
-   * in size.
-   */
-  size = nbd_get_size (nbd);
-  if (size == -1) {
-    fprintf (stderr, "%s\n", nbd_get_error ());
-    exit (EXIT_FAILURE);
-  }
-  if (size != 104857600) {
-    fprintf (stderr,
-             "%s FAILED: incorrect disk size (actual: %" PRIi64
-             ", expected: 104857600)\n", argv[0], size);
-    exit (EXIT_FAILURE);
-  }
-
-  nbd_close (nbd);
-  exit (EXIT_SUCCESS);
-}
+#endif /* NBDKIT_REQUIRES */
