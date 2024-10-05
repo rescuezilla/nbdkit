@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -90,4 +91,12 @@ requires_not_exists (const char *filename)
   fflush (stdout);
   if (access (filename, F_OK) == 0)
     skip_because ("file '%s' exists", filename);
+}
+
+void
+requires_not_valgrind (const char *reason)
+{
+  const char *s = getenv ("NBDKIT_VALGRIND");
+  if (s && strcmp (s, "1") == 0)
+    skip_because ("%s", reason ? reason : "running under valgrind");
 }

@@ -50,18 +50,12 @@ static const char *plugin =
 int
 main (int argc, char *argv[])
 {
-  const char *s;
   guestfs_h *g;
   int r;
   int64_t size;
   char *data;
 
-  /* Golang fails completely under valgrind, so skip. */
-  s = getenv ("NBDKIT_VALGRIND");
-  if (s && strcmp (s, "1") == 0) {
-    fprintf (stderr, "%s test skipped under valgrind.\n", argv[0]);
-    exit (77);                  /* Tells automake to skip the test. */
-  }
+  requires_not_valgrind ("golang fails completely under valgrind");
 
   /* Skip the test if the "disk" plugin/example wasn't built. */
   requires_exists (plugin);

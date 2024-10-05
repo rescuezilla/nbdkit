@@ -41,6 +41,7 @@
 
 #include <guestfs.h>
 
+#include "requires.h"
 #include "test.h"
 
 int
@@ -48,17 +49,10 @@ main (int argc, char *argv[])
 {
   guestfs_h *g;
   int r;
-  const char *s;
   char *data;
 
-  /* These languages currently fail completely when run under
-   * valgrind, so skip them.
-   */
-  s = getenv ("NBDKIT_VALGRIND");
-  if (s && strcmp (s, "1") == 0 && strcmp (LANG, "tcl") == 0) {
-    fprintf (stderr, "%s test skipped under valgrind.\n", LANG);
-    exit (77);                  /* Tells automake to skip the test. */
-  }
+  if (strcmp (LANG, "tcl") == 0)
+    requires_not_valgrind ("Tcl tests fail under valgrind");
 
   if (test_start_nbdkit (LANG, SCRIPT, NULL) == -1)
     exit (EXIT_FAILURE);

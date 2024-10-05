@@ -1210,7 +1210,7 @@ TESTS += \
 	test-vddk-run.sh \
 	$(NULL)
 
-test_vddk_SOURCES = test-vddk.c test.h
+test_vddk_SOURCES = test-vddk.c test.h requires.c requires.h
 test_vddk_CPPFLAGS = -I$(top_srcdir)/common/include
 test_vddk_CFLAGS = $(WARNINGS_CFLAGS) $(LIBGUESTFS_CFLAGS)
 test_vddk_LDADD = libtest.la $(LIBGUESTFS_LIBS)
@@ -1331,7 +1331,7 @@ EXTRA_DIST += \
 	$(NULL)
 LIBGUESTFS_TESTS += test-perl
 
-test_perl_SOURCES = test-lang-plugins.c test.h
+test_perl_SOURCES = test-lang-plugins.c test.h requires.c requires.h
 test_perl_CFLAGS = \
 	-DLANG='"perl"' -DSCRIPT='"$(srcdir)/test.pl"' \
 	$(WARNINGS_CFLAGS) \
@@ -1401,7 +1401,7 @@ check_DATA += test-shell.img
 EXTRA_DIST += test-shell.sh
 CLEANFILES += test-shell.img
 
-test_shell_SOURCES = test-lang-plugins.c test.h
+test_shell_SOURCES = test-lang-plugins.c test.h requires.c requires.h
 test_shell_CFLAGS = \
 	-DLANG='"sh"' -DSCRIPT='"$(srcdir)/test-shell.sh"' \
 	$(WARNINGS_CFLAGS) \
@@ -1434,7 +1434,7 @@ if HAVE_TCL
 
 LIBGUESTFS_TESTS += test-tcl
 
-test_tcl_SOURCES = test-lang-plugins.c test.h
+test_tcl_SOURCES = test-lang-plugins.c test.h requires.c requires.h
 test_tcl_CFLAGS = \
 	-DLANG='"tcl"' -DSCRIPT='"$(srcdir)/test.tcl"' \
 	$(WARNINGS_CFLAGS) \
@@ -1451,7 +1451,7 @@ if HAVE_LUA
 
 LIBGUESTFS_TESTS += test-lua
 
-test_lua_SOURCES = test-lang-plugins.c test.h
+test_lua_SOURCES = test-lang-plugins.c test.h requires.c requires.h
 test_lua_CFLAGS = \
 	-DLANG='"lua"' -DSCRIPT='"$(srcdir)/test.lua"' \
 	$(WARNINGS_CFLAGS) \

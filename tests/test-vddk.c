@@ -41,6 +41,7 @@
 
 #include <guestfs.h>
 
+#include "requires.h"
 #include "test.h"
 
 int
@@ -49,13 +50,8 @@ main (int argc, char *argv[])
   guestfs_h *g;
   int r;
 
-  /* The LD_LIBRARY_PATH munging that the VDDK plugin does is not
-   * compatible with valgrind.
-   */
-  if (getenv ("NBDKIT_VALGRIND")) {
-    printf ("%s: skipped test with valgrind\n", argv[0]);
-    exit (77);
-  }
+  requires_not_valgrind ("LD_LIBRARY_PATH munging done by the VDDK plugin "
+                         "is not compatible with valgrind");
 
   /* This tests the VDDK plugin using dummy-vddk.c which is a dummy
    * library that looks a bit like VDDK and emulates a blank disk (it
