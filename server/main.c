@@ -152,6 +152,18 @@ usage (void)
 #include "synopsis.c"
 	  ;
   printf ("%s\n", opt_list);
+
+  /* This blurb matches the DESCRIPTION section of the man page: */
+  printf (
+    "Network Block Device (NBD) is a network protocol for accessing block\n"
+    "devices over the network.  Block devices are hard disks and things that\n"
+    "behave like hard disks such as disk images and virtual machines.\n"
+    "\n"
+    "nbdkit is both a toolkit for creating NBD servers from “unconventional”\n"
+    "sources, and the name of an NBD server.  nbdkit ships with many plugins\n"
+    "for performing common tasks like serving local files.\n"
+    "\n"
+  );
   printf ("Please read the nbdkit(1) manual page for full usage.\n");
 }
 
