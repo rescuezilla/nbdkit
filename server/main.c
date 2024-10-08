@@ -147,11 +147,10 @@ static char *random_fifo = NULL;       /* Path to -U - socket */
 static void
 usage (void)
 {
+  extern const char *synopsis;
+
   /* --{short,long}-options remain undocumented */
-  const char *opt_list =
-#include "synopsis.c"
-	  ;
-  printf ("%s\n", opt_list);
+  printf ("%s\n", synopsis);
 
   /* This blurb matches the DESCRIPTION section of the man page: */
   printf (

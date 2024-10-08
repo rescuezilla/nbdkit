@@ -63,6 +63,7 @@ nbdkit_SOURCES = \
 	signals.c \
 	socket-activation.c \
 	sockets.c \
+	synopsis.c \
 	threadlocal.c \
 	timeout.c \
 	uri.c \
@@ -142,16 +143,16 @@ libnbdkit_a_SOURCES =
 endif
 
 # synopsis.c is generated from docs/synopsis.txt where it is also
-# used to generate the man page.  It is included in main.c.
-
+# used to generate the man page.
 BUILT_SOURCES = synopsis.c
-EXTRA_DIST += synopsis.c
-EXTRA_nbdkit_DEPENDENCIES += synopsis.c
 CLEANFILES += synopsis.c
-main.c: synopsis.c
-synopsis.c: $(top_srcdir)/docs/synopsis.txt
+synopsis.c: $(top_srcdir)/docs/synopsis.txt Makefile.am
 	rm -f $@ $@-t
-	$(SED) -e 's/"/\\"/g' -e 's/\(.*\)/"\1\\n"/g' $< > $@-t
+	echo "/* DO NOT EDIT!  Generated from $< */" > $@-t
+	echo >> $@-t
+	echo "const char *synopsis =" >> $@-t
+	$(SED) -e 's/"/\\"/g' -e 's/\(.*\)/    "\1\\n"/g' $< >> $@-t
+	echo "    ;" >> $@-t
 	mv $@-t $@
 
 # pkg-config / pkgconf
