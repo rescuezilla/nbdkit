@@ -8,8 +8,11 @@ skip_tests() {
     if test "$SKIPPED_TESTS" != "force"
     then
         # Skip tests from ci/skipped_tests if this is the right OS version
-        # The file
-        os_id="$(sh -c '. /etc/os-release; echo "${NAME}-${VERSION_ID}"')"
+        if test -f /etc/os-release; then
+            os_id="$(sh -c '. /etc/os-release; echo "${NAME}-${VERSION_ID}"')"
+        else
+            os_id=`uname`
+        fi
 
         echo OS ID: $os_id
 
