@@ -209,6 +209,7 @@ endif HAVE_VDDK
 # Syntax checking.
 TESTS += \
 	test-pycodestyle.sh \
+	test-tests-requires-header.sh \
 	test-tests-requires-nbdcopy.sh \
 	test-tests-requires-nbdinfo.sh \
 	test-tests-requires-nbdsh.sh \
@@ -216,6 +217,7 @@ TESTS += \
 	$(NULL)
 EXTRA_DIST += \
 	test-pycodestyle.sh \
+	test-tests-requires-header.sh \
 	test-tests-requires-nbdcopy.sh \
 	test-tests-requires-nbdinfo.sh \
 	test-tests-requires-nbdsh.sh \
