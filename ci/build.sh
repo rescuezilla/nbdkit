@@ -146,12 +146,6 @@ $CONFIG_ARGS
         return 0
     fi
 
-    if test "$(uname)" != "Linux"
-    then
-        echo "Tests are temporarily skipped on non-Linux platforms"
-        return 0
-    fi
-
     run_checks check
 
     # if test "$CHECK_VALGRIND" = "force"
