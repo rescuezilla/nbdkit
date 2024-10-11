@@ -51,6 +51,10 @@ main (int argc, char *argv[])
   int64_t size;
   char *data;
 
+#ifdef __APPLE__
+  skip_because ("loading the OCaml plugin fails on macOS");
+#endif
+
   if (test_start_nbdkit ("./test-ocaml-plugin.so",
                          /* ordinary parameters */
                          "a=1", "b=2", "c=3",

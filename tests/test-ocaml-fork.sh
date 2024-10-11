@@ -43,5 +43,9 @@ requires test -f $plugin
 requires_run
 requires_nbdinfo
 
+# Skip test because loading the OCaml plugin fails on macOS (darwin):
+# nbdkit: error: cannot open plugin "./test-ocaml-plugin.so": dlopen(./test-ocaml-plugin.so, 0x000A): symbol not found in flat namespace '_caml_startup'
+requires_not test "$(uname)" = "Darwin"
+
 # Using --run causes nbdkit to fork.
 nbdkit $plugin a=1 b=2 c=3 d=4 --run 'nbdinfo "$uri"'

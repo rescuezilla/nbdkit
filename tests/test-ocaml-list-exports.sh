@@ -45,6 +45,10 @@ requires_run
 # fetch descriptions) until 1.4.1, so require a later version.
 requires_libnbd_version 1.6
 
+# Skip test because loading the OCaml plugin fails on macOS (darwin):
+# nbdkit: error: cannot open plugin "./test-ocaml-plugin.so": dlopen(./test-ocaml-plugin.so, 0x000A): symbol not found in flat namespace '_caml_startup'
+requires_not test "$(uname)" = "Darwin"
+
 out="test-ocaml-list-exports.out"
 rm -f $out
 cleanup_fn rm -f $out
