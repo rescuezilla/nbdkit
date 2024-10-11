@@ -1267,7 +1267,7 @@ EXTRA_DIST += \
 	test-ocamlexample-plugin.sh \
 	$(NULL)
 
-test_ocaml_SOURCES = test-ocaml.c test.h
+test_ocaml_SOURCES = test-ocaml.c test.h requires.c requires.h
 test_ocaml_CFLAGS = \
 	$(WARNINGS_CFLAGS) \
 	$(LIBGUESTFS_CFLAGS) \

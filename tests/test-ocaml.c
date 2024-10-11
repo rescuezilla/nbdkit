@@ -41,6 +41,7 @@
 
 #include <guestfs.h>
 
+#include "requires.h"
 #include "test.h"
 
 int
