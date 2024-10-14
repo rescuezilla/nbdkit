@@ -65,6 +65,15 @@ run_checks() {
     failed=0
     $MAKE "$@" || failed=1
     restore_tests
+    if [ "$failed" ]; then
+        for f in $(find . -name '*.log' |
+                       grep -v /test-suite.log |
+                       xargs grep -l FAIL ); do
+            echo
+            echo "==== $f ===="
+            cat $f
+        done
+    fi
     return $failed
 }
 
