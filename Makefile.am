@@ -120,8 +120,8 @@ bench: all
 # generated files have been included in the tarball.  (Note you must
 # have done 'make dist')
 maintainer-check-extra-dist:
-	@zcat $(PACKAGE_NAME)-$(VERSION).tar.gz | tar tf - | sort | \
-	  sed 's,^$(PACKAGE_NAME)-$(VERSION)/,,' > tarfiles
+	@tar ztf $(PACKAGE_NAME)-$(VERSION).tar.gz | sort | \
+	    sed 's,^$(PACKAGE_NAME)-$(VERSION)/,,' > tarfiles
 	@git ls-files | \
       grep -v \
 	    -e '^\.cirrus.yml' \
