@@ -281,7 +281,11 @@ tcl_pread (void *handle, void *buf, uint32_t count, uint64_t offset)
   int r;
   Tcl_Obj *h = handle, *cmd, *res;
   unsigned char *res_bin;
+#ifdef TCL_SIZE_MAX /* Tcl >= 9 added new Tcl_Size typedef */
+  Tcl_Size res_len;
+#else
   int res_len;
+#endif
 
   cmd = Tcl_NewObj ();
   Tcl_IncrRefCount (cmd);
