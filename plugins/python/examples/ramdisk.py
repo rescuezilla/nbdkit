@@ -34,9 +34,9 @@ import errno
 disk = bytearray(1024 * 1024)
 
 
-# There are several variants of the API.  nbdkit will call this
-# function first to determine which one you want to use.  This is the
-# latest version at the time this example was written.
+# There are several variants of the API.  nbdkit will use this
+# constant to determine which one you want to use.  This is the latest
+# version at the time this example was written.
 API_VERSION = 2
 
 
