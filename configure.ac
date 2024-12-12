@@ -1239,27 +1239,6 @@ AS_IF([test "$with_curl" != "no"],[
             AC_DEFINE([HAVE_CURL_HTTP_VERSION_3ONLY],[1],
                       [CURL_HTTP_VERSION_3ONLY found at compile time.])
             ], [], [#include <curl/curl.h>])
-        dnl Detect various newer SSL versions, added in 7.54.0
-        AC_CHECK_DECL([CURL_SSLVERSION_MAX_DEFAULT], [
-            AC_DEFINE([HAVE_CURL_SSLVERSION_MAX_DEFAULT],[1],
-                      [CURL_SSLVERSION_MAX_DEFAULT found at compile time.])
-            ], [], [#include <curl/curl.h>])
-        AC_CHECK_DECL([CURL_SSLVERSION_MAX_TLSv1_0], [
-            AC_DEFINE([HAVE_CURL_SSLVERSION_MAX_TLSv1_0],[1],
-                      [CURL_SSLVERSION_MAX_TLSv1_0 found at compile time.])
-            ], [], [#include <curl/curl.h>])
-        AC_CHECK_DECL([CURL_SSLVERSION_MAX_TLSv1_1], [
-            AC_DEFINE([HAVE_CURL_SSLVERSION_MAX_TLSv1_1],[1],
-                      [CURL_SSLVERSION_MAX_TLSv1_1 found at compile time.])
-            ], [], [#include <curl/curl.h>])
-        AC_CHECK_DECL([CURL_SSLVERSION_MAX_TLSv1_2], [
-            AC_DEFINE([HAVE_CURL_SSLVERSION_MAX_TLSv1_2],[1],
-                      [CURL_SSLVERSION_MAX_TLSv1_2 found at compile time.])
-            ], [], [#include <curl/curl.h>])
-        AC_CHECK_DECL([CURL_SSLVERSION_MAX_TLSv1_3], [
-            AC_DEFINE([HAVE_CURL_SSLVERSION_MAX_TLSv1_3],[1],
-                      [CURL_SSLVERSION_MAX_TLSv1_3 found at compile time.])
-            ], [], [#include <curl/curl.h>])
         dnl curl_multi_get_handles was added as a semi-experimental
         dnl feature in curl 8.3.1.
         dnl https://github.com/curl/curl/pull/11750
