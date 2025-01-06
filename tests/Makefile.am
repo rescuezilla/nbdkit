@@ -188,7 +188,8 @@ if HAVE_VDDK
 check-vddk:
 	$(MAKE) check TESTS="test-vddk-real.sh \
 	                     test-vddk-real-dump-plugin.sh \
-	                     test-vddk-real-create.sh"
+	                     test-vddk-real-create.sh \
+	                     test-vddk-real-unaligned-chunk.sh"
 endif HAVE_VDDK
 
 #----------------------------------------------------------------------
@@ -1172,6 +1173,7 @@ TESTS += \
 	test-vddk-password-interactive.sh \
 	test-vddk-real-create.sh \
 	test-vddk-real-dump-plugin.sh \
+	test-vddk-real-unaligned-chunk.sh \
 	test-vddk-real.sh \
 	test-vddk-reexec.sh \
 	test-vddk-run.sh \
@@ -1204,6 +1206,7 @@ EXTRA_DIST += \
 	test-vddk-password-interactive.sh \
 	test-vddk-real-create.sh \
 	test-vddk-real-dump-plugin.sh \
+	test-vddk-real-unaligned-chunk.sh \
 	test-vddk-real.sh \
 	test-vddk-reexec.sh \
 	test-vddk-run.sh \

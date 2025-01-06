@@ -392,10 +392,9 @@ do_extents (struct command *cmd, struct vddk_handle *h)
   const uint64_t offset = cmd->offset;
   const bool req_one = cmd->req_one;
   struct nbdkit_extents *extents = cmd->ptr;
-  uint64_t position, end, start_sector;
+  uint64_t position, start_sector, size_sectors, last_queryable_sector, end;
 
   position = offset;
-  end = offset + count;
 
   /* We can only query whole chunks.  Therefore start with the
    * first chunk before offset.
@@ -403,6 +402,21 @@ do_extents (struct command *cmd, struct vddk_handle *h)
   start_sector =
     ROUND_DOWN (offset, VIXDISKLIB_MIN_CHUNK_SIZE * VIXDISKLIB_SECTOR_SIZE)
     / VIXDISKLIB_SECTOR_SIZE;
+
+  /* Calculate the end byte + 1 that we're going to query, normally
+   * this is offset + count.
+   *
+   * However since chunks are larger than sectors, for a disk which
+   * has size which is not aligned to the chunk size there is a part
+   * of the disk at the end that we can never query.  Reduce 'end' to
+   * the maximum possible queryable part of the disk, and we'll deal
+   * with the unaligned bit after the loop (RHEL-71694).
+   */
+  end = offset + count;
+  size_sectors = h->size / VIXDISKLIB_SECTOR_SIZE;
+  last_queryable_sector = ROUND_DOWN (size_sectors, VIXDISKLIB_MIN_CHUNK_SIZE);
+  end = MIN (end, last_queryable_sector * VIXDISKLIB_SECTOR_SIZE);
+
   while (start_sector * VIXDISKLIB_SECTOR_SIZE < end) {
     VixError err;
     uint32_t i;
@@ -472,6 +486,17 @@ do_extents (struct command *cmd, struct vddk_handle *h)
      */
     if (req_one && position > offset)
       return 0;
+  }
+
+  /* If 'end' spanned beyond the last chunk of the disk, then we
+   * reduced it above to avoid reading a chunk that extends beyond the
+   * end of the underlying disk.  We have to synthesize an allocated
+   * block here, which is what VDDK's example code does
+   * (doc/samples/diskLib/vixDiskLibSample.cpp: DoGetAllocatedBlocks).
+   */
+  if (end < offset + count) {
+    if (add_extent (extents, &position, offset + count, false) == -1)
+      return -1;
   }
 
   return 0;
