@@ -873,19 +873,19 @@ vddk_get_size (void *handle)
 {
   struct vddk_handle *h = handle;
   VixDiskLibInfo *info;
-  int64_t size;
   struct command info_cmd = { .type = INFO, .ptr = &info };
 
   if (send_command_and_wait (h, &info_cmd) == -1)
     return -1;
 
-  size = info->capacity * (int64_t)VIXDISKLIB_SECTOR_SIZE;
+  /* Compute the size and cache it into the handle. */
+  h->size = info->capacity * VIXDISKLIB_SECTOR_SIZE;
 
   VDDK_CALL_START (VixDiskLib_FreeInfo, "info")
     VixDiskLib_FreeInfo (info);
   VDDK_CALL_END (VixDiskLib_FreeInfo, 0);
 
-  return size;
+  return h->size;
 }
 
 /* Advertise most efficient block sizes. */

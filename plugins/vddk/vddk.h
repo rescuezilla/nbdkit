@@ -165,6 +165,9 @@ struct vddk_handle {
   command_queue commands;          /* command queue */
   pthread_cond_t commands_cond;    /* condition (queue size 0 -> 1) */
   uint64_t id;                     /* next command ID */
+
+  /* Cached disk size in bytes (set in get_size()). */
+  uint64_t size;
 };
 
 /* reexec.c */
