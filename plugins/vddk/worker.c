@@ -471,7 +471,7 @@ do_extents (struct command *cmd, struct vddk_handle *h)
      * overlapping the original offset we're done.
      */
     if (req_one && position > offset)
-      break;
+      return 0;
   }
 
   return 0;
