@@ -388,9 +388,9 @@ add_extent (struct nbdkit_extents *extents,
 static int
 do_extents (struct command *cmd, struct vddk_handle *h)
 {
-  uint32_t count = cmd->count;
-  uint64_t offset = cmd->offset;
-  bool req_one = cmd->req_one;
+  const uint32_t count = cmd->count;
+  const uint64_t offset = cmd->offset;
+  const bool req_one = cmd->req_one;
   struct nbdkit_extents *extents = cmd->ptr;
   uint64_t position, end, start_sector;
 
