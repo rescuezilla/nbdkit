@@ -35,6 +35,7 @@ function install_buildenv() {
             libcurl4-gnutls-dev \
             libgnutls28-dev \
             libguestfs-dev \
+            liblua5.4-dev \
             liblzma-dev \
             libnbd-dev \
             libperl-dev \
@@ -45,7 +46,6 @@ function install_buildenv() {
             libvirt-dev \
             libzstd-dev \
             locales \
-            lua5.4 \
             make \
             mount \
             ocaml \

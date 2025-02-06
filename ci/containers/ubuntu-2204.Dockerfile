@@ -37,6 +37,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       libcurl4-gnutls-dev \
                       libgnutls28-dev \
                       libguestfs-dev \
+                      liblua5.4-dev \
                       liblzma-dev \
                       libnbd-dev \
                       libperl-dev \
@@ -47,7 +48,6 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       libvirt-dev \
                       libzstd-dev \
                       locales \
-                      lua5.4 \
                       make \
                       mount \
                       ocaml \

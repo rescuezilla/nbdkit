@@ -10,7 +10,7 @@ function install_buildenv() {
         autoconf \
         automake \
         bash \
-        bash-completion \
+        bash-completion-devel \
         bzip2 \
         ca-certificates \
         cargo \
@@ -28,7 +28,6 @@ function install_buildenv() {
         jq \
         libnbd-devel \
         libtool \
-        libtorrent-devel \
         lua-devel \
         make \
         ocaml \
@@ -51,19 +50,19 @@ function install_buildenv() {
         xz
     rm -f /usr/lib*/python3*/EXTERNALLY-MANAGED
     dnf install -y \
-        mingw64-bzip2 \
-        mingw64-curl \
-        mingw64-gcc \
-        mingw64-gcc-c++ \
-        mingw64-gnutls \
-        mingw64-libvirt \
-        mingw64-pkg-config
+        mingw32-bzip2 \
+        mingw32-curl \
+        mingw32-gcc \
+        mingw32-gcc-c++ \
+        mingw32-gnutls \
+        mingw32-libvirt \
+        mingw32-pkg-config
     rpm -qa | sort > /packages.txt
     mkdir -p /usr/libexec/ccache-wrappers
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-c++
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-cc
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-g++
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-gcc
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-c++
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-cc
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-g++
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-gcc
 }
 
 export CCACHE_WRAPPERSDIR="/usr/libexec/ccache-wrappers"
@@ -71,5 +70,5 @@ export LANG="en_US.UTF-8"
 export MAKE="/usr/bin/make"
 export PYTHON="/usr/bin/python3"
 
-export ABI="x86_64-w64-mingw32"
-export CONFIGURE_OPTS="--host=x86_64-w64-mingw32"
+export ABI="i686-w64-mingw32"
+export CONFIGURE_OPTS="--host=i686-w64-mingw32"

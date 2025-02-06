@@ -37,7 +37,7 @@ function install_buildenv() {
         libtool \
         libtorrent \
         libvirt-dev \
-        lua5.4 \
+        lua5.4-dev \
         make \
         ocaml \
         perl \

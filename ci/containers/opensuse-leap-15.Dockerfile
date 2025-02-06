@@ -7,6 +7,7 @@
 FROM registry.opensuse.org/opensuse/leap:15.6
 
 RUN zypper update -y && \
+    zypper addrepo -fc https://download.opensuse.org/update/leap/15.6/backports/openSUSE:Backports:SLE-15-SP6:Update.repo && \
     zypper install -y \
            autoconf \
            automake \
@@ -44,7 +45,6 @@ RUN zypper update -y && \
            mkisofs \
            ocaml \
            perl \
-           perl-Pod-Simple \
            perl-base \
            pkgconfig \
            python3-base \

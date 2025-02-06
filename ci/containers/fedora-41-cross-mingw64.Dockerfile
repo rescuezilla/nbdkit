@@ -4,7 +4,7 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM registry.fedoraproject.org/fedora:40
+FROM registry.fedoraproject.org/fedora:41
 
 RUN dnf install -y nosync && \
     printf '#!/bin/sh\n\
@@ -21,7 +21,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                autoconf \
                automake \
                bash \
-               bash-completion \
+               bash-completion-devel \
                bzip2 \
                ca-certificates \
                cargo \
@@ -39,7 +39,6 @@ exec "$@"\n' > /usr/bin/nosync && \
                jq \
                libnbd-devel \
                libtool \
-               libtorrent-devel \
                lua-devel \
                make \
                ocaml \
@@ -70,20 +69,20 @@ ENV MAKE "/usr/bin/make"
 ENV PYTHON "/usr/bin/python3"
 
 RUN nosync dnf install -y \
-               mingw32-bzip2 \
-               mingw32-curl \
-               mingw32-gcc \
-               mingw32-gcc-c++ \
-               mingw32-gnutls \
-               mingw32-libvirt \
-               mingw32-pkg-config && \
+               mingw64-bzip2 \
+               mingw64-curl \
+               mingw64-gcc \
+               mingw64-gcc-c++ \
+               mingw64-gnutls \
+               mingw64-libvirt \
+               mingw64-pkg-config && \
     nosync dnf clean all -y && \
     rpm -qa | sort > /packages.txt && \
     mkdir -p /usr/libexec/ccache-wrappers && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-c++ && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-cc && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-g++ && \
-    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/i686-w64-mingw32-gcc
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-c++ && \
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-cc && \
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-g++ && \
+    ln -s /usr/bin/ccache /usr/libexec/ccache-wrappers/x86_64-w64-mingw32-gcc
 
-ENV ABI "i686-w64-mingw32"
-ENV CONFIGURE_OPTS "--host=i686-w64-mingw32"
+ENV ABI "x86_64-w64-mingw32"
+ENV CONFIGURE_OPTS "--host=x86_64-w64-mingw32"

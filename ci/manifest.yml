@@ -61,13 +61,13 @@ targets:
           # rustc 1.74.0 < MSRV
           RUST: skip
 
-  fedora-39:
+  fedora-40:
     jobs:
       - arch: x86_64
         variables:
           PERL: force
 
-  fedora-40:
+  fedora-41:
     jobs:
       - arch: x86_64
         variables:

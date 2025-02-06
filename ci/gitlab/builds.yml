@@ -103,18 +103,6 @@ x86_64-debian-sid:
     TARGET_BASE_IMAGE: docker.io/library/debian:sid-slim
 
 
-x86_64-fedora-39:
-  extends: .native_build_job
-  needs:
-    - job: x86_64-fedora-39-container
-      optional: true
-  allow_failure: false
-  variables:
-    NAME: fedora-39
-    PERL: force
-    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:39
-
-
 x86_64-fedora-40:
   extends: .native_build_job
   needs:
@@ -125,6 +113,18 @@ x86_64-fedora-40:
     NAME: fedora-40
     PERL: force
     TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:40
+
+
+x86_64-fedora-41:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-fedora-41-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: fedora-41
+    PERL: force
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:41
 
 
 x86_64-fedora-rawhide:
@@ -201,32 +201,32 @@ x86_64-ubuntu-2404:
 
 # Cross build jobs
 
-mingw32-fedora-40:
+mingw32-fedora-41:
   extends: .cross_build_job
   needs:
-    - job: mingw32-fedora-40-container
+    - job: mingw32-fedora-41-container
       optional: true
   allow_failure: false
   variables:
     CROSS: mingw32
     GOLANG: skip
-    NAME: fedora-40
+    NAME: fedora-41
     RUST: skip
-    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:40
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:41
 
 
-mingw64-fedora-40:
+mingw64-fedora-41:
   extends: .cross_build_job
   needs:
-    - job: mingw64-fedora-40-container
+    - job: mingw64-fedora-41-container
       optional: true
   allow_failure: false
   variables:
     CROSS: mingw64
     GOLANG: skip
-    NAME: fedora-40
+    NAME: fedora-41
     RUST: skip
-    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:40
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:41
 
 
 # Native cirrus build jobs
@@ -234,7 +234,8 @@ mingw64-fedora-40:
 x86_64-freebsd-13:
   extends: .cirrus_build_job
   needs: []
-  allow_failure: false
+  allow_failure:
+    exit_codes: 3
   variables:
     CIRRUS_VM_IMAGE_NAME: freebsd-13-3
     CIRRUS_VM_IMAGE_SELECTOR: image_family
@@ -250,9 +251,10 @@ x86_64-freebsd-13:
 x86_64-freebsd-14:
   extends: .cirrus_build_job
   needs: []
-  allow_failure: false
+  allow_failure:
+    exit_codes: 3
   variables:
-    CIRRUS_VM_IMAGE_NAME: freebsd-14-0
+    CIRRUS_VM_IMAGE_NAME: freebsd-14-1
     CIRRUS_VM_IMAGE_SELECTOR: image_family
     CIRRUS_VM_INSTANCE_TYPE: freebsd_instance
     GOLANG: skip
@@ -282,9 +284,10 @@ x86_64-freebsd-current:
 aarch64-macos-14:
   extends: .cirrus_build_job
   needs: []
-  allow_failure: false
+  allow_failure:
+    exit_codes: 3
   variables:
-    CIRRUS_VM_IMAGE_NAME: ghcr.io/cirruslabs/macos-sonoma-base:latest
+    CIRRUS_VM_IMAGE_NAME: ghcr.io/cirruslabs/macos-runner:sonoma
     CIRRUS_VM_IMAGE_SELECTOR: image
     CIRRUS_VM_INSTANCE_TYPE: macos_instance
     GOLANG: skip

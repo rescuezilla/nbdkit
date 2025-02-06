@@ -44,7 +44,6 @@ RUN zypper dist-upgrade -y && \
            mkisofs \
            ocaml \
            perl \
-           perl-Pod-Simple \
            perl-base \
            pkgconfig \
            python3-base \

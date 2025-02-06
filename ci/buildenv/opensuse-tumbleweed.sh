@@ -43,7 +43,6 @@ function install_buildenv() {
            mkisofs \
            ocaml \
            perl \
-           perl-Pod-Simple \
            perl-base \
            pkgconfig \
            python3-base \

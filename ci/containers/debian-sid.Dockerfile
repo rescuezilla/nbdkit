@@ -37,17 +37,17 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       libcurl4-gnutls-dev \
                       libgnutls28-dev \
                       libguestfs-dev \
+                      liblua5.4-dev \
                       liblzma-dev \
                       libnbd-dev \
                       libperl-dev \
                       libselinux1-dev \
-                      libssh-gcrypt-dev \
+                      libssh-dev \
                       libtool-bin \
                       libtorrent-dev \
                       libvirt-dev \
                       libzstd-dev \
                       locales \
-                      lua5.4 \
                       make \
                       mount \
                       ocaml \
