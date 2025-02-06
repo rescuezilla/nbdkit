@@ -1206,6 +1206,8 @@ AS_IF([test "$with_curl" != "no"],[
         printf "libcurl version is "; $PKG_CONFIG --modversion libcurl
         AC_SUBST([CURL_CFLAGS])
         AC_SUBST([CURL_LIBS])
+        old_CFLAGS="$CFLAGS"
+        CFLAGS="$CURL_CFLAGS $CFLAGS"
         AC_DEFINE([HAVE_CURL],[1],[curl found at compile time.])
         AC_CHECK_DECL([CURLOPT_UNIX_SOCKET_PATH], [
             AC_DEFINE([HAVE_CURLOPT_UNIX_SOCKET_PATH],[1],
@@ -1239,6 +1241,8 @@ AS_IF([test "$with_curl" != "no"],[
             AC_DEFINE([HAVE_CURL_HTTP_VERSION_3ONLY],[1],
                       [CURL_HTTP_VERSION_3ONLY found at compile time.])
             ], [], [#include <curl/curl.h>])
+        CFLAGS="$old_CFLAGS"
+
         dnl curl_multi_get_handles was added as a semi-experimental
         dnl feature in curl 8.3.1.
         dnl https://github.com/curl/curl/pull/11750
