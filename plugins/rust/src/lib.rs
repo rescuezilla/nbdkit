@@ -931,7 +931,7 @@ pub trait Server {
     /// * `count`:  Length of the region to write in bytes
     /// * `offset`: Offset of the region to write in the backing store.
     /// * `flags`:  May include [`Flags::MAY_TRIM`], [`Flags::FAST_ZERO`],
-    ///             and/or [`Flags::FUA`].
+    ///   and/or [`Flags::FUA`].
     fn zero(&self, count: u32, offset: u64, flags: Flags) -> Result<()> {
         unimplemented!()
     }
