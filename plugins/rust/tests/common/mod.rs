@@ -99,8 +99,8 @@ mock! {
 }
 
 #[no_mangle]
-extern fn nbdkit_add_extent(extents: *mut c_void, offset: u64, len: u64, ty: u32)
-    -> c_int
+extern "C" fn nbdkit_add_extent(extents: *mut c_void,
+                                offset: u64, len: u64, ty: u32) -> c_int
 {
     MockNbdkitAddExtent::add(extents, offset, len, ty)
 }
@@ -110,7 +110,7 @@ extern fn nbdkit_add_extent(extents: *mut c_void, offset: u64, len: u64, ty: u32
 // https://github.com/rust-lang/rust/issues/44930
 // extern fn nbdkit_error(fmt: *const c_char, ...);
 #[no_mangle]
-extern fn nbdkit_error(fmt: *const c_char, msg: *const c_char) {
+extern "C" fn nbdkit_error(fmt: *const c_char, msg: *const c_char) {
     assert_eq!(
         unsafe {CStr::from_ptr(fmt) },
         CString::new("%s").unwrap().as_c_str()
@@ -123,7 +123,7 @@ extern fn nbdkit_error(fmt: *const c_char, msg: *const c_char) {
     );
 }
 #[no_mangle]
-extern fn nbdkit_set_error(errno: c_int) {
+extern "C" fn nbdkit_set_error(errno: c_int) {
     ERRNO.with(|e| *e.borrow_mut() = errno);
 }
 
