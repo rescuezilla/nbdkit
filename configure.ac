@@ -237,6 +237,18 @@ AC_ARG_ENABLE([gcc-warnings],
 )
 if test "x$gcc_warnings" = "xyes"; then
     WARNINGS_CFLAGS="-Wall -Wshadow -Wvla -Werror"
+
+    dnl Hack (temporary?) for FreeBSD which complains about:
+    dnl c++: error: argument unused during compilation: '-pthread' [-Werror,-Wunused-command-line-argument]
+    AC_MSG_CHECKING([if we should disable unused-command-line-argument warning])
+    AS_CASE([$host_os],
+      [freebsd*], [
+          WARNINGS_CFLAGS="$WARNINGS_CFLAGS -Wno-unused-command-line-argument"
+          AC_MSG_RESULT([yes])
+      ],
+      [AC_MSG_RESULT([no])]
+    )
+
     AC_SUBST([WARNINGS_CFLAGS])
 fi
 
