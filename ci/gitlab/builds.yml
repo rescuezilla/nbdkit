@@ -147,6 +147,7 @@ x86_64-fedora-rawhide-clang:
   allow_failure: true
   variables:
     CC: clang
+    CXX: clang++
     NAME: fedora-rawhide
     PERL: skip
     TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:rawhide
