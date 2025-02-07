@@ -311,7 +311,7 @@ impl ExtentHandle {
 mod ffi {
     use super::*;
 
-    pub(super) extern fn after_fork() -> c_int {
+    pub(super) extern "C" fn after_fork() -> c_int {
         match unsafe { AFTER_FORK() } {
             Ok(()) => 0,
             Err(e) => {
@@ -321,10 +321,10 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn block_size(h: *mut c_void,
-                                    minp: *mut u32,
-                                    prefp: *mut u32,
-                                    maxp: *mut u32) -> c_int {
+    pub(super) extern "C" fn block_size(h: *mut c_void,
+                                        minp: *mut u32,
+                                        prefp: *mut u32,
+                                        maxp: *mut u32) -> c_int {
         let server = unsafe { downcast(h) };
         match server.block_size() {
             Err(e) => {
@@ -342,7 +342,7 @@ mod ffi {
 
     macro_rules! can_method {
         ( $meth:ident ) => {
-            pub(super) extern fn $meth(h: *mut c_void) -> c_int {
+            pub(super) extern "C" fn $meth(h: *mut c_void) -> c_int {
                 let server = unsafe { downcast(h) };
                 match server.$meth() {
                     Err(e) => {
@@ -357,10 +357,10 @@ mod ffi {
 
     macro_rules! trim_like {
         ( $meth:ident) => {
-            pub(super) extern fn $meth(h: *mut c_void,
-                                      count: u32,
-                                      offset: u64,
-                                      rawflags: u32) -> c_int
+            pub(super) extern "C" fn $meth(h: *mut c_void,
+                                           count: u32,
+                                           offset: u64,
+                                           rawflags: u32) -> c_int
             {
                 let server = unsafe { downcast(h) };
                 let flags = Flags::from_bits(rawflags)
@@ -376,10 +376,10 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn cache(h: *mut c_void,
-                               count: u32,
-                               offset: u64,
-                               _rawflags: u32) -> c_int
+    pub(super) extern "C" fn cache(h: *mut c_void,
+                                   count: u32,
+                                   offset: u64,
+                                   _rawflags: u32) -> c_int
     {
         let server = unsafe { downcast(h) };
         match server.cache(count, offset) {
@@ -391,7 +391,7 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn close(selfp: *mut c_void) {
+    pub(super) extern "C" fn close(selfp: *mut c_void) {
         unsafe {
             drop(Box::from_raw(selfp as *mut Box<dyn Server>));
         }
@@ -407,7 +407,8 @@ mod ffi {
     can_method!(can_trim);
     can_method!(can_zero);
 
-    pub(super) extern fn config(k: *const c_char, v: *const c_char) -> c_int {
+    pub(super) extern "C" fn config(k: *const c_char,
+                                    v: *const c_char) -> c_int {
         let key = match unsafe { CStr::from_ptr(k) }.to_str() {
             Ok(s) => s,
             Err(e) => {
@@ -433,7 +434,7 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn config_complete() -> c_int {
+    pub(super) extern "C" fn config_complete() -> c_int {
         match unsafe { CONFIG_COMPLETE() } {
             Ok(()) => 0,
             Err(e) => {
@@ -454,16 +455,16 @@ mod ffi {
         &**(p as *const Box<dyn Server>)
     }
 
-    pub(super) extern fn dump_plugin() {
+    pub(super) extern "C" fn dump_plugin() {
         unsafe { DUMP_PLUGIN() }
     }
 
     // TODO: document REQ_ONE
-    pub(super) extern fn extents(h: *mut c_void,
-                                 count: u32,
-                                 offset: u64,
-                                 rawflags: u32,
-                                 extents: *mut c_void ) -> c_int
+    pub(super) extern "C" fn extents(h: *mut c_void,
+                                     count: u32,
+                                     offset: u64,
+                                     rawflags: u32,
+                                     extents: *mut c_void ) -> c_int
     {
         let server = unsafe { downcast(h) };
         let mut exh = ExtentHandle(extents);
@@ -477,7 +478,7 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn flush(h: *mut c_void, _rawflags: u32) -> c_int {
+    pub(super) extern "C" fn flush(h: *mut c_void, _rawflags: u32) -> c_int {
         let server = unsafe { downcast(h) };
         match server.flush() {
             Ok(()) => 0,
@@ -488,7 +489,7 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn get_ready() -> c_int {
+    pub(super) extern "C" fn get_ready() -> c_int {
         match unsafe { GET_READY() } {
             Ok(()) => 0,
             Err(e) => {
@@ -498,7 +499,7 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn get_size(h: *mut c_void) -> i64 {
+    pub(super) extern "C" fn get_size(h: *mut c_void) -> i64 {
         let server = unsafe { downcast(h) };
         match server.get_size() {
             Ok(size) => size,
@@ -511,11 +512,11 @@ mod ffi {
 
     can_method!(is_rotational);
 
-    pub(super) extern fn load() {
+    pub(super) extern "C" fn load() {
         unsafe { LOAD() }
     }
 
-    pub(super) extern fn open(readonly: c_int) -> *mut c_void {
+    pub(super) extern "C" fn open(readonly: c_int) -> *mut c_void {
         // We need to double-box to turn the trait object (fat pointer) into a
         // thin pointer
         match unsafe { OPEN(readonly != 0) } {
@@ -529,11 +530,11 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn pread(h: *mut c_void,
-                               bufp: *mut c_char,
-                               count: u32,
-                               offset: u64,
-                               _flags: u32) -> c_int
+    pub(super) extern "C" fn pread(h: *mut c_void,
+                                   bufp: *mut c_char,
+                                   count: u32,
+                                   offset: u64,
+                                   _flags: u32) -> c_int
     {
         let server = unsafe { downcast(h) };
         let buf = unsafe {
@@ -548,7 +549,7 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn preconnect(readonly: c_int) -> c_int {
+    pub(super) extern "C" fn preconnect(readonly: c_int) -> c_int {
         match unsafe { PRECONNECT(readonly != 0) } {
             Ok(()) => 0,
             Err(e) => {
@@ -558,11 +559,11 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn pwrite(h: *mut c_void,
-                                bufp: *const c_char,
-                                count: u32,
-                                offset: u64,
-                                rawflags: u32) -> c_int
+    pub(super) extern "C" fn pwrite(h: *mut c_void,
+                                    bufp: *const c_char,
+                                    count: u32,
+                                    offset: u64,
+                                    rawflags: u32) -> c_int
     {
         let server = unsafe { downcast(h) };
         let buf = unsafe {
@@ -587,7 +588,7 @@ mod ffi {
         }
     }
 
-    pub(super) extern fn thread_model() -> c_int {
+    pub(super) extern "C" fn thread_model() -> c_int {
         match unsafe { THREAD_MODEL() } {
             Ok(x) => x as c_int,
             Err(e) => {
@@ -599,7 +600,7 @@ mod ffi {
 
     trim_like!(trim);
 
-    pub(super) extern fn unload() {
+    pub(super) extern "C" fn unload() {
         unsafe { UNLOAD() }
     }
 
@@ -1270,85 +1271,85 @@ pub struct Plugin {
     pub version: *const c_char,
     pub description: *const c_char,
 
-    pub load: Option<extern fn ()>,
-    pub unload: Option<extern fn ()>,
+    pub load: Option<extern "C" fn ()>,
+    pub unload: Option<extern "C" fn ()>,
 
-    pub config: Option<extern fn (*const c_char, *const c_char) -> c_int>,
-    pub config_complete: Option<extern fn () -> c_int>,
+    pub config: Option<extern "C" fn (*const c_char, *const c_char) -> c_int>,
+    pub config_complete: Option<extern "C" fn () -> c_int>,
     pub config_help: *const c_char,
 
-    pub open: extern fn (c_int) -> *mut c_void,
-    pub close: extern fn (*mut c_void),
+    pub open: extern "C" fn (c_int) -> *mut c_void,
+    pub close: extern "C" fn (*mut c_void),
 
-    pub get_size: extern fn (*mut c_void) -> i64,
+    pub get_size: extern "C" fn (*mut c_void) -> i64,
 
-    pub can_write: Option<extern fn (*mut c_void) -> c_int>,
-    pub can_flush: Option<extern fn (*mut c_void) -> c_int>,
-    pub is_rotational: Option<extern fn (*mut c_void) -> c_int>,
-    pub can_trim: Option<extern fn (*mut c_void) -> c_int>,
+    pub can_write: Option<extern "C" fn (*mut c_void) -> c_int>,
+    pub can_flush: Option<extern "C" fn (*mut c_void) -> c_int>,
+    pub is_rotational: Option<extern "C" fn (*mut c_void) -> c_int>,
+    pub can_trim: Option<extern "C" fn (*mut c_void) -> c_int>,
 
     // Slots for old v1 API functions.
-    #[doc(hidden)] pub _pread_v1: Option<extern fn ()>,
-    #[doc(hidden)] pub _pwrite_v1: Option<extern fn ()>,
-    #[doc(hidden)] pub _flush_v1: Option<extern fn ()>,
-    #[doc(hidden)] pub _trim_v1: Option<extern fn ()>,
-    #[doc(hidden)] pub _zero_v1: Option<extern fn ()>,
+    #[doc(hidden)] pub _pread_v1: Option<extern "C" fn ()>,
+    #[doc(hidden)] pub _pwrite_v1: Option<extern "C" fn ()>,
+    #[doc(hidden)] pub _flush_v1: Option<extern "C" fn ()>,
+    #[doc(hidden)] pub _trim_v1: Option<extern "C" fn ()>,
+    #[doc(hidden)] pub _zero_v1: Option<extern "C" fn ()>,
 
     #[doc(hidden)] pub errno_is_preserved: c_int,
 
-    pub dump_plugin: Option<extern fn ()>,
+    pub dump_plugin: Option<extern "C" fn ()>,
 
-    pub can_zero: Option<extern fn (*mut c_void) -> c_int>,
-    pub can_fua: Option<extern fn (*mut c_void) -> c_int>,
+    pub can_zero: Option<extern "C" fn (*mut c_void) -> c_int>,
+    pub can_fua: Option<extern "C" fn (*mut c_void) -> c_int>,
 
-    pub pread: extern fn (h: *mut c_void, buf: *mut c_char, count: u32,
-                          offset: u64,
-                          flags: u32) -> c_int,
-    pub pwrite: Option<extern fn (h: *mut c_void, buf: *const c_char,
-                                  count: u32, offset: u64,
-                                  flags: u32) -> c_int>,
-    pub flush: Option<extern fn (h: *mut c_void, flags: u32) -> c_int>,
-    pub trim: Option<extern fn (h: *mut c_void,
-                                count: u32, offset: u64,
-                                flags: u32) -> c_int>,
-    pub zero: Option<extern fn (h: *mut c_void,
-                                count: u32, offset: u64,
-                                flags: u32) -> c_int>,
+    pub pread: extern "C" fn (h: *mut c_void, buf: *mut c_char, count: u32,
+                              offset: u64,
+                              flags: u32) -> c_int,
+    pub pwrite: Option<extern "C" fn (h: *mut c_void, buf: *const c_char,
+                                      count: u32, offset: u64,
+                                      flags: u32) -> c_int>,
+    pub flush: Option<extern "C" fn (h: *mut c_void, flags: u32) -> c_int>,
+    pub trim: Option<extern "C" fn (h: *mut c_void,
+                                    count: u32, offset: u64,
+                                    flags: u32) -> c_int>,
+    pub zero: Option<extern "C" fn (h: *mut c_void,
+                                    count: u32, offset: u64,
+                                    flags: u32) -> c_int>,
 
     pub magic_config_key: *const c_char,
 
-    pub can_multi_conn: Option<extern fn (h: *mut c_void) -> c_int>,
+    pub can_multi_conn: Option<extern "C" fn (h: *mut c_void) -> c_int>,
 
-    pub can_extents: Option<extern fn (h: *mut c_void) -> c_int>,
-    pub extents: Option<extern fn (h: *mut c_void,
-                                   count: u32,
-                                   offset: u64,
-                                   rawflags: u32,
-                                   extent_handle: *mut c_void) -> c_int>,
+    pub can_extents: Option<extern "C" fn (h: *mut c_void) -> c_int>,
+    pub extents: Option<extern "C" fn (h: *mut c_void,
+                                       count: u32,
+                                       offset: u64,
+                                       rawflags: u32,
+                                       extent_handle: *mut c_void) -> c_int>,
 
-    pub can_cache: Option<extern fn (h: *mut c_void) -> c_int>,
-    pub cache: Option<extern fn (h: *mut c_void,
-                                 count: u32, offset: u64,
-                                 flags: u32) -> c_int>,
+    pub can_cache: Option<extern "C" fn (h: *mut c_void) -> c_int>,
+    pub cache: Option<extern "C" fn (h: *mut c_void,
+                                     count: u32, offset: u64,
+                                     flags: u32) -> c_int>,
 
-    pub thread_model: Option<extern fn () -> c_int>,
+    pub thread_model: Option<extern "C" fn () -> c_int>,
 
-    pub can_fast_zero: Option<extern fn (h: *mut c_void) -> c_int>,
-    pub preconnect: Option<extern fn(readonly: c_int) -> c_int>,
-    pub get_ready: Option<extern fn() -> c_int>,
-    pub after_fork: Option<extern fn() -> c_int>,
+    pub can_fast_zero: Option<extern "C" fn (h: *mut c_void) -> c_int>,
+    pub preconnect: Option<extern "C" fn(readonly: c_int) -> c_int>,
+    pub get_ready: Option<extern "C" fn() -> c_int>,
+    pub after_fork: Option<extern "C" fn() -> c_int>,
 
     // These fields exist in the struct but have not been implemented
     // by the Rust bindings yet.
-    #[doc(hidden)] pub _list_exports: Option<extern fn ()>,
+    #[doc(hidden)] pub _list_exports: Option<extern "C" fn ()>,
     #[doc(hidden)] pub _default_export: *const c_char,
     #[doc(hidden)] pub _export_description: *const c_char,
-    #[doc(hidden)] pub _cleanup: Option<extern fn ()>,
+    #[doc(hidden)] pub _cleanup: Option<extern "C" fn ()>,
 
-    pub block_size: Option<extern fn(h: *mut c_void,
-                                     minp: *mut u32,
-                                     prefp: *mut u32,
-                                     maxp: *mut u32) -> c_int>,
+    pub block_size: Option<extern "C" fn(h: *mut c_void,
+                                         minp: *mut u32,
+                                         prefp: *mut u32,
+                                         maxp: *mut u32) -> c_int>,
 }
 
 /// Register your plugin with NBDKit.
@@ -1394,7 +1395,7 @@ pub struct Plugin {
 macro_rules! plugin {
     ( $cls:path { $($feat:ident),* } ) => {
         #[no_mangle]
-        pub extern fn plugin_init () -> *const ::nbdkit::Plugin {
+        pub extern "C" fn plugin_init () -> *const ::nbdkit::Plugin {
             let mut plugin = ::nbdkit::Builder::new();
             $(plugin.$feat = true;)*
             plugin.into_ptr::<$cls>()
@@ -1428,8 +1429,8 @@ mod t {
         }
 
         #[no_mangle]
-        extern fn nbdkit_peer_name( addr: *mut libc::sockaddr,
-                                    addrlen: *mut libc::socklen_t) -> c_int
+        extern "C" fn nbdkit_peer_name( addr: *mut libc::sockaddr,
+                                        addrlen: *mut libc::socklen_t) -> c_int
         {
             MockNbdkit::peer_name(addr, addrlen)
         }
