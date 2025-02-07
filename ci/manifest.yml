@@ -93,6 +93,7 @@ targets:
         suffix: -clang
         variables:
           CC: clang
+          CXX: clang++
           PERL: skip
 
   freebsd-13:
