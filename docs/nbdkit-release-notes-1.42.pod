@@ -11,8 +11,9 @@ nbdkit 1.42.0 was released on B<XXX XXX 2025>.
 
 =head2 Security
 
-L<nbdkit-ip-filter(1)> has been fixed to prevent banned clients from
-listing out exports in some situations.
+L<nbdkit-ip-filter(1)> has been fixed to close an information leak.
+In an unusual configuration of the filter, it could leak the list of
+exports to clients that are supposed to be blocked.
 
 All past security issues and information about how to report new ones
 can be found in L<nbdkit-security(1)>.
@@ -20,10 +21,10 @@ can be found in L<nbdkit-security(1)>.
 =head2 Plugins
 
 L<nbdkit-ondemand-plugin(1)> now allows more characters to appear in
-filenames, allowing in particular filenames containing MAC addresses
-to be used, which is useful when using NBD in pre-boot environments.
-Also add the C<share=true> option to allow sharing.  (Thanks Markus
-Hartung)
+filenames.  Colons are now allowed, so filenames containing MAC
+addresses can be used, which is useful when using NBD in pre-boot
+environments.  Also add the C<share=true> option to allow sharing.
+(Thanks Markus Hartung)
 
 L<nbdkit-vddk-plugin(1)> now prints the default list of transports in
 I<--dump-plugin> output.  Also this plugin now handles partial chunks
@@ -36,26 +37,27 @@ New L<nbdkit-time-limit-filter(1)> can be used to specify the maximum
 time limit for a connection.  (See also the new I<--timeout> option
 below).
 
-New L<nbdkit-lzip-filter(1)> which implements support for random
-access to lzip-compressed files (Jan Felix Langenbach).
+New L<nbdkit-lzip-filter(1)> implements random access to
+lzip-compressed files (Jan Felix Langenbach).
 
 =head2 Language bindings
 
-Multiple updates to L<nbdkit-rust-plugin(1)> to keep up to date with
+Multiple updates to L<nbdkit-rust-plugin(3)> to keep up to date with
 latest changes in the Rust language (Alan Somers).
 
-Fix crash that happened in OCaml plugins with OCaml E<ge> 5 (thanks
-Guillaume Munch-Maccagnoni, Gabriel Scherer).  Also update the
-ocamldoc documentation.  Fix more OCaml 5 deprecation warnings.
+Fix crash that happened in L<nbdkit-ocaml-plugin(3)> plugins with
+OCaml E<ge> 5 (thanks Guillaume Munch-Maccagnoni, Gabriel Scherer).
+Also update the ocamldoc documentation.  Fix more OCaml 5 deprecation
+warnings.
 
-Add support for Tcl 9.0.
+Add support for Tcl 9.0 to L<nbdkit-tcl-plugin(3)>.
 
 =head2 Server
 
 nbdkit will now try to send the last plugin error message over the NBD
 protocol to the client, to provide additional information.  This
-requires an NBD client which supports this, such as qemu E<ge> 2.12 or
-libnbd E<ge> 1.22.
+requires an NBD client which supports this, such as S<qemu E<ge> 2.12>
+or S<libnbd E<ge> 1.22>.
 
 New nbdkit I<--timeout> flag can be used as a security measure to
 ensure that clients don't consume resources by opening lots of
@@ -63,7 +65,11 @@ connections and then not negotiating (or negotiating slowly) the full
 NBD session.
 
 New nbdkit I<--keepalive> option which enables TCP-level keepalives.
-This is useful for detecting when the client does away.
+This is useful for detecting dead clients.
+
+nbdkit I<--dump-config> output now includes C<timeout_option=yes|no>
+and C<vsock_option=yes|no> reflecting whether the I<--timeout> and
+I<--vsock> options are available.
 
 =begin comment
 
