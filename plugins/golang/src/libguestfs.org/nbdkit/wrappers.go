@@ -42,119 +42,120 @@ package nbdkit
 #include <nbdkit-plugin.h>
 #include "wrappers.h"
 
-extern void implLoad ();
+extern void implLoad (void);
 void
 wrapper_load (void)
 {
   implLoad ();
 }
 
-extern void implUnload ();
+extern void implUnload (void);
 void
 wrapper_unload (void)
 {
   implUnload ();
 }
 
-extern void implDumpPlugin ();
+extern void implDumpPlugin (void);
 void
 wrapper_dump_plugin (void)
 {
   implDumpPlugin ();
 }
 
-extern int implConfig ();
+extern int implConfig (const char *key, const char *value);
 int
 wrapper_config (const char *key, const char *value)
 {
   return implConfig (key, value);
 }
 
-extern int implConfigComplete ();
+extern int implConfigComplete (void);
 int
 wrapper_config_complete (void)
 {
   return implConfigComplete ();
 }
 
-extern int implGetReady ();
+extern int implGetReady (void);
 int
 wrapper_get_ready (void)
 {
   return implGetReady ();
 }
 
-extern int implPreConnect ();
+extern int implPreConnect (int readonly);
 int
 wrapper_preconnect (int readonly)
 {
   return implPreConnect (readonly);
 }
 
-extern void *implOpen ();
+extern void *implOpen (int readonly);
 void *
 wrapper_open (int readonly)
 {
   return implOpen (readonly);
 }
 
-extern void implClose ();
+extern void implClose (void *handle);
 void
 wrapper_close (void *handle)
 {
   return implClose (handle);
 }
 
-extern int64_t implGetSize ();
+extern int64_t implGetSize (void *handle);
 int64_t
 wrapper_get_size (void *handle)
 {
   return implGetSize (handle);
 }
 
-extern int implCanWrite ();
+extern int implCanWrite (void *handle);
 int
 wrapper_can_write (void *handle)
 {
   return implCanWrite (handle);
 }
 
-extern int implCanFlush ();
+extern int implCanFlush (void *handle);
 int
 wrapper_can_flush (void *handle)
 {
   return implCanFlush (handle);
 }
 
-extern int implIsRotational ();
+extern int implIsRotational (void *handle);
 int
 wrapper_is_rotational (void *handle)
 {
   return implIsRotational (handle);
 }
 
-extern int implCanTrim ();
+extern int implCanTrim (void *handle);
 int
 wrapper_can_trim (void *handle)
 {
   return implCanTrim (handle);
 }
 
-extern int implCanZero ();
+extern int implCanZero (void *handle);
 int
 wrapper_can_zero (void *handle)
 {
   return implCanZero (handle);
 }
 
-extern int implCanMultiConn ();
+extern int implCanMultiConn (void *handle);
 int
 wrapper_can_multi_conn (void *handle)
 {
   return implCanMultiConn (handle);
 }
 
-extern int implPRead ();
+extern int implPRead (void *handle, void *buf,
+                      uint32_t count, uint64_t offset, uint32_t flags);
 int
 wrapper_pread (void *handle, void *buf,
                uint32_t count, uint64_t offset, uint32_t flags)
@@ -162,7 +163,8 @@ wrapper_pread (void *handle, void *buf,
   return implPRead (handle, buf, count, offset, flags);
 }
 
-extern int implPWrite ();
+extern int implPWrite (void *handle, const void *buf,
+                       uint32_t count, uint64_t offset, uint32_t flags);
 int
 wrapper_pwrite (void *handle, const void *buf,
                 uint32_t count, uint64_t offset, uint32_t flags)
@@ -170,14 +172,15 @@ wrapper_pwrite (void *handle, const void *buf,
   return implPWrite (handle, buf, count, offset, flags);
 }
 
-extern int implFlush ();
+extern int implFlush (void *handle, uint32_t flags);
 int
 wrapper_flush (void *handle, uint32_t flags)
 {
   return implFlush (handle, flags);
 }
 
-extern int implTrim ();
+extern int implTrim (void *handle,
+                     uint32_t count, uint64_t offset, uint32_t flags);
 int
 wrapper_trim (void *handle,
               uint32_t count, uint64_t offset, uint32_t flags)
@@ -185,7 +188,8 @@ wrapper_trim (void *handle,
   return implTrim (handle, count, offset, flags);
 }
 
-extern int implZero ();
+extern int implZero (void *handle,
+                     uint32_t count, uint64_t offset, uint32_t flags);
 int
 wrapper_zero (void *handle,
               uint32_t count, uint64_t offset, uint32_t flags)
