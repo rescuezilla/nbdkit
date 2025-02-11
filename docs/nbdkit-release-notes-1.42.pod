@@ -98,6 +98,8 @@ directory.
 
 nbdkit should be buildable again on macOS.
 
+Add support for GCC 15.
+
 =begin comment
 
 =head2 Internals
