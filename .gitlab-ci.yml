@@ -60,4 +60,5 @@ include:
     - cargo build --examples
     - cargo doc --no-deps
     - rm -rf $CARGO_HOME/registry/index
-
+  rules:
+    - !reference [.gitlab_native_build_job, rules]
