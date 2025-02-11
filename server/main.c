@@ -239,6 +239,11 @@ dump_config (void)
     printf ("%s=%s\n", "version_extra", NBDKIT_VERSION_EXTRA);
   printf ("%s=%d\n", "version_major", NBDKIT_VERSION_MAJOR);
   printf ("%s=%d\n", "version_minor", NBDKIT_VERSION_MINOR);
+#if defined (AF_VSOCK) && defined (VMADDR_CID_ANY)
+  printf ("vsock_option=yes\n");
+#else
+  printf ("vsock_option=no\n");
+#endif
 #ifdef HAVE_LIBZSTD
   printf ("zstd=yes\n");
 #else
