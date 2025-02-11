@@ -41,7 +41,7 @@
 
 #include "internal.h"
 
-#ifdef HAVE_TIMER_CREATE
+#ifdef HAVE_TIMEOUT_OPTION
 
 #include <sys/socket.h>
 
@@ -126,7 +126,7 @@ cancel_timeout (struct connection *conn)
   }
 }
 
-#else /* !HAVE_TIMER_CREATE */
+#else /* !HAVE_TIMEOUT_OPTION */
 
 int
 start_timeout (struct connection *conn)
@@ -140,5 +140,4 @@ cancel_timeout (struct connection *conn)
   return;
 }
 
-#endif /* !HAVE_TIMER_CREATE */
-
+#endif /* !HAVE_TIMEOUT_OPTION */

@@ -42,6 +42,20 @@
 #include <sys/socket.h>
 #endif
 
+/* Do we have the --timeout option?
+ *
+ * OpenBSD defines timer_create as a function that returns -ENOSYS,
+ * which breaks configure.  So we have to check for SIGEV_THREAD being
+ * defined as well.
+ * https://github.com/openbsd/src/blob/master/lib/libc/sys/timer_create.c
+ */
+#include <signal.h>
+#include <time.h>
+
+#if defined(HAVE_TIMER_CREATE) && defined(SIGEV_THREAD)
+#define HAVE_TIMEOUT_OPTION 1
+#endif
+
 /* Server supports API versions between 1 and MAX_API_VERSION */
 #define MAX_API_VERSION 2
 
@@ -290,7 +304,7 @@ struct connection {
   uint32_t cflags;
   uint16_t eflags;
   bool handshake_complete;
-#ifdef HAVE_TIMER_CREATE
+#ifdef HAVE_TIMEOUT_OPTION
   timer_t timer;
   bool timer_set;
 #endif

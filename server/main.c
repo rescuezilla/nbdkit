@@ -416,7 +416,7 @@ main (int argc, char *argv[])
       break;
 
     case TIMEOUT_OPTION:
-#ifdef HAVE_TIMER_CREATE
+#ifdef HAVE_TIMEOUT_OPTION
       if (nbdkit_parse_delay ("timeout", optarg,
                               &timeout_secs, &timeout_nsecs) == -1)
         exit (EXIT_FAILURE);
