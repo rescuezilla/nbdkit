@@ -34,6 +34,7 @@
 #define NBDKIT_CURLDEFS_H
 
 #include <stdbool.h>
+#include <pthread.h>
 
 #ifdef HAVE_STDATOMIC_H
 #include <stdatomic.h>
