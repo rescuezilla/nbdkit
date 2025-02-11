@@ -224,6 +224,11 @@ dump_config (void)
 #endif
   printf ("%s=%s\n", "soext", SOEXT);
   printf ("%s=%s\n", "sysconfdir", sysconfdir);
+#ifdef HAVE_TIMEOUT_OPTION
+  printf ("timeout_option=yes\n");
+#else
+  printf ("timeout_option=no\n");
+#endif
 #ifdef HAVE_GNUTLS
   printf ("tls=yes\n");
 #else
