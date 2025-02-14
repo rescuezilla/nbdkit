@@ -412,10 +412,10 @@ using Linux and mingw-w64.  At a minimum you will need:
 * mingw-w64 gnutls  (optional, but highly recommended)
 * wine              (if you want to run it on Linux)
 
-You may want to patch Wine with this patch which adds support for
-AF_UNIX sockets.  It is needed to get most of the test suite to work,
-but if you don't care about the -U option then it is not needed.
-https://www.winehq.org/pipermail/wine-devel/2021-May/187049.html
+You may want to patch Wine with support for `AF_UNIX` sockets.  It is
+needed to get most of the test suite to work, but if you don't care
+about the -U option then it is not needed.
+https://bugs.winehq.org/show_bug.cgi?id=52568
 
 Other mingw-w64 libraries may be installed which will add
 functionality (see full list of requirements above), but you may end
