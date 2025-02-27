@@ -12,6 +12,16 @@ This manual page describes how to write nbdkit plugins in compiled
 Golang code.  Go plugins are compiled to F<*.so> files (the same as
 plugins written in C) and are used in the same way.
 
+=head1 IMPORTANT NOTE
+
+Go plugins do not support nbdkit forking into the background (ie. the
+default behaviour if I<-f> is I<not> used; or if I<--run> is used).
+Therefore you must use the I<-f> option (or options which imply it,
+see L<nbdkit(1)>).
+
+Fixing this would require changes to the Go runtime.  For details see
+L<https://gitlab.com/nbdkit/nbdkit/-/issues/29#note_2370463738>
+
 =head1 WRITING A GOLANG NBDKIT PLUGIN
 
 For examples of plugins written in Go, see:
