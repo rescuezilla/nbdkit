@@ -19,19 +19,6 @@ x86_64-almalinux-9:
     TARGET_BASE_IMAGE: docker.io/library/almalinux:9
 
 
-x86_64-alpine-319:
-  extends: .native_build_job
-  needs:
-    - job: x86_64-alpine-319-container
-      optional: true
-  allow_failure: false
-  variables:
-    GOLANG: skip
-    NAME: alpine-319
-    RUST: skip
-    TARGET_BASE_IMAGE: docker.io/library/alpine:3.19
-
-
 x86_64-alpine-320:
   extends: .native_build_job
   needs:
@@ -42,6 +29,18 @@ x86_64-alpine-320:
     GOLANG: skip
     NAME: alpine-320
     TARGET_BASE_IMAGE: docker.io/library/alpine:3.20
+
+
+x86_64-alpine-321:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-alpine-321-container
+      optional: true
+  allow_failure: false
+  variables:
+    GOLANG: skip
+    NAME: alpine-321
+    TARGET_BASE_IMAGE: docker.io/library/alpine:3.21
 
 
 x86_64-alpine-edge:
