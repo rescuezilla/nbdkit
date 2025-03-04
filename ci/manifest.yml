@@ -15,16 +15,14 @@ targets:
           # rustc 1.75.0 < MSRV
           RUST: skip
 
-  alpine-319:
+  alpine-320:
     jobs:
       - arch: x86_64
         variables:
           # cgo does not play well with musl: https://github.com/golang/go/issues/13492
           GOLANG: skip
-          # rustc 1.76.0 < MSRV
-          RUST: skip
 
-  alpine-320:
+  alpine-321:
     jobs:
       - arch: x86_64
         variables:
