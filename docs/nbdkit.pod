@@ -771,6 +771,9 @@ activation.
 L<nbdkit-tls(1)> — Authentication and encryption of NBD connections
 (sometimes incorrectly called "SSL").
 
+L<nbdkit-tracing(3)> — Adding user statically defined tracing (USDT)
+probes to nbdkit.
+
 =head2 Plugins
 
 __PLUGIN_LINKS__.

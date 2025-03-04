@@ -32,6 +32,9 @@ You can query information about nbdkit and available plugins and
 filters using the nbdkit binary.  This can include whether nbdkit is
 installed, and whether plugins or filters are installed.
 
+I<Note:> If you are looking for information about USDT probes, see
+L<nbdkit-tracing(3)>.
+
 =head2 Query if nbdkit is installed
 
 Use this command to see if the nbdkit program is installed:

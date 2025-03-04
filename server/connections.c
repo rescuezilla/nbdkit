@@ -148,6 +148,8 @@ handle_single_connection (int sockin, int sockout)
   int nworkers = threads ? threads : DEFAULT_PARALLEL_REQUESTS;
   pthread_t *workers = NULL;
 
+  DTRACE_PROBE (nbdkit, handle_single_connection);
+
   lock_connection ();
 
   /* Because of asynchronous exit it is plausible that a new

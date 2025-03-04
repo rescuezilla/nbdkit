@@ -177,6 +177,10 @@ To test for memory leaks (`make check-valgrind`):
 
 * valgrind program and development headers
 
+For USDT probes:
+
+* <sys/sdt.h> header file (often part of systemtap or DTrace)
+
 For non-essential enhancements to the test suite:
 
 * expect

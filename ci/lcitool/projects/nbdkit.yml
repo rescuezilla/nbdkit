@@ -11,6 +11,7 @@ packages:
   - ccache
   - clang
   - clippy
+  - dtrace
   - e2fsprogs
   - expect
   - flake8

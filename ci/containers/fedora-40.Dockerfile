@@ -69,6 +69,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                qemu-img \
                rust \
                socat \
+               systemtap-sdt-devel \
                tcl-devel \
                util-linux \
                xorriso \

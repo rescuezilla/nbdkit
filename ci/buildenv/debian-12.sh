@@ -61,6 +61,7 @@ function install_buildenv() {
             rust-clippy \
             rustc \
             socat \
+            systemtap-sdt-dev \
             tcl-dev \
             xz-utils \
             zlib1g-dev

@@ -55,6 +55,7 @@ RUN zypper update -y && \
            qemu-tools \
            rust \
            socat \
+           systemtap-sdt-devel \
            tcl-devel \
            util-linux \
            xorriso \

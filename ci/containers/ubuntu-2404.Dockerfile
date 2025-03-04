@@ -63,6 +63,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       rust-clippy \
                       rustc \
                       socat \
+                      systemtap-sdt-dev \
                       tcl-dev \
                       xz-utils \
                       zlib1g-dev && \

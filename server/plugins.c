@@ -292,6 +292,7 @@ plugin_preconnect (struct backend *b, int readonly)
 {
   struct backend_plugin *p = container_of (b, struct backend_plugin, backend);
 
+  DTRACE_PROBE1 (nbdkit, preconnect, b->name);
   debug ("%s: preconnect", b->name);
 
   if (!p->plugin.preconnect)

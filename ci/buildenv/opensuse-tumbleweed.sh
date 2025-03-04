@@ -53,6 +53,7 @@ function install_buildenv() {
            qemu-tools \
            rust \
            socat \
+           systemtap-dtrace \
            tcl-devel \
            util-linux \
            xorriso \
