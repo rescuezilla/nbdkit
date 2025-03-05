@@ -405,6 +405,10 @@ foreach (@xrefs) {
         die "$progname: $input: cannot find cross reference for $_\n"
             if ! -f "$abs_top_srcdir/docs/nbdkit-$name.pod"
     }
+    # nbdkit-tracing is in section 3.
+    elsif (m/^nbdkit-tracing\(3\)$/) {
+        # nothing
+    }
     # nbdkit-plugin(3) and nbdkit-filter(3).
     elsif (m/^nbdkit-plugin\(3\)$/ || m/^nbdkit-filter\(3\)$/) {
         # nothing

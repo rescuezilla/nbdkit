@@ -54,6 +54,7 @@ RUN zypper dist-upgrade -y && \
            qemu-tools \
            rust \
            socat \
+           systemtap-dtrace \
            tcl-devel \
            util-linux \
            xorriso \

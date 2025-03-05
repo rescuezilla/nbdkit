@@ -42,6 +42,27 @@
 #include <sys/socket.h>
 #endif
 
+#ifdef ENABLE_PROBES
+#include <sys/sdt.h>
+#else /* !ENABLE_PROBES */
+/* If probes are disabled, allow the macros to appear but they don't
+ * expand to anything.
+ */
+#define DTRACE_PROBE(pv,pb)
+#define DTRACE_PROBE1(pv,pb,a1)
+#define DTRACE_PROBE2(pv,pb,a1,a2)
+#define DTRACE_PROBE3(pv,pb,a1,a2,a3)
+#define DTRACE_PROBE4(pv,pb,a1,a2,a3,a4)
+#define DTRACE_PROBE5(pv,pb,a1,a2,a3,a4,a5)
+#define DTRACE_PROBE6(pv,pb,a1,a2,a3,a4,a5,a6)
+#define DTRACE_PROBE7(pv,pb,a1,a2,a3,a4,a5,a6,a7)
+#define DTRACE_PROBE8(pv,pb,a1,a2,a3,a4,a5,a6,a7,a8)
+#define DTRACE_PROBE9(pv,pb,a1,a2,a3,a4,a5,a6,a7,a8,a9)
+#define DTRACE_PROBE10(pv,pb,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
+#define DTRACE_PROBE11(pv,pb,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11)
+#define DTRACE_PROBE12(pv,pb,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12)
+#endif /* !ENABLE_PROBES */
+
 /* Do we have the --timeout option?
  *
  * OpenBSD defines timer_create as a function that returns -ENOSYS,

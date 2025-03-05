@@ -81,6 +81,7 @@ EXTRA_DIST = \
 	nbdkit_stdio_safe.pod \
 	nbdkit_strdup_intern.pod \
 	nbdkit-tls.pod \
+	nbdkit-tracing.pod \
 	synopsis.txt \
 	$(NULL)
 
@@ -166,6 +167,7 @@ generated_mans = \
 	nbdkit_stdio_safe.3 \
 	nbdkit_strdup_intern.3 \
 	nbdkit-tls.1 \
+	nbdkit-tracing.3 \
 	$(NULL)
 CLEANFILES += $(generated_mans)
 
@@ -328,6 +330,11 @@ nbdkit_strdup_intern.3: nbdkit_strdup_intern.pod $(top_builddir)/podwrapper.pl
 
 nbdkit-tls.1: nbdkit-tls.pod $(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+nbdkit-tracing.3: nbdkit-tracing.pod $(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=3 --man $@ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 

@@ -614,6 +614,25 @@ dnl restore CFLAGS
 LDFLAGS="${acx_nbdkit_save_LDFLAGS}"
 AC_SUBST([DL_LDFLAGS])
 
+dnl Check for user statically defined tracing (USDT) aka DTrace probes.
+dnl Allow this to be disabled.
+AC_ARG_ENABLE([probes],
+    AS_HELP_STRING([--disable-probes],
+                   [disable user statically defined tracing (USDT) probes @<:@default=yes@:>@]),
+    [],
+    [enable_probes=yes])
+AS_IF([test "x$enable_probes" != "xno"],[
+    dnl http://sourceware.org/systemtap/wiki/AddingUserSpaceProbingToApps
+    AC_CHECK_HEADERS([sys/sdt.h])
+    AS_IF([test "x$ac_cv_header_sys_sdt_h" != "xyes"],[
+        enable_probes=no
+    ])
+])
+AS_IF([test "x$enable_probes" = "xyes"],[
+    AC_DEFINE([ENABLE_PROBES],[1],
+              [Enable user statically defined tracing (USDT) probes.])
+])
+
 dnl Is this Windows?
 AC_MSG_CHECKING([if the target is Windows])
 AS_CASE([$host_os],
@@ -1776,6 +1795,7 @@ feature "linker script"       test "x$USE_LINKER_SCRIPT" = "x"
 feature "manual pages"        test "x$HAVE_POD_TRUE" = "x"
 feature "SELinux"             test "x$LIBSELINUX_LIBS" != "x"
 feature "TLS"                 test "x$GNUTLS_LIBS" != "x"
+feature "USDT probes"         test "x$enable_probes" = "xyes"
 
 echo
 echo "Optional plugins:"
