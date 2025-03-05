@@ -225,17 +225,20 @@ AS_IF([$CXX --version >&AS_MESSAGE_LOG_FD 2>&1],[have_cxx=yes],[have_cxx=no])
 AC_MSG_RESULT([$have_cxx])
 AM_CONDITIONAL([HAVE_CXX], [test "$have_cxx" = "yes"])
 
+dnl If --enable-gcc-warnings is used, then compiler warnings are
+dnl turned on.  Despite the name this applies to GCC, Clang and
+dnl Rust (clippy) warnings.
 AC_ARG_ENABLE([gcc-warnings],
     [AS_HELP_STRING([--enable-gcc-warnings],
-                    [turn on lots of GCC warnings (for developers)])],
+                    [turn on compiler warnings (for developers)])],
      [case $enableval in
       yes|no) ;;
       *)      AC_MSG_ERROR([bad value $enableval for gcc-warnings option]) ;;
       esac
-      gcc_warnings=$enableval],
-      [gcc_warnings=no]
+      compiler_warnings=$enableval],
+      [compiler_warnings=no]
 )
-if test "x$gcc_warnings" = "xyes"; then
+if test "x$compiler_warnings" = "xyes"; then
     WARNINGS_CFLAGS="-Wall -Wshadow -Wvla -Werror"
     AC_SUBST([WARNINGS_CFLAGS])
 
@@ -251,8 +254,8 @@ if test "x$gcc_warnings" = "xyes"; then
       [AC_MSG_RESULT([no])]
     )
     AC_SUBST([WARNINGS_MODULE_CXXFLAGS])
-
 fi
+AM_CONDITIONAL([COMPILER_WARNINGS], [test "$compiler_warnings" = "yes"])
 
 dnl Check if the compiler supports -std=c90 flag.  This is only used
 dnl during a test.  OpenBSD GCC does not support this flag so we skip
@@ -1818,6 +1821,7 @@ echo
 echo "Other optional features:"
 echo
 feature "allocator=zstd"      test "x$HAVE_LIBZSTD_TRUE" = "x"
+feature "compiler warnings"   test "x$COMPILER_WARNINGS_TRUE" = "x"
 feature "tests using libguestfs" \
                               test "x$HAVE_LIBGUESTFS_TRUE" = "x" && \
                               test "x$USE_LIBGUESTFS_FOR_TESTS_TRUE" = "x"
