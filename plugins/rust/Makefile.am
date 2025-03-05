@@ -81,8 +81,11 @@ endif
 TESTS = \
 	cargo-tests.sh \
 	test-ramdisk.sh \
-	clippy.sh \
 	$(NULL)
+
+if COMPILER_WARNINGS
+TESTS += clippy.sh
+endif
 
 if HAVE_POD
 
