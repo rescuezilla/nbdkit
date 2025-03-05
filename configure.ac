@@ -618,9 +618,17 @@ dnl Check for user statically defined tracing (USDT) aka DTrace probes.
 dnl Allow this to be disabled.
 AC_ARG_ENABLE([probes],
     AS_HELP_STRING([--disable-probes],
-                   [disable user statically defined tracing (USDT) probes @<:@default=yes@:>@]),
+                   [disable user statically defined tracing (USDT) probes]),
     [],
-    [enable_probes=yes])
+    [
+    dnl Default probes enabled only on Linux.  This currently fails
+    dnl on FreeBSD and macOS because it requires a special dtrace
+    dnl command to be run.  XXX
+    enable_probes=yes
+    AS_CASE([$host_os],
+      [freebsd*|darwin*], [enable_probes=no]
+    )
+])
 AS_IF([test "x$enable_probes" != "xno"],[
     dnl http://sourceware.org/systemtap/wiki/AddingUserSpaceProbingToApps
     AC_CHECK_HEADERS([sys/sdt.h])
