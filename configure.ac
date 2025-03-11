@@ -1812,7 +1812,8 @@ feature ()
 echo "Optional server features:"
 echo
 feature "bash-completion"     test "x$HAVE_BASH_COMPLETION_TRUE" = "x"
-feature "libfuzzer"           test "x$ENABLE_LIBFUZZER_TRUE" = "x"
+feature "libfuzzer (developers only)" \
+                              test "x$ENABLE_LIBFUZZER_TRUE" = "x"
 feature "linker script"       test "x$USE_LINKER_SCRIPT" = "x"
 feature "manual pages"        test "x$HAVE_POD_TRUE" = "x"
 feature "SELinux"             test "x$LIBSELINUX_LIBS" != "x"
