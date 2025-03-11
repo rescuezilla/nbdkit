@@ -36,6 +36,17 @@ AC_INIT([nbdkit],
         NBDKIT_VERSION_MAJOR.NBDKIT_VERSION_MINOR.NBDKIT_VERSION_MICRO)
 AC_CONFIG_MACRO_DIR([m4])
 
+# Colours within the configure script output.
+term_red=""
+term_green=""
+term_restore=""
+AS_CASE(["$TERM"],
+        [xterm*|vt220*], [
+          term_red="$(printf "\e@<:@22;31m")"
+          term_green="$(printf "\e@<:@22;32m")"
+          term_restore="$(printf "\e@<:@0m")"
+])
+
 dnl This must be used very early else you will get
 dnl "warning: AC_RUN_IFELSE was called before AC_USE_SYSTEM_EXTENSIONS"
 m4_ifdef([AC_USE_SYSTEM_EXTENSIONS],[],
@@ -1789,10 +1800,13 @@ feature ()
     feat="$1"
     shift
     if "$@"; then
+        printf "$term_green"
         print "$feat" "yes"
     else
+        printf "$term_red"
         print "$feat" "no"
     fi
+    printf "$term_restore"
 }
 
 echo "Optional server features:"
