@@ -36,16 +36,21 @@ AC_INIT([nbdkit],
         NBDKIT_VERSION_MAJOR.NBDKIT_VERSION_MINOR.NBDKIT_VERSION_MICRO)
 AC_CONFIG_MACRO_DIR([m4])
 
-# Colours within the configure script output.
+# Headings within the configure script output.
+term_bold=""
 term_red=""
 term_green=""
 term_restore=""
 AS_CASE(["$TERM"],
         [xterm*|vt220*], [
+          term_bold="$(printf "\e@<:@1m")"
           term_red="$(printf "\e@<:@22;31m")"
           term_green="$(printf "\e@<:@22;32m")"
           term_restore="$(printf "\e@<:@0m")"
 ])
+m4_define([HEADING],
+          [AS_ECHO
+           AS_ECHO(["${term_bold}$1${term_restore}"])])
 
 dnl This must be used very early else you will get
 dnl "warning: AC_RUN_IFELSE was called before AC_USE_SYSTEM_EXTENSIONS"
@@ -1783,8 +1788,8 @@ AC_OUTPUT
 dnl Summary.
 echo
 echo
-echo "----------------------------------------------------------------------"
-echo "Thank you for downloading $PACKAGE_STRING"
+echo "------------------------------------------------------------"
+HEADING([Thank you for downloading $PACKAGE_STRING])
 echo
 echo "This is how we have configured the optional components for you today:"
 echo
