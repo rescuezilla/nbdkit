@@ -80,6 +80,14 @@ AC_DEFINE_UNQUOTED([NBDKIT_VERSION_EXTRA], ["$NBDKIT_VERSION_EXTRA"],
 
 AC_MSG_NOTICE([nbdkit version NBDKIT_VERSION_MAJOR.NBDKIT_VERSION_MINOR.NBDKIT_VERSION_MICRO ($NBDKIT_VERSION_EXTRA)])
 
+dnl Expose version information to the public headers
+[NBDKIT_]VERSION_MAJOR=NBDKIT_VERSION_MAJOR
+[NBDKIT_]VERSION_MINOR=NBDKIT_VERSION_MINOR
+[NBDKIT_]VERSION_MICRO=NBDKIT_VERSION_MICRO
+AC_SUBST([NBDKIT_VERSION_MAJOR])
+AC_SUBST([NBDKIT_VERSION_MINOR])
+AC_SUBST([NBDKIT_VERSION_MICRO])
+
 dnl List of plugins and filters.
 lang_plugins="\
         cc \
@@ -717,6 +725,34 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 AC_MSG_RESULT([$is_glibc_234])
 AM_CONDITIONAL([HAVE_GLIBC_234], [test "x$is_glibc_234" = "xyes"])
 
+dnl Build the special libFuzzer version of nbdkit.  DO NOT USE THIS for
+dnl normal builds.  See fuzzing/README.
+AC_ARG_ENABLE([libfuzzer],
+    [AS_HELP_STRING([--enable-libfuzzer],
+                    [build libFuzzer test binary (developers only)])],
+    [],
+    [enable_libfuzzer=no])
+AS_IF([test "x$enable_libfuzzer" = "xyes"],[
+    AC_DEFINE([ENABLE_LIBFUZZER],[1],[Enable special libFuzzer binary])
+    # We have to disable the linker script for libFuzzer because Clang
+    # adds loads of fuzzer and ASAN-related symbols that are required
+    # by the plugins but which our linker script tries to hide.
+    use_linker_script=no
+])
+AM_CONDITIONAL([ENABLE_LIBFUZZER],[test "x$enable_libfuzzer" = "xyes"])
+
+dnl Should we use the linker script (ld --version-script)?  Note
+dnl some tests above may set this variable.
+AC_ARG_ENABLE([linker-script],
+    [AS_HELP_STRING([--disable-linker-script],
+                    [disable linker script for server (developers only)])],
+    [use_linker_script=$enableval],
+    [])
+AM_CONDITIONAL([USE_LINKER_SCRIPT],
+               [test "x$use_linker_script" = "xyes"])
+
+HEADING([Checking for libraries and programs])
+
 dnl Check for SELinux socket labelling (optional).
 AC_ARG_WITH([selinux],
     AS_HELP_STRING([--without-selinux], [disable SELinux support, used for socket labelling @<:@default=check@:>@]))
@@ -730,6 +766,29 @@ AS_IF([test "x$with_selinux" != xno], [
 
 AS_IF([test "x$with_selinux" = xyes && test "x$LIBSELINUX_LIBS" = x], [
     AC_MSG_ERROR([selinux requested but not found])
+])
+
+dnl Check for valgrind.
+AC_CHECK_PROG([VALGRIND],[valgrind],[valgrind],[no])
+
+dnl If valgrind headers are available (optional).
+dnl Although the runtime check adds only a trivial amount of code, you can
+dnl avoid it with explicit --disable-valgrind.
+AC_ARG_ENABLE([valgrind],
+    [AS_HELP_STRING([--disable-valgrind],
+                    [disable Valgrind probe])],
+    [],
+    [enable_valgrind=check])
+AS_IF([test "x$enable_valgrind" != "xno"],[
+    PKG_CHECK_MODULES([VALGRIND], [valgrind], [
+        AC_SUBST([VALGRIND_CFLAGS])
+        AC_SUBST([VALGRIND_LIBS])
+        AC_DEFINE([HAVE_VALGRIND],[1],[Valgrind headers found at compile time])
+    ],[
+        AS_IF([test "x$enable_valgrind" = "xyes"], [
+            AC_MSG_ERROR([--enable-valgrind given, but Valgrind headers are not available])
+        ])
+    ])
 ])
 
 dnl Check for GnuTLS (optional, for TLS support).
@@ -796,60 +855,29 @@ AS_IF([test "x$GNUTLS_LIBS" != "x"],[
 AM_CONDITIONAL([HAVE_GNUTLS_PBKDF2],
     [test "x$GNUTLS_LIBS" != "x" && test "x$ac_cv_func_gnutls_pbkdf2" = xyes])
 
+dnl Allow all plugins and filters to be disabled.
+AC_ARG_ENABLE([plugins],
+    [AS_HELP_STRING([--disable-plugins],
+                    [disable all bundled plugins and filters])])
+AM_CONDITIONAL([HAVE_PLUGINS], [test "x$enable_plugins" != "xno"])
+
+dnl For the cc plugin, let the user hard-code their preferred compiler setup
+dnl Default to the settings used for nbdkit itself
+AC_ARG_VAR([CC_PLUGIN_CC],
+  [value to hard-code into the cc plugin's default for CC, instead of $CC])
+: "${CC_PLUGIN_CC:=$CC}"
+AC_ARG_VAR([CC_PLUGIN_CFLAGS],
+  [value to hard-code into the cc plugin's default for CFLAGS, instead of
+  $CFLAGS])
+: "${CC_PLUGIN_CFLAGS:=$CFLAGS}"
+
 dnl Check for some commands used by the tests which should be the GNU
 dnl coreutils variants.  On macOS these are prefixed with 'g' or 'gnu'.
 AC_CHECK_PROGS([CUT],[gnucut cut],[cut])
 AC_CHECK_PROGS([STAT],[gstat stat],[stat])
 AC_CHECK_PROGS([TRUNCATE],[gtruncate truncate],[truncate])
 
-dnl Check for valgrind.
-AC_CHECK_PROG([VALGRIND],[valgrind],[valgrind],[no])
-
-dnl If valgrind headers are available (optional).
-dnl Although the runtime check adds only a trivial amount of code, you can
-dnl avoid it with explicit --disable-valgrind.
-AC_ARG_ENABLE([valgrind],
-    [AS_HELP_STRING([--disable-valgrind],
-                    [disable Valgrind probe])],
-    [],
-    [enable_valgrind=check])
-AS_IF([test "x$enable_valgrind" != "xno"],[
-    PKG_CHECK_MODULES([VALGRIND], [valgrind], [
-        AC_SUBST([VALGRIND_CFLAGS])
-        AC_SUBST([VALGRIND_LIBS])
-        AC_DEFINE([HAVE_VALGRIND],[1],[Valgrind headers found at compile time])
-    ],[
-        AS_IF([test "x$enable_valgrind" = "xyes"], [
-            AC_MSG_ERROR([--enable-valgrind given, but Valgrind headers are not available])
-        ])
-    ])
-])
-
-dnl Build the special libFuzzer version of nbdkit.  DO NOT USE THIS for
-dnl normal builds.  See fuzzing/README.
-AC_ARG_ENABLE([libfuzzer],
-    [AS_HELP_STRING([--enable-libfuzzer],
-                    [build libFuzzer test binary (developers only)])],
-    [],
-    [enable_libfuzzer=no])
-AS_IF([test "x$enable_libfuzzer" = "xyes"],[
-    AC_DEFINE([ENABLE_LIBFUZZER],[1],[Enable special libFuzzer binary])
-    # We have to disable the linker script for libFuzzer because Clang
-    # adds loads of fuzzer and ASAN-related symbols that are required
-    # by the plugins but which our linker script tries to hide.
-    use_linker_script=no
-])
-AM_CONDITIONAL([ENABLE_LIBFUZZER],[test "x$enable_libfuzzer" = "xyes"])
-
-dnl Should we use the linker script (ld --version-script)?  Note
-dnl some tests above may set this variable.
-AC_ARG_ENABLE([linker-script],
-    [AS_HELP_STRING([--disable-linker-script],
-                    [disable linker script for server (developers only)])],
-    [use_linker_script=$enableval],
-    [])
-AM_CONDITIONAL([USE_LINKER_SCRIPT],
-               [test "x$use_linker_script" = "xyes"])
+HEADING([Checking for bash completion])
 
 dnl Bash completion.
 AC_ARG_WITH([bash-completions],
@@ -878,6 +906,8 @@ AS_IF([test "x$bash_completion" = xno && test "x$with_bash_completions" = xyes],
 ])
 
 AM_CONDITIONAL([HAVE_BASH_COMPLETION],[test "x$bash_completion" = "xyes"])
+
+HEADING([Checking for Perl])
 
 dnl Check we have enough to run podwrapper.
 AC_ARG_WITH([manpages],
@@ -909,22 +939,6 @@ AM_CONDITIONAL([HAVE_POD],
 dnl Define the path to the podwrapper program.
 PODWRAPPER="$PERL $(pwd)/podwrapper.pl"
 AC_SUBST([PODWRAPPER])
-
-dnl Allow all plugins and filters to be disabled.
-AC_ARG_ENABLE([plugins],
-    [AS_HELP_STRING([--disable-plugins],
-                    [disable all bundled plugins and filters])])
-AM_CONDITIONAL([HAVE_PLUGINS], [test "x$enable_plugins" != "xno"])
-
-dnl For the cc plugin, let the user hard-code their preferred compiler setup
-dnl Default to the settings used for nbdkit itself
-AC_ARG_VAR([CC_PLUGIN_CC],
-  [value to hard-code into the cc plugin's default for CC, instead of $CC])
-: "${CC_PLUGIN_CC:=$CC}"
-AC_ARG_VAR([CC_PLUGIN_CFLAGS],
-  [value to hard-code into the cc plugin's default for CFLAGS, instead of
-  $CFLAGS])
-: "${CC_PLUGIN_CFLAGS:=$CFLAGS}"
 
 dnl Check for Perl, for embedding in the perl plugin.
 dnl Note that the perl binary is checked above.
@@ -978,6 +992,8 @@ AM_CONDITIONAL([HAVE_PERL],[test "x$enable_perl" != "xno" && test "x$PERL" != "x
 AC_SUBST([PERL_ARCHLIB])
 AC_SUBST([PERL_CFLAGS])
 AC_SUBST([PERL_LDOPTS])
+
+HEADING([Checking for Python])
 
 dnl Check for Python 3, for embedding in the python plugin.
 AC_PATH_PROGS([PYTHON],[python3 python],[no])
@@ -1042,6 +1058,8 @@ AM_CONDITIONAL([HAVE_PYTHON],[test "x$enable_python" != "xno" && test "x$PYTHON"
 AC_SUBST([PYTHON_CFLAGS])
 AC_SUBST([PYTHON_LIBS])
 AC_SUBST([PYTHON_LDFLAGS])
+
+HEADING([Checking for OCaml])
 
 dnl For the OCaml plugin, you can set OCAMLOPTFLAGS before running
 dnl ./configure to specify any extra flags you want to pass to
@@ -1155,6 +1173,8 @@ EOF
     rm -f conftest.c conftest.o
 ])
 
+HEADING([Checking for Rust])
+
 dnl For developing plugins in Rust, optional.
 dnl Rust does not play nicely with VPATH builds
 AC_CHECK_PROG([CARGO],[cargo],[cargo],[no])
@@ -1175,6 +1195,8 @@ AS_IF([test "x$have_rust" = "xyes"], [
     printf "rustc version: "; $RUSTC --version
 ])
 
+HEADING([Checking for Tcl])
+
 dnl Check for Tcl, for embedding in the Tcl plugin.
 AC_ARG_ENABLE([tcl],
     [AS_HELP_STRING([--disable-tcl], [disable Tcl plugin])],
@@ -1190,6 +1212,8 @@ AS_IF([test "x$enable_tcl" != "xno"],[
     ])
 ])
 AM_CONDITIONAL([HAVE_TCL],[test "x$enable_tcl" = "xyes"])
+
+HEADING([Checking for Lua])
 
 dnl Check for Lua, for embedding in the Lua plugin.
 AC_ARG_ENABLE([lua],
@@ -1212,6 +1236,8 @@ AS_IF([test "x$enable_lua" != "xno"],[
     ])
 ])
 AM_CONDITIONAL([HAVE_LUA],[test "x$enable_lua" = "xyes"])
+
+HEADING([Checking for Golang])
 
 dnl Check for golang.
 AC_ARG_ENABLE([golang],
@@ -1241,6 +1267,8 @@ AS_IF([test "x$enable_golang" != "xno"],[
     ])
 ],[GOLANG=no])
 AM_CONDITIONAL([HAVE_GOLANG],[test "x$GOLANG" != "xno"])
+
+HEADING([Checking for features used by plugins and filters])
 
 dnl Check for libblkio (only if you want to compile the blkio plugin).
 AC_ARG_WITH([libblkio],
@@ -1654,13 +1682,7 @@ AC_ARG_ENABLE([vddk],
     ])
 AM_CONDITIONAL([HAVE_VDDK], [test "x$enable_vddk" = "xyes"])
 
-dnl Expose version information to the public headers
-[NBDKIT_]VERSION_MAJOR=NBDKIT_VERSION_MAJOR
-[NBDKIT_]VERSION_MINOR=NBDKIT_VERSION_MINOR
-[NBDKIT_]VERSION_MICRO=NBDKIT_VERSION_MICRO
-AC_SUBST([NBDKIT_VERSION_MAJOR])
-AC_SUBST([NBDKIT_VERSION_MINOR])
-AC_SUBST([NBDKIT_VERSION_MICRO])
+HEADING([Generating output files])
 
 dnl Produce output files.
 AC_CONFIG_HEADERS([config.h])
