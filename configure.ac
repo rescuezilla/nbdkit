@@ -54,6 +54,8 @@ m4_define([HEADING],
           [AS_ECHO
            AS_ECHO(["${term_bold}$1${term_restore}"])])
 
+HEADING([Checking for C compiler and basic build environment])
+
 dnl This must be used very early else you will get
 dnl "warning: AC_RUN_IFELSE was called before AC_USE_SYSTEM_EXTENSIONS"
 m4_ifdef([AC_USE_SYSTEM_EXTENSIONS],[],
