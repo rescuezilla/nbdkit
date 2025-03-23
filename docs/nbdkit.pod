@@ -326,7 +326,8 @@ system log (I<--log=syslog>), or discard them completely
 The default is to send error messages to stderr, unless nbdkit
 forks into the background in which case they are sent to syslog.
 
-For more details see L<nbdkit-service(1)/LOGGING>.
+Debug messages (I<-v>/I<--verbose>) always go to standard error and
+are never sent to the system log.
 
 =item B<--mask-handshake=>MASK
 

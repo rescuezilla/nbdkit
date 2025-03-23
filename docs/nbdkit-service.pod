@@ -96,39 +96,6 @@ For xinetd create a file F</etc/xinetd.d/nbdkit> containing:
      server_args = -s file /tmp/disk.img
  }
 
-=head1 LOGGING
-
-Error messages from nbdkit can be sent to standard error
-(I<--log=stderr>), or to the system log (I<--log=syslog>), or can be
-discarded completely (I<--log=null>, not recommended for normal use).
-
-The default, if I<--log> is not specified on the command line, is to
-send error messages to stderr, unless nbdkit forks into the background
-in which case they are sent to syslog.
-
-In detail:
-
-=over 4
-
-=item Messages go to standard error (stderr):
-
-When running from the command line in the foreground.
-
-When using systemd socket activation.
-
-Using I<--log=stderr> forces all messages to go to standard error.
-
-=item Messages go to the system log (syslog):
-
-When running from the command line, forked into the background.
-
-Using I<--log=syslog> forces all messages to go to the system log.
-
-=back
-
-Debug messages (I<-v>/I<--verbose>) always go to standard error and
-are never sent to the system log.
-
 =head1 AF_VSOCK
 
 On Linux nbdkit supports the C<AF_VSOCK> address family / protocol.
