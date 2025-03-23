@@ -321,13 +321,16 @@ I<-s>, etc.)
 
 =item B<--log=/path>
 
+=item B<--log=default>
+
 Send error messages to standard error (I<--log=stderr>), or to the
 system log (I<--log=syslog>), discard them completely (I<--log=null>,
 not recommended for normal use), or append them to a file (which must
 be an absolute path).
 
-The default is to send error messages to stderr, unless nbdkit
-forks into the background in which case they are sent to syslog.
+The default (if I<--log> is not used, or if you use I<--log=default>)
+is: send error messages to stderr, unless nbdkit forks into the
+background in which case they are sent to syslog.
 
 For more details see L<nbdkit-service(1)/LOGGING>.
 

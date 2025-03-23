@@ -362,7 +362,9 @@ main (int argc, char *argv[])
       break;
 
     case LOG_OPTION:
-      if (strcmp (optarg, "stderr") == 0)
+      if (strcmp (optarg, "default") == 0)
+        log_to = LOG_TO_DEFAULT;
+      else if (strcmp (optarg, "stderr") == 0)
         log_to = LOG_TO_STDERR;
       else if (strcmp (optarg, "syslog") == 0)
         log_to = LOG_TO_SYSLOG;
