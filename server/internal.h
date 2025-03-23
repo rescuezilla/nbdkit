@@ -145,6 +145,7 @@ enum log_to {
   LOG_TO_STDERR,         /* --log=stderr forced on the command line */
   LOG_TO_SYSLOG,         /* --log=syslog forced on the command line */
   LOG_TO_NULL,           /* --log=null forced on the command line */
+  LOG_TO_FILE,           /* --log=/path used on the command line */
 };
 
 enum service_mode {
@@ -165,6 +166,8 @@ extern bool foreground;
 extern const char *ipaddr;
 extern bool keepalive;
 extern enum log_to log_to;
+extern const char *log_to_file;
+extern FILE *log_to_fp;
 extern unsigned mask_handshake;
 extern bool newstyle;
 extern bool no_mc;

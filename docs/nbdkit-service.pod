@@ -100,7 +100,8 @@ For xinetd create a file F</etc/xinetd.d/nbdkit> containing:
 
 Error messages from nbdkit can be sent to standard error
 (I<--log=stderr>), or to the system log (I<--log=syslog>), or can be
-discarded completely (I<--log=null>, not recommended for normal use).
+discarded completely (I<--log=null>, not recommended for normal use),
+or can be sent to a file (I<--log=/path>).
 
 The default, if I<--log> is not specified on the command line, is to
 send error messages to stderr, unless nbdkit forks into the background
@@ -123,6 +124,11 @@ Using I<--log=stderr> forces all messages to go to standard error.
 When running from the command line, forked into the background.
 
 Using I<--log=syslog> forces all messages to go to the system log.
+
+=item Messages are appended to a named file:
+
+Using I<--log=/path>.  The parameter must be an absolute path.  The
+file is created if it does not exist.
 
 =back
 

@@ -100,6 +100,8 @@ bool foreground;                /* -f */
 const char *ipaddr;             /* -i */
 bool keepalive;                 /* --keepalive */
 enum log_to log_to = LOG_TO_DEFAULT; /* --log */
+const char *log_to_file;        /* --log=/path */
+FILE *log_to_fp;                /* --log=/path */
 unsigned mask_handshake = ~0U;  /* --mask-handshake */
 bool newstyle = true;           /* false = -o, true = -n */
 bool no_mc;                     /* --no-meta-contexts */
@@ -366,9 +368,14 @@ main (int argc, char *argv[])
         log_to = LOG_TO_SYSLOG;
       else if (strcmp (optarg, "null") == 0)
         log_to = LOG_TO_NULL;
+      else if (optarg[0] == '/') {
+        log_to = LOG_TO_FILE;
+        log_to_file = optarg;
+      }
       else {
         fprintf (stderr, "%s: "
-                 "--log must be \"stderr\", \"syslog\" or \"null\"\n",
+                 "--log must be \"stderr\", \"syslog\", \"null\", or "
+                 "an absolute path\n",
                  program_name);
         exit (EXIT_FAILURE);
       }
@@ -632,9 +639,26 @@ main (int argc, char *argv[])
    */
   umask (0022);
 
-  /* If we will or might use syslog. */
-  if (log_to == LOG_TO_SYSLOG || log_to == LOG_TO_DEFAULT)
+  /* Open the log file. */
+  switch (log_to) {
+    /* If we will or might use syslog. */
+  case LOG_TO_DEFAULT:
+  case LOG_TO_SYSLOG:
     openlog (program_name, LOG_PID, 0);
+    break;
+
+  case LOG_TO_FILE:
+    log_to_fp = fopen (log_to_file, "a");
+    if (log_to_fp == NULL) {
+      fprintf (stderr, "%s: %s: fopen: %m\n", program_name, log_to_file);
+      exit (EXIT_FAILURE);
+    }
+    break;
+
+  case LOG_TO_STDERR:
+  case LOG_TO_NULL:
+    ;
+  }
 
   /* Print the version in debug output, right after syslog initialization. */
   if (strcmp (NBDKIT_VERSION_EXTRA, "") == 0)
