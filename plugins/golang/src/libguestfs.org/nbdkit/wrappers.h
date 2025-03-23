@@ -30,9 +30,9 @@
  * SUCH DAMAGE.
  */
 
-extern void    wrapper_load ();
-extern void    wrapper_unload ();
-extern void    wrapper_dump_plugin ();
+extern void    wrapper_load (void);
+extern void    wrapper_unload (void);
+extern void    wrapper_dump_plugin (void);
 extern int     wrapper_config (const char *key, const char *value);
 extern int     wrapper_config_complete (void);
 extern int     wrapper_get_ready (void);
