@@ -44,35 +44,35 @@
 #include "internal.h"
 
 void
-log_stderr_verror (int orig_errno, const char *fs, va_list args)
+log_fp_verror (FILE *fp, int orig_errno, const char *fs, va_list args)
 {
   const char *name = threadlocal_get_name ();
   size_t instance_num = threadlocal_get_instance_num ();
   int tty;
 
 #ifdef HAVE_FLOCKFILE
-  flockfile (stderr);
+  flockfile (fp);
 #endif
-  tty = isatty (fileno (stderr));
-  if (tty) ansi_force_colour (ANSI_FG_BRIGHT_RED, stderr);
+  tty = isatty (fileno (fp));
+  if (tty) ansi_force_colour (ANSI_FG_BRIGHT_RED, fp);
 
-  fprintf (stderr, "%s: ", program_name);
+  fprintf (fp, "%s: ", program_name);
 
   if (name) {
-    fprintf (stderr, "%s", name);
+    fprintf (fp, "%s", name);
     if (instance_num > 0)
-      fprintf (stderr, "[%zu]", instance_num);
-    fprintf (stderr, ": ");
+      fprintf (fp, "[%zu]", instance_num);
+    fprintf (fp, ": ");
   }
 
-  fprintf (stderr, "error: ");
+  fprintf (fp, "error: ");
   errno = orig_errno;        /* must restore in case fs contains %m */
-  vfprintf (stderr, fs, args);
-  fprintf (stderr, "\n");
+  vfprintf (fp, fs, args);
+  fprintf (fp, "\n");
 
-  if (tty) ansi_force_restore (stderr);
+  if (tty) ansi_force_restore (fp);
 
 #ifdef HAVE_FUNLOCKFILE
-  funlockfile (stderr);
+  funlockfile (fp);
 #endif
 }

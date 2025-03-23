@@ -49,7 +49,7 @@ nbdkit_SOURCES = \
 	internal.h \
 	locks.c \
 	log.c \
-	log-stderr.c \
+	log-fp.c \
 	log-syslog.c \
 	main.c \
 	options.h \

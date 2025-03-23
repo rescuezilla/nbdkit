@@ -74,13 +74,13 @@ log_verror (const char *fs, va_list args)
     if (forked_into_background)
       log_syslog_verror (orig_errno, fs, args);
     else
-      log_stderr_verror (orig_errno, fs, args);
+      log_fp_verror (stderr, orig_errno, fs, args);
     break;
   case LOG_TO_SYSLOG:
     log_syslog_verror (orig_errno, fs, args);
     break;
   case LOG_TO_STDERR:
-    log_stderr_verror (orig_errno, fs, args);
+    log_fp_verror (stderr, orig_errno, fs, args);
     break;
   case LOG_TO_NULL:
     /* nothing */

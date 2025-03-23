@@ -33,6 +33,7 @@
 #ifndef NBDKIT_INTERNAL_H
 #define NBDKIT_INTERNAL_H
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdarg.h>
@@ -388,8 +389,9 @@ extern void free_debug_flags (void);
 extern void log_verror (const char *fs, va_list args);
 
 /* log-*.c */
-extern void log_stderr_verror (int orig_errno, const char *fs, va_list args)
-  ATTRIBUTE_FORMAT_PRINTF (2, 0);
+extern void log_fp_verror (FILE *fp,
+                           int orig_errno, const char *fs, va_list args)
+  ATTRIBUTE_FORMAT_PRINTF (3, 0);
 extern void log_syslog_verror (int orig_errno, const char *fs, va_list args)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 
