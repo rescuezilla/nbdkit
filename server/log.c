@@ -59,7 +59,7 @@ copy_error_to_threadlocal (int orig_errno, const char *fs, va_list args)
     threadlocal_set_last_error (msg); /* ownership passed to threadlocal */
 }
 
-/* Call the right log_*_verror function depending on log_sink.
+/* Call the right log_*_verror function depending on log_to sink.
  * Note: preserves the previous value of errno.
  */
 void
