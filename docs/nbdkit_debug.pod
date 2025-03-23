@@ -14,10 +14,8 @@ nbdkit_debug, nbdkit_vdebug - print debugging messages for nbdkit
 Use C<nbdkit_debug> or C<nbdkit_vdebug> to print debug messages from
 your plugin or filter.
 
-These functions send the debug message to either stderr or the system
-logs depending on the current server state and the user-specified
-nbdkit I<--log> option.  Debug messages are only emitted when the
-server is in verbose mode (nbdkit I<-v> option)
+These functions send the debug message to stderr.  Debug messages are
+only emitted when the server is in verbose mode (nbdkit I<-v> option)
 
 C<nbdkit_debug> works like L<printf(3)>.  C<nbdkit_vdebug> works like
 L<vprintf(3)>.
