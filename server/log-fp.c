@@ -72,6 +72,8 @@ log_fp_verror (FILE *fp, int orig_errno, const char *fs, va_list args)
 
   if (tty) ansi_force_restore (fp);
 
+  fflush (fp);
+
 #ifdef HAVE_FUNLOCKFILE
   funlockfile (fp);
 #endif
