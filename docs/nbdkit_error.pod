@@ -54,6 +54,13 @@ be preserved when returning from that language to C.  In that case,
 either the plugin must call C<nbdkit_set_error> or hard-coded C<EIO>
 is used.
 
+=head2 Interaction with I<--log> option
+
+The nbdkit I<--log> option controls where error messages are sent.
+The default is to send error messages to stderr, unless nbdkit forks
+into the background in which case they are sent to syslog.  For more
+information read the description in L<nbdkit(1)>.
+
 =head1 LANGUAGE BINDINGS
 
 Most language bindings do not expose these functions explicitly.
