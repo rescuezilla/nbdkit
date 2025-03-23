@@ -584,7 +584,12 @@ See also I<-g>.
 Enable verbose messages.
 
 It's a good idea to use I<-f> as well so the process does not fork
-into the background (but not required).
+into the background.  The messages are sent to stderr.  Note they are
+I<not> affected by the I<--log> option (which is only for error
+messages).
+
+These messages can be generated from plugins by calling
+L<nbdkit_debug(3)> or L<nbdkit_vdebug(3)>.
 
 =item B<-V>
 
