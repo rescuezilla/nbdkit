@@ -1471,6 +1471,8 @@ endif HAVE_LUA
 # Golang plugin test.
 if HAVE_GOLANG
 
+TESTS += test-golang-fork-warning.sh
+EXTRA_DIST += test-golang-fork-warning.sh
 LIBGUESTFS_TESTS += test-golang
 
 test_golang_SOURCES = test-golang.c test.h requires.c requires.h

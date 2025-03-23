@@ -542,6 +542,7 @@ func PluginInitialize(name string, impl PluginInterface) unsafe.Pointer {
 	plugin.config = (*[0]byte)(C.wrapper_config)
 	plugin.config_complete = (*[0]byte)(C.wrapper_config_complete)
 	plugin.get_ready = (*[0]byte)(C.wrapper_get_ready)
+	plugin.after_fork = (*[0]byte)(C.nonwrapper_after_fork)
 	plugin.preconnect = (*[0]byte)(C.wrapper_preconnect)
 	plugin.open = (*[0]byte)(C.wrapper_open)
 	plugin.close = (*[0]byte)(C.wrapper_close)

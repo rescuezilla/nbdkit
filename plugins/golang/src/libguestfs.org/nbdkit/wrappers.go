@@ -37,15 +37,22 @@ package nbdkit
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define NBDKIT_API_VERSION 2
 #include <nbdkit-plugin.h>
 #include "wrappers.h"
 
+// Save the original PID when loaded so we can find out if we
+// forked and issue a warning.  See the "IMPORTANT NOTE" section
+// of nbdkit-golang-plugin(3) man page.
+static pid_t original_pid;
+
 extern void implLoad (void);
 void
 wrapper_load (void)
 {
+  original_pid = getpid ();
   implLoad ();
 }
 
@@ -82,6 +89,21 @@ int
 wrapper_get_ready (void)
 {
   return implGetReady ();
+}
+
+// As the name suggests, this is not a wrapper around a golang
+// function.  There is no need for it since golang plugins must
+// not fork.
+int
+nonwrapper_after_fork (void)
+{
+  if (original_pid > 0 && getpid () != original_pid) {
+    nbdkit_error ("detected fork in golang plugin!  The plugin will "
+                  "probably fail or hang in unexpected ways.  Please read "
+                  "\"IMPORTANT NOTE\" in nbdkit-golang-plugin(3) man page");
+    //return -1;
+  }
+  return 0;
 }
 
 extern int implPreConnect (int readonly);
