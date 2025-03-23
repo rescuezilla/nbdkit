@@ -314,6 +314,7 @@ TESTS += \
 	test-timeout-cancel.sh \
 	test-keepalive.sh \
 	test-log-to-file.sh \
+	test-log-to-file-append.sh \
 	$(NULL)
 if !IS_WINDOWS
 TESTS += \
@@ -349,6 +350,7 @@ EXTRA_DIST += \
 	test-keepalive.sh \
 	test-last-error.sh \
 	test-log-to-file.sh \
+	test-log-to-file-append.sh \
 	test-long-name.sh \
 	test-nbd-client-tls.sh \
 	test-nbd-client.sh \
