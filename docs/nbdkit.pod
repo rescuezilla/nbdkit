@@ -326,6 +326,9 @@ system log (I<--log=syslog>), or discard them completely
 The default is to send error messages to stderr, unless nbdkit
 forks into the background in which case they are sent to syslog.
 
+These messages can be generated from plugins by calling
+L<nbdkit_error(3)> or L<nbdkit_verror(3)>.
+
 Debug messages (I<-v>/I<--verbose>) always go to standard error and
 are never sent to the system log.
 
