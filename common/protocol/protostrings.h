@@ -42,7 +42,7 @@ extern const char *name_of_nbd_flag (unsigned int);
 extern const char *name_of_nbd_opt (unsigned int);
 extern const char *name_of_nbd_rep (unsigned int);
 extern const char *name_of_nbd_info (unsigned int);
-extern const char *name_of_nbd_reply_flag (unsigned int);
+extern const char *name_of_nbd_reply (unsigned int);
 extern const char *name_of_nbd_reply_type (unsigned int);
 extern const char *name_of_nbd_cmd (unsigned int);
 extern const char *name_of_nbd_cmd_flag (unsigned int);
