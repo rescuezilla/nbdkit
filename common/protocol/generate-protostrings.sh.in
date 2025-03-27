@@ -62,7 +62,7 @@ for fn in $keys; do
     echo 'extern const char *'
     echo "name_of_nbd_$fn (unsigned int fl)"
     echo '{'
-    echo '  static char buf[] = "unknown (0x00000000)";'
+    echo '  static __thread char buf[] = "unknown (0x00000000)";'
     echo '  switch (fl) {'
 
     # We look for the first #define <symbol> and rewrite every
