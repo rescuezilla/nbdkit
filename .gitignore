@@ -72,6 +72,7 @@ plugins/*/*.3
 /common/include/test-tvdiff
 /common/protocol/generate-protostrings.sh
 /common/protocol/protostrings.c
+/common/protocol/test-protostrings
 /common/replacements/libcompat.a
 /common/replacements/test-current-dir-name
 /common/replacements/win32/stamp-data

@@ -58,3 +58,11 @@ protostrings.c: nbd-protocol.h generate-protostrings.sh Makefile
 	$(builddir)/generate-protostrings.sh > $@-t
 	mv $@-t $@
 	chmod 0444 $@
+
+# Unit tests.
+
+TESTS = test-protostrings
+check_PROGRAMS = test-protostrings
+
+test_protostrings_SOURCES = test-protostrings.c protostrings.c protostrings.h
+test_protostrings_CFLAGS = $(WARNINGS_CFLAGS)
