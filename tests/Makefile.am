@@ -161,7 +161,6 @@ endif HAVE_LIBLZMA
 if HAVE_LZIP
 check_DATA += disk.lz disk.tar.lz
 CLEANFILES += disk.lz disk.tar.lz
-EXTRA_DIST += chunked-lzip.sh
 disk.lz: disk chunked-lzip.sh
 	rm -f $@ $@-t
 	$(srcdir)/chunked-lzip.sh 32768 $< $@-t
@@ -171,6 +170,7 @@ disk.tar.lz: disk.tar chunked-lzip.sh
 	$(srcdir)/chunked-lzip.sh 32768 $< $@-t
 	mv $@-t $@
 endif HAVE_LZIP
+EXTRA_DIST += chunked-lzip.sh
 
 endif HAVE_MKE2FS_WITH_D
 endif !IS_WINDOWS
