@@ -123,27 +123,35 @@ evict_writes (int fd, uint64_t offset, size_t len)
 {
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&window_lock);
 
-  /* Evict the oldest window from the page cache. */
-  if (window[0].len > 0) {
-    if (sync_file_range (window[0].fd, window[0].offset, window[0].len,
-                         SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE|
-                         SYNC_FILE_RANGE_WAIT_AFTER) == -1)
-      nbdkit_debug ("sync_file_range: wait: (ignored): %m");
-    if (posix_fadvise (window[0].fd, window[0].offset, window[0].len,
-                       POSIX_FADV_DONTNEED) == -1)
-      nbdkit_debug ("posix_fadvise: POSIX_FADV_DONTNEED: (ignored): %m");
-  }
-
-  /* Move the Nth window to N-1. */
-  memmove (&window[0], &window[1], sizeof window[0] * (NR_WINDOWS-1));
-
-  /* Set up the current window and tell Linux to start writing it out
-   * to disk (asynchronously).
+  /* Tell Linux to start writing the current range out to disk
+   * (asynchronously).
    */
-  sync_file_range (fd, offset, len, SYNC_FILE_RANGE_WRITE);
-  window[NR_WINDOWS-1].fd = fd;
-  window[NR_WINDOWS-1].offset = offset;
-  window[NR_WINDOWS-1].len = len;
+  if (sync_file_range (fd, offset, len, SYNC_FILE_RANGE_WRITE) == -1) {
+    /* sync_file_range to start the write failed */
+    nbdkit_debug ("sync_file_range: write: (ignored): %m");
+  }
+  else {
+    /* sync_file_range to start the write succeeded, so
+     * evict the oldest window from the page cache.
+     */
+    if (window[0].len > 0) {
+      if (sync_file_range (window[0].fd, window[0].offset, window[0].len,
+                           SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE|
+                           SYNC_FILE_RANGE_WAIT_AFTER) == -1)
+        nbdkit_debug ("sync_file_range: wait: (ignored): %m");
+      if (posix_fadvise (window[0].fd, window[0].offset, window[0].len,
+                         POSIX_FADV_DONTNEED) == -1)
+        nbdkit_debug ("posix_fadvise: POSIX_FADV_DONTNEED: (ignored): %m");
+    }
+
+    /* Move the Nth window to N-1. */
+    memmove (&window[0], &window[1], sizeof window[0] * (NR_WINDOWS-1));
+
+    /* Add the range to the newest end of the list of windows. */
+    window[NR_WINDOWS-1].fd = fd;
+    window[NR_WINDOWS-1].offset = offset;
+    window[NR_WINDOWS-1].len = len;
+  }
 }
 
 /* When we close the handle we must remove any windows which are still
