@@ -125,11 +125,13 @@ evict_writes (int fd, uint64_t offset, size_t len)
 
   /* Evict the oldest window from the page cache. */
   if (window[0].len > 0) {
-    sync_file_range (window[0].fd, window[0].offset, window[0].len,
-                     SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE|
-                     SYNC_FILE_RANGE_WAIT_AFTER);
-    posix_fadvise (window[0].fd, window[0].offset, window[0].len,
-                   POSIX_FADV_DONTNEED);
+    if (sync_file_range (window[0].fd, window[0].offset, window[0].len,
+                         SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE|
+                         SYNC_FILE_RANGE_WAIT_AFTER) == -1)
+      nbdkit_debug ("sync_file_range: wait: (ignored): %m");
+    if (posix_fadvise (window[0].fd, window[0].offset, window[0].len,
+                       POSIX_FADV_DONTNEED) == -1)
+      nbdkit_debug ("posix_fadvise: POSIX_FADV_DONTNEED: (ignored): %m");
   }
 
   /* Move the Nth window to N-1. */
