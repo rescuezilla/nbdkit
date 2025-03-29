@@ -183,6 +183,7 @@ For USDT probes:
 
 For non-essential enhancements to the test suite:
 
+* cachedel, cachestats (from https://github.com/Feh/nocache)
 * expect
 * fdisk, sfdisk (from util-linux)
 * flake8
