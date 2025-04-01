@@ -903,8 +903,10 @@ TESTS += \
 	test-file-extents.sh \
 	test-file-dir.sh \
 	test-file-dirfd.sh \
-	test-file-cache-none-read.sh \
-	test-file-cache-none-write.sh \
+	test-file-cache-none-read-consistent.sh \
+	test-file-cache-none-read-effective.sh \
+	test-file-cache-none-write-consistent.sh \
+	test-file-cache-none-write-effective.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-file.sh \
@@ -914,8 +916,10 @@ EXTRA_DIST += \
 	test-file-extents.sh \
 	test-file-dir.sh \
 	test-file-dirfd.sh \
-	test-file-cache-none-read.sh \
-	test-file-cache-none-write.sh \
+	test-file-cache-none-read-consistent.sh \
+	test-file-cache-none-read-effective.sh \
+	test-file-cache-none-write-consistent.sh \
+	test-file-cache-none-write-effective.sh \
 	$(NULL)
 LIBGUESTFS_TESTS += test-file-block
 LIBNBD_TESTS += test-file-block-nbd

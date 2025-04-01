@@ -31,62 +31,24 @@
 # SUCH DAMAGE.
 
 # Test the file plugin, writing with cache=none.
+#
+# Unlike test-file-cache-none-write-effective.sh, this test doesn't
+# require cachestats.  It's more about testing integrity of writing.
 
 source ./functions.sh
 set -e
 set -x
 
-# Makes no sense to run this test under valgrind.
-skip_if_valgrind
-
 requires_plugin file
 requires_run
 requires_nbdcopy
+requires test -f disk
+requires md5sum --version
 requires $TRUNCATE --version
-requires test -r /dev/urandom
-requires dd --version
-requires $SED --version
 
-# Requires the cachestats tool from https://github.com/Feh/nocache
-# It doesn't support --version or --help, so use 'type' instead.
-requires type cachestats
+out=file-cache-none-write-consistent.out
+cleanup_fn rm -f $out
 
-inp=file-cache-none-write.in
-out=file-cache-none-write.out
-stats1=file-cache-none-write.s1
-stats2=file-cache-none-write.s2
-rm -f $inp $out $stats1 $stats2
-cleanup_fn rm -f $inp $out $stats1 $stats2
-
-# Create a large random file as input.
-dd if=/dev/urandom of=$inp bs=1024k count=1024
-
-# Copy to output using cache=default and collect the stats.
-# We expect to see the output file mostly or completely in cache after.
-rm -f $out; truncate -r $inp $out
-export inp
-nbdkit file $out --run 'nbdcopy $inp "$uri"' cache=default
-cachestats $out > $stats1
-cat $stats1
-
-# The same, with cache=none.
-# We expect to see the output file not cached after.
-rm -f $out; truncate -r $inp $out
-export inp
-nbdkit file $out --run 'nbdcopy $inp "$uri"' cache=none
-cachestats $out > $stats2
-cat $stats2
-
-# The output of cachestats looks like this:
-# pages in cache: 262144/262144 (100.0%)  [filesize=1048576.0K, pagesize=4K]
-# We want to check that % pages in cache using cache=none is much
-# lower than the default case.
-pic1="$($SED 's,pages in cache: [0-9/]* (\([0-9]*\)\.[0-9]*%).*,\1,' \
-             < $stats1)"
-pic2="$($SED 's,pages in cache: [0-9/]* (\([0-9]*\)\.[0-9]*%).*,\1,' \
-             < $stats2)"
-
-# Test before is > 10%
-test "$pic1" -gt 10
-# Test after is < 10%
-test "$pic2" -lt 10
+rm -f $out; $TRUNCATE -r disk $out
+nbdkit file $out cache=none --run 'nbdcopy disk "$uri"'
+test "$(md5sum < disk)" = "$(md5sum < $out)"

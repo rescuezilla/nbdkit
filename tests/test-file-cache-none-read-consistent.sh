@@ -31,60 +31,23 @@
 # SUCH DAMAGE.
 
 # Test the file plugin, reading with cache=none.
+#
+# Unlike test-file-cache-none-read-effective.sh, this test doesn't
+# require cachestats.  It's more about testing integrity of reading.
 
 source ./functions.sh
 set -e
 set -x
 
-# Makes no sense to run this test under valgrind.
-skip_if_valgrind
-
 requires_plugin file
 requires_run
 requires_nbdcopy
-requires $TRUNCATE --version
-requires test -r /dev/urandom
-requires dd --version
-requires $SED --version
+requires test -f disk
+requires md5sum --version
 
-# Requires the cachestats tool from https://github.com/Feh/nocache
-# It doesn't support --version or --help, so use 'type' instead.
-requires type cachestats
-requires type cachedel
+out=file-cache-none-read-consistent.out
+cleanup_fn rm -f $out
 
-inp=file-cache-none-read.in
-stats1=file-cache-none-read.s1
-stats2=file-cache-none-read.s2
-rm -f $inp $stats1 $stats2
-cleanup_fn rm -f $inp $stats1 $stats2
-
-# Create a large random file as input.
-dd if=/dev/urandom of=$inp bs=1024k count=1024
-
-# Drop the input file from the page cache and read it out with nbdkit.
-# We expect to see the input file mostly or completely in cache after.
-cachedel $inp
-nbdkit file $inp --run 'nbdcopy "$uri" null:'
-cachestats $inp > $stats1
-cat $stats1
-
-# The same, with cache=none.
-# We expect to see the input file not cached after.
-cachedel $inp
-nbdkit file $inp --run 'nbdcopy "$uri" null:' cache=none
-cachestats $inp > $stats2
-cat $stats2
-
-# The output of cachestats looks like this:
-# pages in cache: 262144/262144 (100.0%)  [filesize=1048576.0K, pagesize=4K]
-# We want to check that % pages in cache using cache=none is much
-# lower than the default case.
-pic1="$($SED 's,pages in cache: [0-9/]* (\([0-9]*\)\.[0-9]*%).*,\1,' \
-             < $stats1)"
-pic2="$($SED 's,pages in cache: [0-9/]* (\([0-9]*\)\.[0-9]*%).*,\1,' \
-             < $stats2)"
-
-# Test before is > 10%
-test "$pic1" -gt 10
-# Test after is < 10%
-test "$pic2" -lt 10
+export out
+nbdkit file disk cache=none --run 'nbdcopy "$uri" "$out"'
+test "$(md5sum < disk)" = "$(md5sum < $out)"
