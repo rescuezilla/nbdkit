@@ -112,7 +112,7 @@ static enum { cache_default, cache_none } cache_mode = cache_default;
 struct write_window {
   int fd;
   uint64_t offset;
-  size_t len;
+  size_t len;           /* window slot only valid if len > 0 */
 };
 
 static pthread_mutex_t window_lock = PTHREAD_MUTEX_INITIALIZER;
