@@ -118,40 +118,51 @@ struct write_window {
 static pthread_mutex_t window_lock = PTHREAD_MUTEX_INITIALIZER;
 static struct write_window window[NR_WINDOWS];
 
-static void
+static int
 evict_writes (int fd, uint64_t offset, size_t len)
 {
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&window_lock);
+  struct write_window oldest = { 0 };
 
-  /* Tell Linux to start writing the current range out to disk
-   * (asynchronously).
-   */
-  if (sync_file_range (fd, offset, len, SYNC_FILE_RANGE_WRITE) == -1) {
-    /* sync_file_range to start the write failed */
-    nbdkit_debug ("sync_file_range: write: (ignored): %m");
-  }
-  else {
-    /* sync_file_range to start the write succeeded, so
-     * evict the oldest window from the page cache.
+  {
+    ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&window_lock);
+
+    /* Save oldest window[0] for eviction below, and move all windows
+     * down one.  Set the newest slot to empty.
      */
-    if (window[0].len > 0) {
-      if (sync_file_range (window[0].fd, window[0].offset, window[0].len,
-                           SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE|
-                           SYNC_FILE_RANGE_WAIT_AFTER) == -1)
-        nbdkit_debug ("sync_file_range: wait: (ignored): %m");
-      if (posix_fadvise (window[0].fd, window[0].offset, window[0].len,
-                         POSIX_FADV_DONTNEED) == -1)
-        nbdkit_debug ("posix_fadvise: POSIX_FADV_DONTNEED: (ignored): %m");
-    }
-
-    /* Move the Nth window to N-1. */
+    oldest = window[0];
     memmove (&window[0], &window[1], sizeof window[0] * (NR_WINDOWS-1));
+    window[NR_WINDOWS-1].len = 0;
+
+    /* Tell Linux to start writing the current range out to disk
+     * (asynchronously).
+     */
+    if (sync_file_range (fd, offset, len, SYNC_FILE_RANGE_WRITE) == -1) {
+      nbdkit_error ("sync_file_range: cache=none: starting eviction: %m");
+      return -1;
+    }
 
     /* Add the range to the newest end of the list of windows. */
     window[NR_WINDOWS-1].fd = fd;
     window[NR_WINDOWS-1].offset = offset;
     window[NR_WINDOWS-1].len = len;
   }
+  /* Release lock here. */
+
+  /* Evict the oldest window from the page cache (synchronously). */
+  if (oldest.len > 0) {
+    if (sync_file_range (oldest.fd, oldest.offset, oldest.len,
+                         SYNC_FILE_RANGE_WAIT_BEFORE |
+                         SYNC_FILE_RANGE_WRITE |
+                         SYNC_FILE_RANGE_WAIT_AFTER) == -1) {
+      nbdkit_error ("sync_file_range: cache=none: evicting oldest window: %m");
+      return -1;
+    }
+    if (posix_fadvise (oldest.fd, oldest.offset, oldest.len,
+                       POSIX_FADV_DONTNEED) == -1)
+      nbdkit_debug ("posix_fadvise: POSIX_FADV_DONTNEED: (ignored): %m");
+  }
+
+  return 0;
 }
 
 /* When we close the handle we must remove any windows which are still
@@ -920,8 +931,10 @@ file_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset,
     return -1;
 
 #if EVICT_WRITES
-  if (cache_mode == cache_none)
-    evict_writes (h->fd, orig_offset, orig_count);
+  if (cache_mode == cache_none) {
+    if (evict_writes (h->fd, orig_offset, orig_count) == -1)
+      return -1;
+  }
 #endif
 
   return 0;
