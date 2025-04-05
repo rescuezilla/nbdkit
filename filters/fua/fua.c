@@ -38,6 +38,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <errno.h>
 
 #include <nbdkit-filter.h>
 
@@ -50,10 +51,14 @@ static enum FuaMode {
   DISCARD,
 } fuamode;
 
+static bool flush_on_close = false;
+
 static int
 fua_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
             const char *key, const char *value)
 {
+  int r;
+
   if (strcmp (key, "fuamode") == 0) {
     if (strcmp (value, "none") == 0)
       fuamode = NONE;
@@ -73,12 +78,21 @@ fua_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
     }
     return 0;
   }
+  else if (strcmp (key, "flush-on-close") == 0 ||
+           strcmp (key, "flush_on_close") == 0) {
+    r = nbdkit_parse_bool (value);
+    if (r == -1)
+      return -1;
+    flush_on_close = r;
+    return 0;
+  }
   return next (nxdata, key, value);
 }
 
 #define fua_config_help \
   "fuamode=<MODE>       One of 'none' (default), 'emulate', 'native',\n" \
-  "                       'force', 'pass'."
+  "                       'force', 'pass'.\n" \
+  "flush-on-close=true  Force flush on client close"
 
 /* Check that desired mode is supported by plugin. */
 static int
@@ -117,6 +131,17 @@ fua_prepare (nbdkit_next *next, void *handle,
     }
     break;
   }
+
+  if (flush_on_close) {
+    r = next->can_flush (next);
+    if (r == -1)
+      return -1;
+    if (r == 0) {
+      nbdkit_error ("flush-on-close requires plugin flush support");
+      return -1;
+    }
+  }
+
   return 0;
 }
 
@@ -276,6 +301,22 @@ fua_zero (nbdkit_next *next,
   return r;
 }
 
+static int
+fua_finalize (nbdkit_next *next, void *handle)
+{
+  int r, err;
+
+  if (flush_on_close) {
+    r = next->flush (next, 0, &err);
+    if (r == -1) {
+      errno = err;
+      return -1;
+    }
+  }
+
+  return 0;
+}
+
 static struct nbdkit_filter filter = {
   .name              = "fua",
   .longname          = "nbdkit fua filter",
@@ -288,6 +329,7 @@ static struct nbdkit_filter filter = {
   .flush             = fua_flush,
   .trim              = fua_trim,
   .zero              = fua_zero,
+  .finalize          = fua_finalize,
 };
 
 NBDKIT_REGISTER_FILTER (filter)

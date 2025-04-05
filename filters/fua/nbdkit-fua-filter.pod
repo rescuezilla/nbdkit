@@ -4,7 +4,8 @@ nbdkit-fua-filter - modify nbdkit flush and Forced Unit Access (FUA)
 
 =head1 SYNOPSIS
 
- nbdkit --filter=fua plugin [fuamode=MODE] [plugin-args...]
+ nbdkit --filter=fua plugin [fuamode=MODE] [flush-on-close=true]
+                            [plugin-args...]
 
 =head1 DESCRIPTION
 
@@ -14,7 +15,8 @@ of the S<“Forced Unit Access”> (FUA) flag across the NBD protocol.
 This filter can be used to disable FUA and flush requests for speed
 (although this is unsafe).  Also it can be used to test client or
 server fallbacks, and for evaluating timing differences between proper
-use of FUA compared to a full flush.
+use of FUA compared to a full flush.  Also it can be used to force a
+flush when the client closes the connection.
 
 Note that by default, the NBD protocol does not guarantee that the use
 of FUA from one connection will be visible from another connection
@@ -76,6 +78,15 @@ The filter will request FUA on all write transactions, even when the
 client did not request it (“write-through” mode).  In turn client
 flush requests become no-ops.  It refuses to load if the plugin’s
 C<.can_fua> callback returns C<NBDKIT_FUA_NONE>.
+
+=item B<flush-on-close=true>
+
+(nbdkit E<ge> 1.44)
+
+If set, call C<.flush> on the underlying plugin when the client closes
+any NBD connection.  This can be used for misbehaving clients that do
+not properly issue flush commands.  If the plugin does not support
+flush then the filter will refuse to start.
 
 =back
 

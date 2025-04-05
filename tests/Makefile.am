@@ -1853,8 +1853,14 @@ TESTS += test-extentlist.sh
 EXTRA_DIST += test-extentlist.sh
 
 # fua filter test.
-TESTS += test-fua.sh
-EXTRA_DIST += test-fua.sh
+TESTS += \
+	test-fua.sh \
+	test-fua-flush-on-close.sh \
+	$(NULL)
+EXTRA_DIST += \
+	test-fua.sh \
+	test-fua-flush-on-close.sh \
+	$(NULL)
 
 # gzip filter test.
 LIBGUESTFS_TESTS += test-gzip
