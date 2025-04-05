@@ -54,8 +54,17 @@ directory of the file descriptor.
 
 (nbdkit E<ge> 1.22, not Windows)
 
-Using C<cache=none> tries to prevent the kernel from keeping parts of
-the file that have already been read or written in the page cache.
+If the file is very large and the plugin will read or write the whole
+file, this can cause the file to be cached in memory (in the page
+cache on Linux), causing other files and processes to be evicted,
+leading to overall slow system performance.  If you know that the file
+will only be read/written once and will not be needed afterwards so
+caching it is pointless, use C<cache=none>.  This causes reads and
+writes to minimize use of the page cache.  The default is to use the
+kernel's default page cache strategy.
+
+See also C<fadvise> below which can be used to hint the access
+pattern.
 
 =item B<dir=>DIRECTORY
 
@@ -186,18 +195,6 @@ using:
 
 As described in the L</PARAMETERS> section above, on Linux this
 disables or increases the amount of read-ahead that the kernel does.
-
-=head2 Reducing evictions from the page cache
-
-If the file is very large and you know the client will only read/write
-the file sequentially one time (eg for making a single copy or backup)
-then this will stop other processes from being evicted from the page
-cache:
-
- nbdkit file disk.img fadvise=sequential cache=none
-
-Only use fadvise=sequential if reading, and the reads are mainly
-sequential.
 
 =head2 Files on tmpfs
 
