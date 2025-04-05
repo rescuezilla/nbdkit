@@ -11,7 +11,8 @@ nbdkit-random-plugin - plugin to serve random data
 C<nbdkit-random-plugin> is a plugin for L<nbdkit(1)> which serves
 random data.  This plugin is mainly good for testing NBD clients.
 This plugin creates a non-sparse random disk, for a sparse random disk
-see L<nbdkit-sparse-random-plugin(1)>.
+see L<nbdkit-sparse-random-plugin(1)>.  For a plugin containing a
+predictable test pattern see L<nbdkit-pattern-plugin(1)>.
 
 The size of the virtual disk must be specified using the C<size>
 parameter.  If you specify the C<seed> parameter then you will get the
