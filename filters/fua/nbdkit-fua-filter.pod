@@ -111,6 +111,14 @@ flush requests instead of using C<NBD_CMD_FLAG_FUA>:
 
 =item *
 
+Serve a file, flushing data to disk when the NBD client closes the
+connection.  Note use of C<fuamode=pass> to stop the filter from
+changing the behaviour of normal FUA requests:
+
+ nbdkit --filter=fua file disk.img fuamode=pass flush-on-close=true
+
+=item *
+
 Observe that the blocksize filter optimizes its handling of the FUA
 flag based on whether it knows nbdkit will be emulating FUA with a
 flush, by comparing the log filter output on top of different fua
