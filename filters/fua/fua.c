@@ -96,8 +96,7 @@ fua_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
 
 /* Check that desired mode is supported by plugin. */
 static int
-fua_prepare (nbdkit_next *next, void *handle,
-             int readonly)
+fua_prepare (nbdkit_next *next, void *handle, int readonly)
 {
   int r;
 
@@ -182,8 +181,7 @@ fua_can_fua (nbdkit_next *next, void *handle)
 }
 
 static int
-fua_flush (nbdkit_next *next,
-           void *handle, uint32_t flags, int *err)
+fua_flush (nbdkit_next *next, void *handle, uint32_t flags, int *err)
 {
   switch (fuamode) {
   case FORCE:
@@ -278,6 +276,7 @@ fua_finalize (nbdkit_next *next, void *handle)
   int r, err;
 
   if (flush_on_close) {
+    /* We checked in fua_prepare that this plugin supports flush. */
     r = next->flush (next, 0, &err);
     if (r == -1) {
       errno = err;
