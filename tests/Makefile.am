@@ -954,6 +954,7 @@ TESTS += \
 	test-info-time.sh \
 	test-info-uptime.sh \
 	test-info-conntime.sh \
+	test-info-version.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-info-address.sh \
@@ -962,6 +963,7 @@ EXTRA_DIST += \
 	test-info-time.sh \
 	test-info-uptime.sh \
 	test-info-conntime.sh \
+	test-info-version.sh \
 	$(NULL)
 
 # iso plugin test.

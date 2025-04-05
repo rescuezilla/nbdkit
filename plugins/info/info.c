@@ -57,6 +57,7 @@
 #define NBDKIT_API_VERSION 2
 
 #include <nbdkit-plugin.h>
+#include <nbdkit-version.h>
 
 #include "ascii-string.h"
 #include "byte-swapping.h"
@@ -70,6 +71,7 @@ enum mode {
   MODE_TIME,
   MODE_UPTIME,
   MODE_CONNTIME,
+  MODE_VERSION,
 };
 static enum mode mode = MODE_EXPORTNAME;
 
@@ -113,6 +115,8 @@ info_config (const char *key, const char *value)
       mode = MODE_UPTIME;
     else if (ascii_strcasecmp (value, "conntime") == 0)
       mode = MODE_CONNTIME;
+    else if (ascii_strcasecmp (value, "version") == 0)
+      mode = MODE_VERSION;
     else {
       nbdkit_error ("unknown mode: '%s'", value);
       return -1;
@@ -127,7 +131,7 @@ info_config (const char *key, const char *value)
 }
 
 #define info_config_help \
-  "mode=exportname|base64exportname|address|time|uptime|conntime\n" \
+  "mode=exportname|base64exportname|address|time|uptime|conntime|version\n" \
   "                                      Plugin mode (default exportname)."
 
 /* Provide a way to detect if the base64 feature is supported. */
@@ -339,6 +343,16 @@ info_open (int readonly)
     }
     return h;
 
+  case MODE_VERSION:
+    h->data = strdup (NBDKIT_VERSION_STRING);
+    if (h->data == NULL) {
+      nbdkit_error ("malloc: %m");
+      free (h);
+      return NULL;
+    }
+    h->len = strlen (h->data); /* data is served with \0 */
+    return h;
+
   default:
     abort ();
   }
@@ -387,6 +401,9 @@ info_can_multi_conn (void *handle)
   case MODE_UPTIME:
   case MODE_CONNTIME:
     return 0;
+    /* Safe for version because the same string is always returned. */
+  case MODE_VERSION:
+    return 1;
 
     /* Keep GCC happy. */
   default:
