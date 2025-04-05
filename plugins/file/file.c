@@ -876,8 +876,8 @@ file_pread (void *handle, void *buf, uint32_t count, uint64_t offset,
 {
   struct handle *h = handle;
 #if defined (HAVE_POSIX_FADVISE) && defined (POSIX_FADV_DONTNEED)
-  uint32_t orig_count = count;
-  uint64_t orig_offset = offset;
+  const uint32_t orig_count = count;
+  const uint64_t orig_offset = offset;
 #endif
 
   while (count > 0) {
@@ -910,10 +910,9 @@ file_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset,
              uint32_t flags)
 {
   struct handle *h = handle;
-
 #if EVICT_WRITES
-  uint32_t orig_count = count;
-  uint64_t orig_offset = offset;
+  const uint32_t orig_count = count;
+  const uint64_t orig_offset = offset;
 #endif
 
   while (count > 0) {
@@ -1136,7 +1135,7 @@ do_extents (void *handle, uint32_t count, uint64_t offset,
 {
   struct handle *h = handle;
   const bool req_one = flags & NBDKIT_FLAG_REQ_ONE;
-  uint64_t end = offset + count;
+  const uint64_t end = offset + count;
 
   do {
     off_t pos;
