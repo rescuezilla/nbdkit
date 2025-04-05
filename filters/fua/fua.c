@@ -182,40 +182,6 @@ fua_can_fua (nbdkit_next *next, void *handle)
 }
 
 static int
-fua_pwrite (nbdkit_next *next,
-            void *handle, const void *buf, uint32_t count, uint64_t offs,
-            uint32_t flags, int *err)
-{
-  int r;
-  bool need_flush = false;
-
-  switch (fuamode) {
-  case NONE:
-    assert (!(flags & NBDKIT_FLAG_FUA));
-    break;
-  case EMULATE:
-    if (flags & NBDKIT_FLAG_FUA) {
-      need_flush = true;
-      flags &= ~NBDKIT_FLAG_FUA;
-    }
-    break;
-  case NATIVE:
-  case PASS:
-    break;
-  case FORCE:
-    flags |= NBDKIT_FLAG_FUA;
-    break;
-  case DISCARD:
-    flags &= ~NBDKIT_FLAG_FUA;
-    break;
-  }
-  r = next->pwrite (next, buf, count, offs, flags, err);
-  if (r != -1 && need_flush)
-    r = next->flush (next, 0, err);
-  return r;
-}
-
-static int
 fua_flush (nbdkit_next *next,
            void *handle, uint32_t flags, int *err)
 {
@@ -233,6 +199,49 @@ fua_flush (nbdkit_next *next,
   abort ();
 }
 
+/* Common code to update the flags for write-like operations according
+ * to the fuamode.
+ */
+static void
+update_flags (uint32_t *flags, bool *need_flush)
+{
+  switch (fuamode) {
+  case NONE:
+    assert (!(*flags & NBDKIT_FLAG_FUA));
+    break;
+  case EMULATE:
+    if (*flags & NBDKIT_FLAG_FUA) {
+      *need_flush = true;
+      *flags &= ~NBDKIT_FLAG_FUA;
+    }
+    break;
+  case NATIVE:
+  case PASS:
+    break;
+  case FORCE:
+    *flags |= NBDKIT_FLAG_FUA;
+    break;
+  case DISCARD:
+    *flags &= ~NBDKIT_FLAG_FUA;
+    break;
+  }
+}
+
+static int
+fua_pwrite (nbdkit_next *next,
+            void *handle, const void *buf, uint32_t count, uint64_t offs,
+            uint32_t flags, int *err)
+{
+  int r;
+  bool need_flush = false;
+
+  update_flags (&flags, &need_flush);
+  r = next->pwrite (next, buf, count, offs, flags, err);
+  if (r != -1 && need_flush)
+    r = next->flush (next, 0, err);
+  return r;
+}
+
 static int
 fua_trim (nbdkit_next *next,
           void *handle, uint32_t count, uint64_t offs, uint32_t flags,
@@ -241,26 +250,7 @@ fua_trim (nbdkit_next *next,
   int r;
   bool need_flush = false;
 
-  switch (fuamode) {
-  case NONE:
-    assert (!(flags & NBDKIT_FLAG_FUA));
-    break;
-  case EMULATE:
-    if (flags & NBDKIT_FLAG_FUA) {
-      need_flush = true;
-      flags &= ~NBDKIT_FLAG_FUA;
-    }
-    break;
-  case NATIVE:
-  case PASS:
-    break;
-  case FORCE:
-    flags |= NBDKIT_FLAG_FUA;
-    break;
-  case DISCARD:
-    flags &= ~NBDKIT_FLAG_FUA;
-    break;
-  }
+  update_flags (&flags, &need_flush);
   r = next->trim (next, count, offs, flags, err);
   if (r != -1 && need_flush)
     r = next->flush (next, 0, err);
@@ -275,26 +265,7 @@ fua_zero (nbdkit_next *next,
   int r;
   bool need_flush = false;
 
-  switch (fuamode) {
-  case NONE:
-    assert (!(flags & NBDKIT_FLAG_FUA));
-    break;
-  case EMULATE:
-    if (flags & NBDKIT_FLAG_FUA) {
-      need_flush = true;
-      flags &= ~NBDKIT_FLAG_FUA;
-    }
-    break;
-  case NATIVE:
-  case PASS:
-    break;
-  case FORCE:
-    flags |= NBDKIT_FLAG_FUA;
-    break;
-  case DISCARD:
-    flags &= ~NBDKIT_FLAG_FUA;
-    break;
-  }
+  update_flags (&flags, &need_flush);
   r = next->zero (next, count, offs, flags, err);
   if (r != -1 && need_flush)
     r = next->flush (next, 0, err);
