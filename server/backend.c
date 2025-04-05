@@ -693,7 +693,7 @@ backend_flush (struct context *c,
   assert (c->handle && (c->state & HANDLE_CONNECTED));
   assert (c->can_flush == 1);
   assert (flags == 0);
-  datapath_debug ("%s: flush", b->name);
+  controlpath_debug ("%s: flush", b->name);
 
   r = b->flush (c, flags, err);
   if (r == -1)
