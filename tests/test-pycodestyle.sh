@@ -38,6 +38,8 @@ set -x
 
 requires flake8 --version
 requires git --version
+requires test -d "$abs_top_srcdir"
+requires test -d "$abs_top_srcdir/.git/"
 
-test -d "$abs_top_srcdir"
-flake8 $(git ls-files "$abs_top_srcdir/**/*.py")
+cd "$abs_top_srcdir"
+flake8 $(git ls-files "**/*.py")
