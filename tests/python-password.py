@@ -52,10 +52,8 @@ def open(readonly):
 
 
 def get_size(h):
-    global password
     return len(password)
 
 
 def pread(h, count, offset):
-    global password
     return password[offset:offset+count]

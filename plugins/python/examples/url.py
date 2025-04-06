@@ -37,7 +37,6 @@ def config(key, value):
 
 
 def config_complete():
-    global url
     if url is None:
         raise RuntimeError("url parameter is required")
 
