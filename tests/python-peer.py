@@ -47,8 +47,6 @@ def config(key, value):
 
 
 def open(readonly):
-    global pid, uid, gid
-
     # Fail open() if either we cannot read the peer credentials or
     # they do not match the parameters.
     p = nbdkit.peer_pid()

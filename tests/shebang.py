@@ -9,11 +9,9 @@ def open(readonly):
 
 
 def get_size(h):
-    global disk
     return len(disk)
 
 
 def pread(h, buf, offset):
-    global disk
     end = offset + len(buf)
     buf[:] = disk[offset:end]
