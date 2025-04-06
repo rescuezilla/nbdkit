@@ -37,7 +37,6 @@ def config(key, value):
 
 
 def config_complete():
-    global filename
     if filename is None:
         raise RuntimeError("file parameter is required")
 

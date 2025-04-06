@@ -57,12 +57,10 @@ def open(readonly):
 
 
 def get_size(h):
-    global disk
     return len(disk)
 
 
 def pread(h, buf, offset, flags):
-    global disk
     end = offset + len(buf)
     buf[:] = disk[offset:end]
     #  or if reading from a file you can use:
@@ -70,13 +68,11 @@ def pread(h, buf, offset, flags):
 
 
 def pwrite(h, buf, offset, flags):
-    global disk
     end = offset + len(buf)
     disk[offset:end] = buf
 
 
 def zero(h, count, offset, flags):
-    global disk
     if flags & nbdkit.FLAG_MAY_TRIM:
         disk[offset:offset+count] = bytearray(count)
     else:
