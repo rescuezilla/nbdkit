@@ -1223,9 +1223,9 @@ AS_IF([test "$with_curl" != "no"],[
         printf "libcurl version is "; $PKG_CONFIG --modversion libcurl
         AC_SUBST([CURL_CFLAGS])
         AC_SUBST([CURL_LIBS])
+        AC_DEFINE([HAVE_CURL],[1],[curl found at compile time.])
         old_CFLAGS="$CFLAGS"
         CFLAGS="$CURL_CFLAGS $CFLAGS"
-        AC_DEFINE([HAVE_CURL],[1],[curl found at compile time.])
         AC_CHECK_DECL([CURLOPT_UNIX_SOCKET_PATH], [
             AC_DEFINE([HAVE_CURLOPT_UNIX_SOCKET_PATH],[1],
                       [CURLOPT_UNIX_SOCKET_PATH found at compile time.])
