@@ -121,6 +121,7 @@ non_lang_plugins="\
         linuxdisk \
         memory \
         nbd \
+        nfs \
         null \
         ondemand \
         ones \
@@ -1379,6 +1380,31 @@ AS_IF([test "$with_ssh" != "no"],[
 ])
 AM_CONDITIONAL([HAVE_SSH],[test "x$HAVE_SSH_OPTIONS_NODELAY" != "x"])
 
+dnl Check for libnfs >= 6 (internally libnfs 16)
+AC_ARG_WITH([nfs],
+    [AS_HELP_STRING([--without-nfs],
+                    [disable NFS plugin @<:@default=check@:>@])],
+    [],
+    [with_nfs=check])
+AS_IF([test "$with_nfs" != "no"],[
+    PKG_CHECK_MODULES([LIBNFS], [libnfs >= 16],[
+        printf "libnfs internal version is "; $PKG_CONFIG --modversion libnfs
+        AC_SUBST([LIBNFS_CFLAGS])
+        AC_SUBST([LIBNFS_LIBS])
+
+        dnl Check for multithreading support.
+        dnl XXX libnfs has undeclared requirement for -lgnutls
+        old_LIBS="$LIBS"
+        LIBS="$LIBNFS_LIBS $GNUTLS_LIBS $LIBS"
+        AC_CHECK_FUNCS([\
+            nfs_mt_service_thread_start \
+        ])
+        LIBS="$old_LIBS"
+    ],
+    [AC_MSG_WARN([libnfs not found, NFS plugin will be disabled])])
+])
+AM_CONDITIONAL([HAVE_LIBNFS],[test "x$LIBNFS_LIBS" != "x"])
+
 dnl Check for xorriso or genisoimage or mkisofs
 dnl (only if you want to compile the iso plugin).
 ISOPROG="no"
@@ -1731,6 +1757,7 @@ AC_CONFIG_FILES([Makefile
                  plugins/lua/Makefile
                  plugins/memory/Makefile
                  plugins/nbd/Makefile
+                 plugins/nfs/Makefile
                  plugins/null/Makefile
                  plugins/ocaml/Makefile
                  plugins/ondemand/Makefile
@@ -1864,6 +1891,7 @@ feature "iso"                 test "x$HAVE_ISO_TRUE" = "x"
 feature "libvirt"             test "x$HAVE_LIBVIRT_TRUE" = "x"
 feature "linuxdisk"           test "x$HAVE_MKE2FS_WITH_D_TRUE" = "x"
 feature "nbd"                 test "x$HAVE_LIBNBD_TRUE" = "x"
+feature "nfs"                 test "x$HAVE_LIBNFS_TRUE" = "x"
 feature "S3"                  test "x$HAVE_PYTHON_TRUE" = "x"
 feature "ssh"                 test "x$HAVE_SSH_TRUE" = "x"
 feature "torrent"             test "x$HAVE_TORRENT_TRUE" = "x"

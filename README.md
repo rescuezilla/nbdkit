@@ -90,6 +90,10 @@ For the ssh plugin:
 * libssh ≥ 0.8.0
   (this is a different library from libssh2 - that will not work)
 
+For the NFS plugin:
+
+* libnfs ≥ 6
+
 For the iso plugin:
 
 * xorriso or genisoimage or mkisofs
