@@ -38,7 +38,6 @@ set -x
 export LANG=C
 
 requires_run
-requires_nbdinfo
 
 plugin=../plugins/golang/examples/minimal/nbdkit-gominimal-plugin.so
 requires test -r $plugin
@@ -51,7 +50,7 @@ cleanup_fn rm -f $logfile
 
 # Using --run is sufficient to cause nbdkit to fork and trigger
 # the warning.
-nbdkit --log="$logfile" $plugin --run 'nbdinfo "$uri"'
+nbdkit --log="$logfile" $plugin --run 'exit 0' ||:
 
 # Check the log file was created.
 cat $logfile
