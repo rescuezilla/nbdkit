@@ -181,6 +181,15 @@ nfs_plugin_get_ready (void)
     rpc_set_log_cb (rpc, log_callback, NULL);
   }
 
+#ifdef HAVE_NFS_SET_READONLY
+  /* Force readonly if the readonly=true flag was given.  This
+   * shouldn't be necessary for nbdkit, but provides extra safety as
+   * libnfs will error out if we somehow call any write functions.
+   */
+  if (readonly_cli)
+    nfs_set_readonly (nfsc, 1);
+#endif
+
   /* Parse the URI. */
   nfsu = nfs_parse_url_full (nfsc, uri);
   if (nfsu == NULL) {

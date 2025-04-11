@@ -1392,12 +1392,13 @@ AS_IF([test "$with_nfs" != "no"],[
         AC_SUBST([LIBNFS_CFLAGS])
         AC_SUBST([LIBNFS_LIBS])
 
-        dnl Check for multithreading support.
+        dnl Check for optional features.
         dnl XXX libnfs has undeclared requirement for -lgnutls
         old_LIBS="$LIBS"
         LIBS="$LIBNFS_LIBS $GNUTLS_LIBS $LIBS"
         AC_CHECK_FUNCS([\
             nfs_mt_service_thread_start \
+            nfs_set_readonly \
         ])
         LIBS="$old_LIBS"
     ],
