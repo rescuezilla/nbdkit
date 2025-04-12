@@ -65,8 +65,7 @@ the order they appear on the command line.
 
 This parameter must appear at least once.
 
-C<file=> is a magic config key and may be omitted in most cases.
-See L<nbdkit(1)/Magic parameters>.
+C<file=> __IS_MAGIC__
 
 =back
 

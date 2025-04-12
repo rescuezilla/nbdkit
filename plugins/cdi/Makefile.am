@@ -75,6 +75,7 @@ CLEANFILES += $(man_MANS)
 nbdkit-cdi-plugin.1: nbdkit-cdi-plugin.pod \
 		$(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --insert $(top_srcdir)/docs/magic-parameter.txt:__IS_MAGIC__ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 

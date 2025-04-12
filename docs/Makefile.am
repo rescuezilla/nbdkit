@@ -32,6 +32,7 @@
 include $(top_srcdir)/common-rules.mk
 
 EXTRA_DIST = \
+	magic-parameter.txt \
 	make-links.sh \
 	nbdkit.pod \
 	nbdkit-captive.pod \

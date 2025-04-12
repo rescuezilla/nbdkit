@@ -149,8 +149,7 @@ C<command>.
 
 This parameter is required.
 
-C<size=> is a magic config key and may be omitted in most cases.
-See L<nbdkit(1)/Magic parameters>.
+C<size=> __IS_MAGIC__
 
 =item B<type=>FS
 

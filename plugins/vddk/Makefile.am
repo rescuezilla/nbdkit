@@ -83,6 +83,7 @@ CLEANFILES += $(man_MANS)
 nbdkit-vddk-plugin.1: nbdkit-vddk-plugin.pod \
 		$(top_builddir)/podwrapper.pl
 	$(PODWRAPPER) --section=1 --man $@ \
+	    --insert $(top_srcdir)/docs/magic-parameter.txt:__IS_MAGIC__ \
 	    --html $(top_builddir)/html/$@.html \
 	    $<
 

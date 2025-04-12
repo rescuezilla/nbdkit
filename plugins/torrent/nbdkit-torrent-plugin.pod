@@ -124,8 +124,7 @@ Specify a local torrent file.
 
 Specify a L<magnet link|https://en.wikipedia.org/wiki/Magnet_URI_scheme>.
 
-C<torrent=> is a magic config key and may be omitted in most cases.
-See L<nbdkit(1)/Magic parameters>.
+C<torrent=> __IS_MAGIC__
 
 =item B<upload-rate-limit=>BITS_PER_SEC
 
