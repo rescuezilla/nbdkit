@@ -126,8 +126,7 @@ contain C<libnbd_uri=1> if this is the case.
 The export portion of the URI is ignored when using
 C<dynamic-export=true>.
 
-C<uri=> is a magic config key and may be omitted in most
-cases.  See L<nbdkit(1)/Magic parameters>.
+C<uri=> __IS_MAGIC__
 
 =back
 
