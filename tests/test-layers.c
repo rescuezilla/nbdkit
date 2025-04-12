@@ -59,6 +59,7 @@
 
 #include "byte-swapping.h"
 #include "cleanup.h"
+#include "nbdkit-string.h"
 
 #include "requires.h"
 
@@ -638,32 +639,33 @@ main (int argc, char *argv[])
 }
 
 /* The log from nbdkit is captured in a separate thread. */
-static char *log_buf = NULL;
-static size_t log_len = 0;
-static size_t last_out = 0;
 static pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER;
+static string log_buf;
+static size_t last_out = 0;
 
 static void *
 start_log_capture (void *arg)
 {
   int fd = *(int *)arg;
-  size_t allocated = 0;
   ssize_t r;
 
   for (;;) {
     {
       ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&log_lock);
-      if (allocated <= log_len) {
-        allocated += 4096;
-        log_buf = realloc (log_buf, allocated);
-        if (log_buf == NULL) {
-          perror ("log: realloc");
-          exit (EXIT_FAILURE);
-        }
+      if (log_buf.cap <= log_buf.len &&
+          string_reserve (&log_buf, 4096) == -1) {
+        perror ("log: realloc");
+        exit (EXIT_FAILURE);
       }
     }
 
-    r = read (fd, &log_buf[log_len], allocated-log_len);
+    /* It's safe to block reading here without holding the lock because:
+     * (a) The string cannot be resized or moved as only this function
+     * does that.
+     * (b) We're only writing to the part of the buffer beyond log_buf.len
+     * and other code never looks at this part of the buffer.
+     */
+    r = read (fd, &log_buf.ptr[log_buf.len], log_buf.cap - log_buf.len);
     if (r == -1) {
       perror ("log: read");
       exit (EXIT_FAILURE);
@@ -672,7 +674,7 @@ start_log_capture (void *arg)
       break;
 
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&log_lock);
-    log_len += r;
+    log_buf.len += r;
   }
 
   /* nbdkit closed the connection. */
@@ -684,9 +686,9 @@ static void short_sleep (void)
   sleep (2);
   /* Copy what we have received so far into stderr */
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&log_lock);
-  if (fwrite (&log_buf[last_out], log_len - last_out, 1, stderr) == -1)
+  if (fwrite (&log_buf.ptr[last_out], log_buf.len - last_out, 1, stderr) == -1)
     perror ("log: fwrite");
-  last_out = log_len;
+  last_out = log_buf.len;
 }
 
 /* These functions are called from the main thread to verify messages
@@ -709,7 +711,7 @@ static void
 log_verify_seen (const char *msg)
 {
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&log_lock);
-  if (memmem (log_buf, log_len, msg, strlen (msg)) == NULL)
+  if (memmem (log_buf.ptr, log_buf.len, msg, strlen (msg)) == NULL)
     no_message_error (msg);
 }
 
@@ -733,13 +735,13 @@ log_verify_seen_in_order (const char *msg, ...)
 
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&log_lock);
 
-  prev = memmem (log_buf, log_len, msg, strlen (msg));
+  prev = memmem (log_buf.ptr, log_buf.len, msg, strlen (msg));
   if (prev == NULL) no_message_error (msg);
   prev_msg = msg;
 
   va_start (args, msg);
   while ((curr_msg = va_arg (args, char *)) != NULL) {
-    curr = memmem (log_buf, log_len, curr_msg, strlen (curr_msg));
+    curr = memmem (log_buf.ptr, log_buf.len, curr_msg, strlen (curr_msg));
     if (curr == NULL) no_message_error (curr_msg);
     if (prev > curr) messages_out_of_order (prev_msg, curr_msg);
     prev_msg = curr_msg;
@@ -752,9 +754,7 @@ static void
 log_free (void)
 {
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&log_lock);
-  free (log_buf);
-  log_buf = NULL;
-  log_len = 0;
+  string_reset (&log_buf);
 }
 
 #else /* WIN32 */
