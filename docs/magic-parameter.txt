@@ -1,2 +1,2 @@
-is a magic config key and may be omitted in most cases.
+prefix may be omitted in most cases.
 See L<nbdkit(1)/Magic parameters>.
