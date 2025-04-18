@@ -37,6 +37,7 @@ function install_buildenv() {
             libguestfs-dev \
             liblua5.4-dev \
             liblzma-dev \
+            libnbd-dev \
             libperl-dev \
             libselinux1-dev \
             libssh-dev \
@@ -57,6 +58,7 @@ function install_buildenv() {
             python3-dev \
             python3-libnbd \
             qemu-utils \
+            rust-clippy \
             rustc \
             socat \
             tcl-dev \

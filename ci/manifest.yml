@@ -38,13 +38,6 @@ targets:
 
   centos-stream-9: x86_64
 
-  debian-11:
-    jobs:
-      - arch: x86_64
-        variables:
-          # https://listman.redhat.com/archives/libguestfs/2023-January/thread.html#30476
-          RUST: skip
-
   debian-12:
     jobs:
       - arch: x86_64
@@ -52,12 +45,9 @@ targets:
           # rustc 1.63.0 < MSRV
           RUST: skip
 
-  debian-sid:
-    jobs:
-      - arch: x86_64
-        variables:
-          # rustc 1.74.0 < MSRV
-          RUST: skip
+  debian-13: x86_64
+
+  debian-sid: x86_64
 
   fedora-40:
     jobs:
@@ -112,7 +102,6 @@ targets:
     jobs:
       - arch: x86_64
         variables:
-          GOLANG: skip
           PERL: skip
 
   opensuse-leap-15: x86_64

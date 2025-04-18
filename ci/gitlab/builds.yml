@@ -66,18 +66,6 @@ x86_64-centos-stream-9:
     TARGET_BASE_IMAGE: quay.io/centos/centos:stream9
 
 
-x86_64-debian-11:
-  extends: .native_build_job
-  needs:
-    - job: x86_64-debian-11-container
-      optional: true
-  allow_failure: false
-  variables:
-    NAME: debian-11
-    RUST: skip
-    TARGET_BASE_IMAGE: docker.io/library/debian:11-slim
-
-
 x86_64-debian-12:
   extends: .native_build_job
   needs:
@@ -90,6 +78,17 @@ x86_64-debian-12:
     TARGET_BASE_IMAGE: docker.io/library/debian:12-slim
 
 
+x86_64-debian-13:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-debian-13-container
+      optional: true
+  allow_failure: true
+  variables:
+    NAME: debian-13
+    TARGET_BASE_IMAGE: docker.io/library/debian:trixie-slim
+
+
 x86_64-debian-sid:
   extends: .native_build_job
   needs:
@@ -98,7 +97,6 @@ x86_64-debian-sid:
   allow_failure: true
   variables:
     NAME: debian-sid
-    RUST: skip
     TARGET_BASE_IMAGE: docker.io/library/debian:sid-slim
 
 
@@ -273,7 +271,6 @@ x86_64-freebsd-current:
     CIRRUS_VM_IMAGE_NAME: freebsd-15-0-snap
     CIRRUS_VM_IMAGE_SELECTOR: image_family
     CIRRUS_VM_INSTANCE_TYPE: freebsd_instance
-    GOLANG: skip
     INSTALL_COMMAND: pkg install -y
     NAME: freebsd-current
     PERL: skip
