@@ -4,7 +4,7 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM docker.io/library/debian:11-slim
+FROM docker.io/library/debian:trixie-slim
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
@@ -39,6 +39,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       libguestfs-dev \
                       liblua5.4-dev \
                       liblzma-dev \
+                      libnbd-dev \
                       libperl-dev \
                       libselinux1-dev \
                       libssh-dev \
@@ -59,6 +60,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       python3-dev \
                       python3-libnbd \
                       qemu-utils \
+                      rust-clippy \
                       rustc \
                       socat \
                       systemtap-sdt-dev \
