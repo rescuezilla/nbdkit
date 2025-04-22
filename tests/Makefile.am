@@ -821,6 +821,7 @@ TESTS += \
 	test-eval.sh \
 	test-eval-file.sh \
 	test-eval-exports.sh \
+	test-eval-extents.sh \
 	test-eval-cache.sh \
 	test-eval-dump-plugin.sh \
 	test-eval-disconnect.sh \
@@ -829,6 +830,7 @@ EXTRA_DIST += \
 	test-eval.sh \
 	test-eval-file.sh \
 	test-eval-exports.sh \
+	test-eval-extents.sh \
 	test-eval-cache.sh \
 	test-eval-dump-plugin.sh \
 	test-eval-disconnect.sh \
