@@ -499,7 +499,7 @@ extents_to_block_descriptors (struct nbdkit_extents *extents,
       (*nr_blocks)++;
 
       pos += length;
-      if (pos > offset + count) /* this must be the last block */
+      if (pos >= offset + count) /* this must be the last block */
         break;
 
       /* If we reach here then we must have consumed this whole
