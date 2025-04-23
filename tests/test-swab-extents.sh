@@ -39,7 +39,7 @@ set -x
 requires_run
 requires_plugin eval
 requires_nbdsh_uri
-requires nbdsh --base-allocation
+requires nbdsh --base-allocation --version
 
 files="swab-extents.out swab-extents.exp8 swab-extents.exp16
        swab-extents.exp32 swab-extents.exp64"
