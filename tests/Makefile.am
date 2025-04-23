@@ -1639,12 +1639,14 @@ test_layers_filter3_la_LIBADD = $(IMPORT_LIBRARY_ON_WINDOWS)
 TESTS += \
 	test-blocksize.sh \
 	test-blocksize-extents.sh \
+	test-blocksize-extents-overflow.sh \
 	test-blocksize-default.sh \
 	test-blocksize-sharding.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-blocksize.sh \
 	test-blocksize-extents.sh \
+	test-blocksize-extents-overflow.sh \
 	test-blocksize-default.sh \
 	test-blocksize-sharding.sh \
 	$(NULL)

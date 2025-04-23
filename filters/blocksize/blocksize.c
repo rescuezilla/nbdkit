@@ -482,8 +482,9 @@ blocksize_extents (nbdkit_next *next,
     return -1;
   }
 
-  if (nbdkit_extents_aligned (next, MIN (ROUND_UP (count, h->minblock),
-                                         h->maxlen),
+  if (nbdkit_extents_aligned (next,
+                              MIN (ROUND_UP ((uint64_t) count, h->minblock),
+                                   h->maxlen),
                               ROUND_DOWN (offset, h->minblock), flags,
                               h->minblock, extents2, err) == -1)
     return -1;
