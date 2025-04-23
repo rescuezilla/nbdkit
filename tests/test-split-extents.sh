@@ -38,7 +38,7 @@ set -x
 
 requires_run
 requires_nbdsh_uri
-requires nbdsh --base-allocation
+requires nbdsh --base-allocation --version
 requires $TRUNCATE --help
 requires $STAT --help
 

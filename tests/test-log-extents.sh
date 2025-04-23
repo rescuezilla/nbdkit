@@ -34,8 +34,7 @@ source ./functions.sh
 set -e
 set -x
 
-requires nbdsh --version
-requires nbdsh --base-allocation
+requires nbdsh --base-allocation --version
 requires_filter log
 
 log=log-extents.log

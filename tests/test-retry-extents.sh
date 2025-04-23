@@ -37,7 +37,7 @@ set -x
 requires_run
 requires_plugin sh
 requires_nbdsh_uri
-requires nbdsh --base-allocation
+requires nbdsh --base-allocation --version
 
 files="retry-extents-count retry-extents-open-count"
 rm -f $files
