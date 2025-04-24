@@ -159,7 +159,7 @@ bad '0 -> \a \b'
 bad '0 -> \a \a \b'
 bad '( 0 -> \a \a ) \a'
 
-# Currently this should fail.  \b subtitutes (0 -> \a) which only
+# Currently this should fail.  \b substitutes (0 -> \a) which only
 # defines \a in the scope, not where it is used outside the scope.
 # Should we make it work in future?
 bad '(0 -> \a) -> \b \b \a'

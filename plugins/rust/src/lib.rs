@@ -651,7 +651,7 @@ pub trait Server {
         unimplemented!()
     }
 
-    /// Indicate level of cacheing support to the client.
+    /// Indicate level of caching support to the client.
     ///
     /// This is called during the option negotiation phase to find out if the
     /// plugin supports a cache operation. The nature of the caching is
@@ -666,7 +666,7 @@ pub trait Server {
     /// (non-sparse) regions of the disk with the [`Server::extents`]
     fn can_extents(&self) -> Result<bool> { unimplemented!() }
 
-    /// Indicate to the client wheter the plugin supports the flush-to-disk
+    /// Indicate to the client whether the plugin supports the flush-to-disk
     /// operation.
     fn can_flush(&self) -> Result<bool> { unimplemented!() }
 
@@ -685,7 +685,7 @@ pub trait Server {
     /// Indicate to the client whether the plugin is prepared to handle multiple
     /// connections from a single client.
     ///
-    /// If thie method returns `true` then a
+    /// If this method returns `true` then a
     /// client may try to open multiple connections to the nbdkit server and
     /// spread requests across all connections to maximize parallelism. If it
     /// returns `false` false (which is the default) then well-behaved clients

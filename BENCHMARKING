@@ -72,7 +72,7 @@ Testing using the Linux kernel client
 
 Step (1) is the same as above - obtain or compile fio.
 
-(2) Create the fio configuation file.
+(2) Create the fio configuration file.
 
 Create /var/tmp/test.fio containing:
 

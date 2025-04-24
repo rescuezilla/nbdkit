@@ -25,7 +25,7 @@ Blake).
 Low level pthread lock failures now call L<abort(3)>.  This should
 never happen in real situations (Eric Blake).
 
-The server will not advertize multi-conn support if the internal
+The server will not advertise multi-conn support if the internal
 thread model is serialized, avoiding a possible deadlock in some
 clients (Eric Blake).
 

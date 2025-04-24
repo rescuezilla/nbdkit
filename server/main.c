@@ -563,7 +563,7 @@ main (int argc, char *argv[])
     case 't':
       if (nbdkit_parse_unsigned ("threads", optarg, &threads) == -1)
         exit (EXIT_FAILURE);
-      /* XXX Worth a maximimum limit on threads? */
+      /* XXX Worth a maximum limit on threads? */
       break;
 
     case 'U':

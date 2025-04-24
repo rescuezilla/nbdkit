@@ -1527,7 +1527,7 @@ AS_IF([test "$with_libnbd" != "no"],[
     [AC_MSG_WARN([libnbd >= 0.9.8 not found, nbd plugin will be crippled])])
 ])
 
-dnl For backwards compatibilty, we have a second way to disable the nbd plugin.
+dnl For backwards compatibility, we have a second way to disable the nbd plugin.
 AC_ARG_ENABLE([nbd-plugin],
     [AS_HELP_STRING([--disable-nbd-plugin], [disable nbd plugin (deprecated, use --without-libnbd)])],
     [],

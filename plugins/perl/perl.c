@@ -591,7 +591,7 @@ perl_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 
     if (last_error == EOPNOTSUPP || last_error == ENOTSUP) {
       /* When user requests this particular error, we want to
-         gracefully fall back, and to accomodate both a normal return
+         gracefully fall back, and to accommodate both a normal return
          and an exception. */
       nbdkit_debug ("zero requested falling back to pwrite");
       return -1;

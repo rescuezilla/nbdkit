@@ -126,7 +126,7 @@ create_virtual_disk_layout (void)
      */
     assert (IS_ALIGNED (offset, SECTOR_SIZE));
 
-    /* Logical partitions are preceeded by an EBR. */
+    /* Logical partitions are preceded by an EBR. */
     if (parttype == PARTTYPE_MBR && the_files.len > 4 && i >= 3) {
       if (append_region_len (&the_regions, "EBR",
                              SECTOR_SIZE, 0, 0,

@@ -55,7 +55,7 @@ main (int argc, char *argv[])
 
   /* This tests the VDDK plugin using dummy-vddk.c which is a dummy
    * library that looks a bit like VDDK and emulates a blank disk (it
-   * basically ignores whatever paramaters you pass to it).
+   * basically ignores whatever parameters you pass to it).
    */
   if (test_start_nbdkit ("vddk",
                          "libdir=.libs",

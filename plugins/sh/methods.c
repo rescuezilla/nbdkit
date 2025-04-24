@@ -97,7 +97,7 @@ sh_thread_model (void)
   int r;
 
   /* For historical compatibility: the lack of a script is assumed to
-   * be parallel, but an existing script with missing or unparseable
+   * be parallel, but an existing script with missing or unparsable
    * thread_model remains at the older (but safe)
    * serialize_all_requests.
    */

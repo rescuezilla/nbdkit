@@ -91,7 +91,7 @@ print_gnutls_error (int err, const char *fs, ...)
 }
 
 /* Try to load certificates from 'path'.  Returns true if successful.
- * If it's not a certicate directory it returns false.  Exits on
+ * If it's not a certificate directory it returns false.  Exits on
  * other errors.
  */
 static int

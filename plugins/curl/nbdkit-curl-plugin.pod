@@ -250,7 +250,7 @@ method to supply a password.
 
 Limit the protocols that are allowed in the URL.  Use this option for
 extra security if the URL comes from an untrusted source and you want
-to avoid security isues in the more obscure protocols that curl
+to avoid security issues in the more obscure protocols that curl
 supports.  (See qemu CVE-2013-0249 for an example of a security bug
 introduced by allowing unrestricted protocols).
 

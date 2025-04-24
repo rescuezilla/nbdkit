@@ -1,8 +1,8 @@
 # Example Python plugin.
 #
-# This plugin simulates errors for testing NBD client error hanlding.
+# This plugin simulates errors for testing NBD client error handling.
 # Every odd call will fail, and every even call will succeed, unless
-# there a real error accesing the specified file.
+# there a real error accessing the specified file.
 #
 # This example can be freely used for any purpose.
 
