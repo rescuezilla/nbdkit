@@ -278,6 +278,16 @@ The default is to allow any protocol.
 
 Set the proxy.  See L<CURLOPT_PROXY(3)>.
 
+=item B<proxy-cainfo=>FILENAME
+
+=item B<proxy-capath=>PATH
+
+(nbdkit E<ge> 1.44)
+
+Set the CA bundle and CA certificates directory location for the
+proxy. See L<CURLOPT_PROXY_CAINFO(3)> and L<CURLOPT_PROXY_CAPATH(3)>
+for more information.
+
 =item B<proxy-password=>PASSWORD
 
 =item B<proxy-password=->
@@ -623,6 +633,8 @@ L<CURLOPT_FOLLOWLOCATION(3)>,
 L<CURLOPT_HTTPHEADER(3)>,
 L<CURLOPT_IPRESOLVE(3)>,
 L<CURLOPT_PROXY(3)>,
+L<CURLOPT_PROXY_CAINFO(3)>,
+L<CURLOPT_PROXY_CAPATH(3)>,
 L<CURLOPT_RESOLVE(3)>,
 L<CURLOPT_SSL_CIPHER_LIST(3)>,
 L<CURLOPT_SSLVERSION(3)>,
