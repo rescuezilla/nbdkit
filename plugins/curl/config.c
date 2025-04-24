@@ -219,7 +219,7 @@ curl_config (const char *key, const char *value)
   }
 
   else if (strcmp (key, "capath") == 0) {
-    capath =  value;
+    capath = value;
   }
 
   else if (strcmp (key, "connections") == 0) {
