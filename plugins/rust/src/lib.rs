@@ -302,7 +302,7 @@ impl ExtentHandle {
         match r {
             0 => Ok(()),
             -1 => Err(io::Error::last_os_error().into()),
-            x => panic!("Undocumented return value {} from nbdkit_add_extent", x)
+            x => panic!("Undocumented return value {x} from nbdkit_add_extent")
         }
     }
 }
