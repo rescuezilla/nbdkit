@@ -506,7 +506,7 @@ struct handle {
   bool can_punch_hole;
   bool can_zero_range;
   bool can_fallocate;
-  bool can_zeroout;
+  bool can_blkzeroout;
 };
 
 /* Common code for opening a file by name, used by mode_filename and
@@ -746,7 +746,7 @@ file_open (int readonly)
 #endif
 
   h->can_fallocate = true;
-  h->can_zeroout = h->is_block_device;
+  h->can_blkzeroout = h->is_block_device;
 
   return h;
 }
@@ -1062,14 +1062,14 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 
 #ifdef BLKZEROOUT
   /* For aligned range and block device, we can use BLKZEROOUT. */
-  if (h->can_zeroout && IS_ALIGNED (offset | count, h->sector_size)) {
+  if (h->can_blkzeroout && IS_ALIGNED (offset | count, h->sector_size)) {
     int r;
     uint64_t range[2] = {offset, count};
 
     r = ioctl (h->fd, BLKZEROOUT, &range);
     if (r == 0) {
       if (file_debug_zero)
-        nbdkit_debug ("h->can_zeroout && IS_ALIGNED: "
+        nbdkit_debug ("h->can_blkzeroout && IS_ALIGNED: "
                       "zero succeeded using BLKZEROOUT");
       goto out;
     }
@@ -1079,7 +1079,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
       return -1;
     }
 
-    h->can_zeroout = false;
+    h->can_blkzeroout = false;
   }
 #endif
 
