@@ -980,9 +980,14 @@ static int
 file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 {
   struct handle *h __attribute__ ((unused)) = handle;
+  const bool may_trim __attribute__ ((unused)) = flags & NBDKIT_FLAG_MAY_TRIM;
 
+  /* These alternate zeroing methods are ordered.  Methods which can
+   * trim (if may_trim is set) are tried first.  Methods which can
+   * only zero are tried last.
+   */
 #ifdef FALLOC_FL_PUNCH_HOLE
-  if (h->can_punch_hole && (flags & NBDKIT_FLAG_MAY_TRIM)) {
+  if (may_trim && h->can_punch_hole) {
     int r;
 
     r = do_fallocate (h->fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
