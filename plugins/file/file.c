@@ -404,6 +404,9 @@ file_dump_plugin (void)
 #ifdef BLKSSZGET
   printf ("file_blksszget=yes\n");
 #endif
+#ifdef BLKDISCARD
+  printf ("file_blkdiscard=yes\n");
+#endif
 #ifdef BLKZEROOUT
   printf ("file_blkzeroout=yes\n");
 #endif
@@ -506,7 +509,8 @@ struct handle {
   bool can_punch_hole;
   bool can_zero_range;
   bool can_fallocate;
-  bool can_zeroout;
+  bool can_blkdiscard;
+  bool can_blkzeroout;
 };
 
 /* Common code for opening a file by name, used by mode_filename and
@@ -746,7 +750,8 @@ file_open (int readonly)
 #endif
 
   h->can_fallocate = true;
-  h->can_zeroout = h->is_block_device;
+  h->can_blkzeroout = h->is_block_device;
+  h->can_blkdiscard = h->is_block_device;
 
   return h;
 }
@@ -980,9 +985,14 @@ static int
 file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 {
   struct handle *h __attribute__ ((unused)) = handle;
+  const bool may_trim __attribute__ ((unused)) = flags & NBDKIT_FLAG_MAY_TRIM;
 
+  /* These alternate zeroing methods are ordered.  Methods which can
+   * trim (if may_trim is set) are tried first.  Methods which can
+   * only zero are tried last.
+   */
 #ifdef FALLOC_FL_PUNCH_HOLE
-  if (h->can_punch_hole && (flags & NBDKIT_FLAG_MAY_TRIM)) {
+  if (may_trim && h->can_punch_hole) {
     int r;
 
     r = do_fallocate (h->fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
@@ -1000,6 +1010,51 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     }
 
     h->can_punch_hole = false;
+  }
+#endif
+
+#if defined(BLKDISCARD) && defined(FALLOC_FL_ZERO_RANGE)
+  /* For aligned range and block device, we can use BLKDISCARD to
+   * trim.  However BLKDISCARD doesn't necessarily zero (eg for local
+   * disk) so we have to zero first and then discard.
+   *
+   * In future all Linux block devices may understand
+   * FALLOC_FL_PUNCH_HOLE which means this case would no longer be
+   * necessary, since the case above will handle it.
+   */
+  if (may_trim && h->can_blkdiscard && h->can_zero_range &&
+      IS_ALIGNED (offset | count, h->sector_size)) {
+    int r;
+    uint64_t range[2] = {offset, count};
+
+    r = do_fallocate (h->fd, FALLOC_FL_ZERO_RANGE, offset, count);
+    if (r == 0) {
+      /* We could use FALLOC_FL_PUNCH_HOLE here instead, but currently
+       * thin LVs do not support it (XXX 2025-04).
+       */
+      r = ioctl (h->fd, BLKDISCARD, &range);
+      if (r == 0) {
+        if (file_debug_zero)
+          nbdkit_debug ("h->can_blkdiscard && may_trim && IS_ALIGNED: "
+                        "zero succeeded using BLKDISCARD");
+        goto out;
+      }
+
+      if (!is_enotsup (errno)) {
+        nbdkit_error ("zero: %m");
+        return -1;
+      }
+
+      h->can_blkdiscard = false;
+    }
+    else {
+      if (!is_enotsup (errno)) {
+        nbdkit_error ("zero: %m");
+        return -1;
+      }
+
+      h->can_fallocate = false;
+    }
   }
 #endif
 
@@ -1062,14 +1117,14 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 
 #ifdef BLKZEROOUT
   /* For aligned range and block device, we can use BLKZEROOUT. */
-  if (h->can_zeroout && IS_ALIGNED (offset | count, h->sector_size)) {
+  if (h->can_blkzeroout && IS_ALIGNED (offset | count, h->sector_size)) {
     int r;
     uint64_t range[2] = {offset, count};
 
     r = ioctl (h->fd, BLKZEROOUT, &range);
     if (r == 0) {
       if (file_debug_zero)
-        nbdkit_debug ("h->can_zeroout && IS_ALIGNED: "
+        nbdkit_debug ("h->can_blkzeroout && IS_ALIGNED: "
                       "zero succeeded using BLKZEROOUT");
       goto out;
     }
@@ -1079,7 +1134,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
       return -1;
     }
 
-    h->can_zeroout = false;
+    h->can_blkzeroout = false;
   }
 #endif
 
