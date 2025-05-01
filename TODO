@@ -163,6 +163,30 @@ nbdkit-blkio-plugin:
   threads to handle the events, and nbdkit threads issue requests to
   these threads.  (See how it is done in the VDDK plugin.)
 
+nbdkit-file-plugin:
+
+* There are multiple issues with handling block devices, zeroing and
+  trimming:
+
+  - Extents don't work at all (eg. for LVM thin devices).  There's no
+    way to fix this in the current Linux kernel.  Likely requires a
+    patch such as: https://lkml.org/lkml/2024/3/28/1165
+
+  - Alignment of discard and zero requests may be an issue, since the
+    code currently assumes that sector alignment is always fine, but
+    there may be block devices with larger alignment requirements.
+
+  - We're waiting for Linux to allow fallocate(FALLOC_FL_PUNCH_HOLE)
+    on all block device types (including LVM thin).  There are some
+    proposals upstream.  This would allow us to remove the BLKDISCARD
+    code and simplify things.
+
+  - Can we be guaranteed that in all paths through `file_zero`, when
+    trimming, reads will always return zeroes?  Requires code review.
+
+  - For more, see comments in
+    https://gitlab.com/nbdkit/nbdkit/-/merge_requests/88
+
 Suggestions for language plugins
 --------------------------------
 
