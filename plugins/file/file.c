@@ -988,7 +988,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     r = do_fallocate (h->fd, FALLOC_FL_ZERO_RANGE, offset, count);
     if (r == 0) {
       if (file_debug_zero)
-        nbdkit_debug ("h->can_zero-range: "
+        nbdkit_debug ("h->can_zero_range: "
                       "zero succeeded using fallocate");
       goto out;
     }
