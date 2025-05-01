@@ -943,7 +943,17 @@ file_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset,
 static int
 do_fallocate (int fd, int mode_, off_t offset, off_t len)
 {
-  int r = fallocate (fd, mode_, offset, len);
+  int r;
+
+  r = fallocate (fd, mode_, offset, len);
+
+  if (file_debug_zero)
+    nbdkit_debug ("fallocate ([%s%s ], %" PRIu64 ", %" PRIu64") => %d (%d)",
+                  mode_ & FALLOC_FL_PUNCH_HOLE ? " FALLOC_FL_PUNCH_HOLE" : "",
+                  mode_ & FALLOC_FL_ZERO_RANGE ? " FALLOC_FL_ZERO_RANGE" : "",
+                  (uint64_t) offset, (uint64_t) len, r,
+                  r == -1 ? errno : 0);
+
   if (r == -1 && errno == ENODEV) {
     /* kernel 3.10 fails with ENODEV for block device. Kernel >= 4.9 fails
        with EOPNOTSUPP in this case. Normalize errno to simplify callers. */
