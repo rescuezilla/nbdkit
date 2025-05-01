@@ -939,7 +939,7 @@ file_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset,
   return 0;
 }
 
-#if defined (FALLOC_FL_PUNCH_HOLE) || defined (FALLOC_FL_ZERO_RANGE)
+#if defined(FALLOC_FL_PUNCH_HOLE) || defined(FALLOC_FL_ZERO_RANGE)
 static int
 do_fallocate (int fd, int mode_, off_t offset, off_t len)
 {
@@ -948,9 +948,20 @@ do_fallocate (int fd, int mode_, off_t offset, off_t len)
   r = fallocate (fd, mode_, offset, len);
 
   if (file_debug_zero)
-    nbdkit_debug ("fallocate ([%s%s ], %" PRIu64 ", %" PRIu64") => %d (%d)",
+    nbdkit_debug ("fallocate (["
+#if defined(FALLOC_FL_PUNCH_HOLE)
+                  "%s"
+#endif
+#if defined(FALLOC_FL_ZERO_RANGE)
+                  "%s"
+#endif
+                  " ], %" PRIu64 ", %" PRIu64") => %d (%d)",
+#if defined(FALLOC_FL_PUNCH_HOLE)
                   mode_ & FALLOC_FL_PUNCH_HOLE ? " FALLOC_FL_PUNCH_HOLE" : "",
+#endif
+#if defined(FALLOC_FL_ZERO_RANGE)
                   mode_ & FALLOC_FL_ZERO_RANGE ? " FALLOC_FL_ZERO_RANGE" : "",
+#endif
                   (uint64_t) offset, (uint64_t) len, r,
                   r == -1 ? errno : 0);
 
