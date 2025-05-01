@@ -956,7 +956,8 @@ do_fallocate (int fd, int mode_, off_t offset, off_t len)
 
   if (r == -1 && errno == ENODEV) {
     /* kernel 3.10 fails with ENODEV for block device. Kernel >= 4.9 fails
-       with EOPNOTSUPP in this case. Normalize errno to simplify callers. */
+     * with EOPNOTSUPP in this case. Normalize errno to simplify callers.
+     */
     errno = EOPNOTSUPP;
   }
   return r;
@@ -1013,9 +1014,10 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 #endif
 
 #ifdef FALLOC_FL_PUNCH_HOLE
-  /* If we can punch hole but may not trim, we can combine punching hole and
-   * fallocate to zero a range. This is expected to be more efficient than
-   * writing zeroes manually. */
+  /* If we can punch hole but may not trim, we can combine punching
+   * hole and fallocate to zero a range. This is expected to be more
+   * efficient than writing zeroes manually.
+   */
   if (h->can_punch_hole && h->can_fallocate) {
     int r;
 
