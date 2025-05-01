@@ -404,6 +404,9 @@ file_dump_plugin (void)
 #ifdef BLKSSZGET
   printf ("file_blksszget=yes\n");
 #endif
+#ifdef BLKDISCARD
+  printf ("file_blkdiscard=yes\n");
+#endif
 #ifdef BLKZEROOUT
   printf ("file_blkzeroout=yes\n");
 #endif
@@ -506,6 +509,7 @@ struct handle {
   bool can_punch_hole;
   bool can_zero_range;
   bool can_fallocate;
+  bool can_blkdiscard;
   bool can_blkzeroout;
 };
 
@@ -747,6 +751,7 @@ file_open (int readonly)
 
   h->can_fallocate = true;
   h->can_blkzeroout = h->is_block_device;
+  h->can_blkdiscard = h->is_block_device;
 
   return h;
 }
@@ -1005,6 +1010,51 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     }
 
     h->can_punch_hole = false;
+  }
+#endif
+
+#if defined(BLKDISCARD) && defined(FALLOC_FL_ZERO_RANGE)
+  /* For aligned range and block device, we can use BLKDISCARD to
+   * trim.  However BLKDISCARD doesn't necessarily zero (eg for local
+   * disk) so we have to zero first and then discard.
+   *
+   * In future all Linux block devices may understand
+   * FALLOC_FL_PUNCH_HOLE which means this case would no longer be
+   * necessary, since the case above will handle it.
+   */
+  if (may_trim && h->can_blkdiscard && h->can_zero_range &&
+      IS_ALIGNED (offset | count, h->sector_size)) {
+    int r;
+    uint64_t range[2] = {offset, count};
+
+    r = do_fallocate (h->fd, FALLOC_FL_ZERO_RANGE, offset, count);
+    if (r == 0) {
+      /* We could use FALLOC_FL_PUNCH_HOLE here instead, but currently
+       * thin LVs do not support it (XXX 2025-04).
+       */
+      r = ioctl (h->fd, BLKDISCARD, &range);
+      if (r == 0) {
+        if (file_debug_zero)
+          nbdkit_debug ("h->can_blkdiscard && may_trim && IS_ALIGNED: "
+                        "zero succeeded using BLKDISCARD");
+        goto out;
+      }
+
+      if (!is_enotsup (errno)) {
+        nbdkit_error ("zero: %m");
+        return -1;
+      }
+
+      h->can_blkdiscard = false;
+    }
+    else {
+      if (!is_enotsup (errno)) {
+        nbdkit_error ("zero: %m");
+        return -1;
+      }
+
+      h->can_fallocate = false;
+    }
   }
 #endif
 
