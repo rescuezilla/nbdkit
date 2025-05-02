@@ -1165,17 +1165,12 @@ file_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     r = do_fallocate (h->fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
                       offset, count);
     if (r == -1) {
-      /* Trim is advisory; we don't care if it fails for anything other
-       * than EIO or EPERM. */
-      if (errno == EPERM || errno == EIO) {
+      if (!is_enotsup (errno)) {
         nbdkit_error ("fallocate: %m");
         return -1;
       }
 
-      if (is_enotsup (errno))
-        h->can_punch_hole = false;
-
-      nbdkit_debug ("ignoring failed fallocate during trim: %m");
+      h->can_punch_hole = false;
     }
   }
 #endif
