@@ -298,6 +298,16 @@ torrent_config_complete (void)
   "upload-rate-limit=BPS          Set upload rate limit (bps)\n" \
   "user-agent=STRING              Set the user-agent"
 
+/* Print some extra information about how the plugin was compiled. */
+static void
+torrent_dump_plugin (void)
+{
+  printf ("libtorrent_variant=rb_libtorrent\n");
+  printf ("libtorrent_version=%s\n", libtorrent::version());
+  printf ("libtorrent_default_user_agent=%s\n",
+          pack.get_str (pack.user_agent).c_str());
+}
+
 /* We got the metadata. */
 static void
 got_metadata (void)
@@ -604,6 +614,7 @@ namespace {
     plugin.config_complete   = torrent_config_complete;
     plugin.config_help       = torrent_config_help;
     plugin.magic_config_key  = "torrent";
+    plugin.dump_plugin       = torrent_dump_plugin,
     plugin.after_fork        = torrent_after_fork;
     plugin.preconnect        = torrent_preconnect;
     plugin.open              = torrent_open;

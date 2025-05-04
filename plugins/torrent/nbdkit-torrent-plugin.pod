@@ -135,7 +135,10 @@ C<0> means unlimited, which is the default.
 =item B<user-agent=>STRING
 
 Set the user-agent.  The recommended format is
-C<client-name/client-version>.
+C<client-name/client-version>.  The default user agent can be found
+using:
+
+ nbdkit torrent --dump-plugin
 
 =back
 
