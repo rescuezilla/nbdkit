@@ -567,6 +567,31 @@ torrent_pread (void *hv, void *buf, uint32_t count, uint64_t offset,
   return 0;
 }
 
+/* Prefetch data. */
+static int
+torrent_cache (void *hv, uint32_t count, uint64_t offset, uint32_t flags)
+{
+  auto ti = handle.torrent_file();
+
+  while (count > 0) {
+    libtorrent::peer_request part =
+      ti->map_file (index_.load(), offset, (int) count);
+
+    part.length = std::min (ti->piece_size (part.piece) - part.start,
+                            part.length);
+
+    if (! handle.have_piece (part.piece)) {
+      /* Tell the picker that we want this piece sooner. */
+      handle.piece_priority (part.piece, libtorrent::top_priority);
+    }
+
+    count -= part.length;
+    offset += part.length;
+  }
+
+  return 0;
+}
+
 /* https://bugzilla.redhat.com/show_bug.cgi?id=1418328#c9 */
 namespace {
   nbdkit_plugin create_plugin() {
@@ -586,6 +611,7 @@ namespace {
     plugin.get_size          = torrent_get_size;
     plugin.block_size        = torrent_block_size;
     plugin.pread             = torrent_pread;
+    plugin.cache             = torrent_cache;
     return plugin;
   }
 }
