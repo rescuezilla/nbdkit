@@ -651,7 +651,7 @@ ondemand_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
         return -1;
       }
 
-      if (is_enotsup (EOPNOTSUPP))
+      if (is_enotsup (errno))
         h->can_punch_hole = false;
 
       nbdkit_debug ("ignoring failed fallocate during trim: %m");
