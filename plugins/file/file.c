@@ -1157,25 +1157,42 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 static int
 file_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 {
-#ifdef FALLOC_FL_PUNCH_HOLE
-  struct handle *h = handle;
-  int r;
+  struct handle *h __attribute__ ((unused)) = handle;
 
+#ifdef FALLOC_FL_PUNCH_HOLE
   if (h->can_punch_hole) {
+    int r;
+
     r = do_fallocate (h->fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
                       offset, count);
     if (r == -1) {
-      /* Trim is advisory; we don't care if it fails for anything other
-       * than EIO or EPERM. */
-      if (errno == EPERM || errno == EIO) {
+      if (!is_enotsup (errno)) {
         nbdkit_error ("fallocate: %m");
         return -1;
       }
 
-      if (is_enotsup (errno))
-        h->can_punch_hole = false;
+      h->can_punch_hole = false;
+    }
+  }
+#endif
 
-      nbdkit_debug ("ignoring failed fallocate during trim: %m");
+#ifdef BLKDISCARD
+  /* In future all Linux block devices may understand
+   * FALLOC_FL_PUNCH_HOLE which means this case would no longer be
+   * necessary, since the case above will handle it.
+   */
+  if (h->can_blkdiscard && IS_ALIGNED (offset | count, h->sector_size)) {
+    int r;
+    uint64_t range[2] = {offset, count};
+
+    r = ioctl (h->fd, BLKDISCARD, &range);
+    if (r == -1) {
+      if (!is_enotsup (errno)) {
+        nbdkit_error ("ioctl: BLKDISCARD: %m");
+        return -1;
+      }
+
+      h->can_blkdiscard = false;
     }
   }
 #endif
