@@ -1302,7 +1302,7 @@ file_cache (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
   struct handle *h = handle;
   int r;
 
-  /* Cache is advisory, we don't care if this fails */
+  /* This function returns an errno. */
   r = posix_fadvise (h->fd, offset, count, POSIX_FADV_WILLNEED);
   if (r) {
     errno = r;
