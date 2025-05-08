@@ -15,7 +15,7 @@ denial of service due to premature opening of back-end connection
 
 See the full announcement and links to mitigation, tests and fixes
 here:
-L<https://www.redhat.com/archives/libguestfs/2019-September/msg00084.html>
+L<https://lists.libguestfs.org/archives/list/guestfs@lists.libguestfs.org/thread/YR77GRSM2GE5W7XDXNHOPHTGCZEZ7RMP/>
 
 =head2 CVE-2019-14851
 assertion failure by issuing commands in the wrong order
@@ -24,14 +24,28 @@ This CVE was caused by the fix to the previous issue.
 
 See the full announcement and links to mitigation, tests and fixes
 here:
-L<https://www.redhat.com/archives/libguestfs/2019-September/msg00272.html>
+L<https://lists.libguestfs.org/archives/list/guestfs@lists.libguestfs.org/message/KZMJDBRRPPVOQSD5EK6NDTXSKK6J7AYX/>
 
 =head2 CVE-2021-3716
 structured read denial of service attack against starttls
 
 See the full announcement and links to mitigation, tests and fixes
 here:
-L<https://www.redhat.com/archives/libguestfs/2021-August/msg00083.html>
+L<https://lists.libguestfs.org/archives/list/guestfs@lists.libguestfs.org/thread/GQ6HPFKEEDTHQLO764NLGXG7YCVIENGF/>
+
+=head2 CVE-2025-47711
+denial of service attack by client sending maximum size block status
+
+See the full announcement and links to mitigation, tests and fixes
+here:
+L<https://lists.libguestfs.org/archives/list/guestfs@lists.libguestfs.org/message/67E7AASHHADIY7VAD3FFW2I67LTWVWYF/>
+
+=head2 CVE-2025-47712
+denial of service attack by client sending large unaligned size block status
+
+See the full announcement and links to mitigation, tests and fixes
+here:
+L<https://lists.libguestfs.org/archives/list/guestfs@lists.libguestfs.org/message/67E7AASHHADIY7VAD3FFW2I67LTWVWYF/>
 
 =head1 SEE ALSO
 
