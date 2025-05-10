@@ -4,7 +4,7 @@ nbdkit-vddk-plugin - nbdkit VMware VDDK plugin
 
 =head1 SYNOPSIS
 
- nbdkit vddk [file=]FILENAME
+ nbdkit vddk [[file=]FILENAME | export=WILDCARD]
              [compression=none|zlib|fastlz|skipz]
              [config=FILENAME] [cookie=COOKIE]
              [create=true] [create-adapter-type=ide|scsi-buslogic|...]
@@ -111,13 +111,35 @@ machine.  See L</MANAGED OBJECT REFERENCE> below.
 The file parameter is the file you want to open, usually in the form
 S<C<"[datastore] vmname/vmname.vmdk">>.  See L</FILE PARAMETER> below.
 
+=head2 Allow the client to choose the filename
+
+As the previous example, but allow the client to choose which file to
+serve, using the C<export=WILDCARD> parameter:
+
+ nbdkit vddk user=root password=vmware \
+             server=vcenter.example.com thumbprint=xx:xx:xx:... \
+             vm=moref=vm-16 \
+             export='\[datastore1\] Fedora/*.vmdk'
+
+The client now picks the specific filename, as long as it matches the
+wildcard given on the nbdkit command line.  For example:
+
+ $ nbdsh
+ nbd> h.set_export_name("[datastore1] Fedora/Fedora.vmdk")
+ nbd> h.connect_tcp("localhost", "nbd")
+
+or the same using an NBD URI with usual URL encoding:
+
+ nbdinfo 'nbd://localhost/%5bdatastore1%5d%20Fedora/Fedora.vmdk'
+
 =head1 PARAMETERS
 
 For opening a local VMDK file, the C<file> parameter is required and
 must be an absolute path.
 
-For opening a remote connection, C<file>, C<server>, C<thumbprint>,
-C<user>, C<password> and C<vm> are required.
+For opening a remote connection, C<server>, C<thumbprint>, C<user>,
+C<password> and C<vm> are required.  Either C<file> or C<export> are
+required.
 
 All other parameters are optional.
 
@@ -246,6 +268,22 @@ Some VMDK sub-formats use multiple files, where the C<file> parameter
 specifies the "Disk Descriptor File" and the disk contents are stored
 in adjacent files.
 
+=item B<export=>WILDCARD
+
+(nbdkit E<ge> 1.44)
+
+For remote connections, allow the client to choose which file to
+serve, using the NBD protocol export name.  The export name must match
+C<WILDCARD>.  This is an alternative to specifying a single, exact
+filename, see C<file> below.
+
+C<[> and C<]> are special characters in wildcards and must be escaped
+as C<\[> and C<\]>.  In addition you may have to quote the whole
+wildcard to protect it from the shell.
+
+The wildcard provides some security, but it is unwise to allow
+untrusted clients to connect when using this option.
+
 =item [B<file=>]FILENAME
 
 =item [B<file=>]B<[>datastoreB<] >vmnameB</>vmnameB<.vmdk>
@@ -254,10 +292,6 @@ Set the name of the VMDK file to serve.
 
 For local files you B<must> supply an absolute path.
 For remote files see L</FILE PARAMETER> section below.
-
-If a VM has multiple disks, nbdkit can only serve one at a time.  To
-serve more than one you must run multiple copies of nbdkit.  (See
-L</NOTES> below).
 
 C<file=> __IS_MAGIC__
 
@@ -445,6 +479,12 @@ The C<file=> part is optional, so these commands are equivalent:
 
  nbdkit vddk file=/path/to/file.vmdk
  nbdkit vddk /path/to/file.vmdk
+
+=head2 Relationship to the C<export> parameter
+
+Instead of C<file>, you can use the C<export=WILDCARD> parameter to
+allow the client to choose the filename, as long as it matches the
+given wildcard.
 
 =head1 THUMBPRINTS
 
