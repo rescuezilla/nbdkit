@@ -248,7 +248,7 @@ in adjacent files.
 
 =item [B<file=>]FILENAME
 
-=item [B<file=>]B<[>datastoreB<] >vmname/vmnameB<.vmdk>
+=item [B<file=>]B<[>datastoreB<] >vmnameB</>vmnameB<.vmdk>
 
 Set the name of the VMDK file to serve.
 
