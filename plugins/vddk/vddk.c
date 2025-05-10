@@ -46,6 +46,10 @@
 
 #include <pthread.h>
 
+#ifdef HAVE_FNMATCH_H
+#include <fnmatch.h>
+#endif
+
 #define NBDKIT_API_VERSION 2
 #include <nbdkit-plugin.h>
 
@@ -92,6 +96,7 @@ uint16_t create_hwversion =
 uint64_t create_size;                  /* create-size */
 enum VixDiskLibDiskType create_type =
   VIXDISKLIB_DISK_MONOLITHIC_SPARSE;   /* create-type */
+const char *export_wildcard;           /* export */
 const char *filename;                  /* file */
 char *libdir;                          /* libdir */
 uint16_t nfc_host_port;                /* nfchostport */
@@ -233,6 +238,21 @@ vddk_config (const char *key, const char *value)
       return -1;
     }
   }
+  else if (strcmp (key, "export") == 0) {
+#ifdef HAVE_FNMATCH_H
+    if (strcmp (value, "") == 0) {
+      nbdkit_error ("export parameter should be a wildcard, "
+                    "not an empty string");
+      return -1;
+    }
+    export_wildcard = value;
+#else
+    nbdkit_error ("this build of nbdkit does not support the 'export' "
+                  "parameter, because the fnmatch() function is not "
+                  "available in libc");
+    return -1;
+#endif
+  }
   else if (strcmp (key, "file") == 0) {
     /* NB: Don't convert this to an absolute path, because in the
      * remote case this can be a path located on the VMware server.
@@ -318,17 +338,14 @@ vddk_config (const char *key, const char *value)
 static int
 vddk_config_complete (void)
 {
-  if (filename == NULL) {
-    nbdkit_error ("you must supply the file=<FILENAME> parameter "
-                  "after the plugin name on the command line");
+  /* It's never permitted to use both file and export together. */
+  if (filename && export_wildcard) {
+    nbdkit_error ("file and export parameters cannot be used together");
     return -1;
   }
 
-  /* For remote connections, check all the parameters have been
-   * passed.  Note that VDDK will segfault if parameters that it
-   * expects are NULL (and there's no real way to tell what parameters
-   * it is expecting).  This implements the same test that the VDDK
-   * sample program does.
+  /* Is the connection remote?  This implements the same test that the
+   * VDDK sample program does.
    */
   is_remote =
     vmx_spec ||
@@ -340,7 +357,28 @@ vddk_config_complete (void)
     port ||
     nfc_host_port;
 
-  if (is_remote) {
+  if (!is_remote) {
+    /* For local files the 'file' parameter is mandatory.  'export'
+     * cannot be used.  Maybe we can allow it in future.
+     */
+    if (filename == NULL) {
+      nbdkit_error ("you must supply the file=<FILENAME> parameter "
+                    "after the plugin name on the command line");
+      return -1;
+    }
+  }
+  else {
+    /* For remote connections, check all the parameters have been
+     * passed.  Note that VDDK will segfault if parameters that it
+     * expects are NULL (and there's no real way to tell what
+     * parameters it is expecting).
+     */
+    if (!filename && !export_wildcard) {
+      nbdkit_error ("remote connection requested, either file or export "
+                    "parameter is required");
+      return -1;
+    }
+
 #define missing(test, param)                                            \
     if (test) {                                                         \
       nbdkit_error ("remote connection requested, missing parameter: %s", \
@@ -375,7 +413,7 @@ vddk_config_complete (void)
 }
 
 #define vddk_config_help \
-  "[file=]<FILENAME>   (required) The filename (eg. VMDK file) to serve.\n" \
+  "[file=]<FILENAME>              The filename (eg. VMDK file) to serve.\n" \
   "Many optional parameters are supported, see nbdkit-vddk-plugin(1)."
 
 static void
@@ -717,6 +755,46 @@ vddk_open (int readonly)
   pthread_mutex_init (&h->commands_lock, NULL);
   pthread_cond_init (&h->commands_cond, NULL);
 
+  /* Choose the file to open.  If 'export' was passed we use the NBD
+   * export name, but check that it matches the wildcard.
+   */
+  if (!export_wildcard)
+    h->filename = filename;
+  else {
+#ifdef HAVE_FNMATCH_H
+    int r;
+    const char *nbd_export_name = nbdkit_export_name ();
+
+    if (nbd_export_name == NULL) {
+      nbdkit_error ("'export' parameter used, but the client did not "
+                    "negotiate an export name.  Using oldstyle protocol?");
+      goto err0;
+    }
+
+    r = fnmatch (export_wildcard, nbd_export_name, FNM_PATHNAME);
+    switch (r) {
+    case 0: /* OK */ break;
+    case FNM_NOMATCH:
+      nbdkit_error ("access denied: client requested \"%s\" "
+                    "which does not match export=\"%s\"",
+                    nbd_export_name, export_wildcard);
+      goto err0;
+    default:
+      nbdkit_error ("fnmatch returned error code %d: %m", r);
+      goto err0;
+    }
+
+    /* This is OK, it's valid through to .close */
+    h->filename = nbd_export_name;
+#else
+    /* This can never be reached because the parameter won't be parsed
+     * by vddk_config above.
+     */
+    abort ();
+#endif
+  }
+  assert (h->filename != NULL);
+
   h->params = allocate_connect_params ();
   if (h->params == NULL) {
     nbdkit_error ("allocate VixDiskLibConnectParams: %m");
@@ -779,13 +857,20 @@ vddk_open (int readonly)
       .physicalSectorSize = 0
     };
 
+    /* NBD export names can never be used when creating files.  Assert
+     * this here to make sure.
+     */
+    assert (filename != NULL);
+    assert (strcmp (filename, h->filename) == 0);
+
     VDDK_CALL_START (VixDiskLib_Create,
                      "h->connection, %s, &cparams, NULL, NULL",
-                     filename)
-      err = VixDiskLib_Create (h->connection, filename, &cparams, NULL, NULL);
+                     h->filename)
+      err = VixDiskLib_Create (h->connection, h->filename, &cparams,
+                               NULL, NULL);
     VDDK_CALL_END (VixDiskLib_Create, 0);
     if (err != VIX_OK) {
-      VDDK_ERROR (err, "VixDiskLib_Create: %s", filename);
+      VDDK_ERROR (err, "VixDiskLib_Create: %s", h->filename);
       goto err2;
     }
 
@@ -807,11 +892,11 @@ vddk_open (int readonly)
   }
 
   VDDK_CALL_START (VixDiskLib_Open,
-                   "connection, %s, %d, &handle", filename, flags)
-    err = VixDiskLib_Open (h->connection, filename, flags, &h->handle);
+                   "connection, %s, %d, &handle", h->filename, flags)
+    err = VixDiskLib_Open (h->connection, h->filename, flags, &h->handle);
   VDDK_CALL_END (VixDiskLib_Open, 0);
   if (err != VIX_OK) {
-    VDDK_ERROR (err, "VixDiskLib_Open: %s", filename);
+    VDDK_ERROR (err, "VixDiskLib_Open: %s", h->filename);
 
     /* Attempt to advise the user on the extremely helpful "Unknown
      * error" result of VixDiskLib_Open().

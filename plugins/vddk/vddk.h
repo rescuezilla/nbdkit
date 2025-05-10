@@ -61,6 +61,7 @@ extern enum VixDiskLibAdapterType create_adapter_type;
 extern uint16_t create_hwversion;
 extern uint64_t create_size;
 extern enum VixDiskLibDiskType create_type;
+extern const char *export_wildcard;
 extern const char *filename;
 extern char *libdir;
 extern uint16_t nfc_host_port;
@@ -165,6 +166,9 @@ struct vddk_handle {
   command_queue commands;          /* command queue */
   pthread_cond_t commands_cond;    /* condition (queue size 0 -> 1) */
   uint64_t id;                     /* next command ID */
+
+  /* VDDK filename. */
+  const char *filename;
 
   /* Cached disk size in bytes (set in get_size()). */
   uint64_t size;
