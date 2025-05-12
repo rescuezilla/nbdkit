@@ -52,6 +52,7 @@
 #include "ispowerof2.h"
 #include "minmax.h"
 #include "rounding.h"
+#include "vector.h"
 
 #include "cow.h"
 #include "blk.h"
@@ -75,7 +76,14 @@ extern enum cor_mode {
 enum cor_mode cor_mode = COR_OFF;
 const char *cor_path;
 
-static struct blk_overlay *blk;
+/* Mapping of exportname to overlay. */
+static pthread_mutex_t blk_list_lock = PTHREAD_MUTEX_INITIALIZER;
+struct export_mapping {
+  char *exportname;
+  struct blk_overlay *blk;
+};
+DEFINE_VECTOR_TYPE (blk_list, struct export_mapping);
+static blk_list blks;
 
 static void
 cow_load (void)
@@ -86,7 +94,17 @@ cow_load (void)
 static void
 cow_unload (void)
 {
-  blk_free (blk);
+  size_t i;
+
+  /* Free up the overlays, bitmaps, close the backing files. */
+  for (i = 0; i < blks.len; ++i) {
+    nbdkit_debug ("cow: freeing overlay for export \"%s\"",
+                  blks.ptr[i].exportname);
+    free (blks.ptr[i].exportname);
+    blk_free (blks.ptr[i].blk);
+  }
+  blk_list_reset (&blks);
+
   blk_unload ();
 }
 
@@ -138,16 +156,6 @@ cow_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
   "cow-on-cache=<BOOL>      Copy cache (prefetch) requests to the overlay.\n" \
   "cow-on-read=<BOOL>|/PATH Copy read requests to the overlay."
 
-static int
-cow_get_ready (int thread_model)
-{
-  blk = blk_create ();
-  if (blk == NULL)
-    return -1;
-
-  return 0;
-}
-
 /* Decide if cow-on-read is currently on or off. */
 static bool
 cow_on_read (void)
@@ -160,15 +168,75 @@ cow_on_read (void)
   }
 }
 
+struct handle {
+  struct blk_overlay *blk;
+};
+
 static void *
 cow_open (nbdkit_next_open *next, nbdkit_context *nxdata,
           int readonly, const char *exportname, int is_tls)
 {
+  struct handle *h;
+
+  h = calloc (1, sizeof *h);
+  if (h == NULL) {
+    nbdkit_error ("calloc: %m");
+    return NULL;
+  }
+
+  /* Find or create the overlay corresponding to this export. */
+  {
+    size_t i;
+
+    ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&blk_list_lock);
+    for (i = 0; i < blks.len; ++i) {
+      if (strcmp (blks.ptr[i].exportname, exportname) == 0) {
+        nbdkit_debug ("cow: reusing existing overlay for export \"%s\"",
+                      exportname);
+        h->blk = blks.ptr[i].blk;
+        break;
+      }
+    }
+    if (!h->blk) {
+      struct export_mapping new_entry;
+
+      new_entry.exportname = strdup (exportname);
+      if (new_entry.exportname == NULL) {
+        nbdkit_error ("strdup: %m");
+        free (h);
+        return NULL;
+      }
+      h->blk = new_entry.blk = blk_create ();
+      if (new_entry.blk == NULL) {
+        free (new_entry.exportname);
+        free (h);
+        return NULL;
+      }
+      if (blk_list_append (&blks, new_entry) == -1) {
+        free (new_entry.exportname);
+        blk_free (new_entry.blk);
+        free (h);
+        return NULL;
+      }
+      nbdkit_debug ("cow: allocated new overlay for export \"%s\"",
+                    exportname);
+    }
+  }
+
   /* Always pass readonly=1 to the underlying plugin. */
   if (next (nxdata, 1, exportname) == -1)
     return NULL;
 
-  return NBDKIT_HANDLE_NOT_NEEDED;
+  return h;
+}
+
+static void
+cow_close (void *handle)
+{
+  struct handle *h = handle;
+
+  /* Don't free h->blk here.  It is freed in cow_unload. */
+  free (h);
 }
 
 /* Get the file size, set the cache size. */
@@ -176,6 +244,7 @@ static int64_t
 cow_get_size (nbdkit_next *next,
               void *handle)
 {
+  struct handle *h = handle;
   int64_t size;
   int r;
 
@@ -185,7 +254,7 @@ cow_get_size (nbdkit_next *next,
 
   nbdkit_debug ("cow: underlying file size: %" PRIi64, size);
 
-  r = blk_set_size (blk, size);
+  r = blk_set_size (h->blk, size);
   if (r == -1)
     return -1;
 
@@ -297,6 +366,7 @@ cow_pread (nbdkit_next *next,
            void *handle, void *buf, uint32_t count, uint64_t offset,
            uint32_t flags, int *err)
 {
+  struct handle *h = handle;
   CLEANUP_FREE uint8_t *block = NULL;
   uint64_t blknum, blkoffs, nrblocks;
   int r;
@@ -318,7 +388,7 @@ cow_pread (nbdkit_next *next,
     uint64_t n = MIN (blksize - blkoffs, count);
 
     assert (block);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r == -1)
       return -1;
 
@@ -333,7 +403,7 @@ cow_pread (nbdkit_next *next,
   /* Aligned body */
   nrblocks = count / blksize;
   if (nrblocks > 0) {
-    r = blk_read_multiple (blk, next,
+    r = blk_read_multiple (h->blk, next,
                            blknum, nrblocks, buf, cow_on_read (), err);
     if (r == -1)
       return -1;
@@ -347,7 +417,7 @@ cow_pread (nbdkit_next *next,
   /* Unaligned tail */
   if (count) {
     assert (block);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r == -1)
       return -1;
 
@@ -363,6 +433,7 @@ cow_pwrite (nbdkit_next *next,
             void *handle, const void *buf, uint32_t count, uint64_t offset,
             uint32_t flags, int *err)
 {
+  struct handle *h = handle;
   CLEANUP_FREE uint8_t *block = NULL;
   uint64_t blknum, blkoffs;
   int r;
@@ -388,10 +459,10 @@ cow_pwrite (nbdkit_next *next,
      */
     assert (block);
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memcpy (&block[blkoffs], buf, n);
-      r = blk_write (blk, blknum, block, err);
+      r = blk_write (h->blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -404,7 +475,7 @@ cow_pwrite (nbdkit_next *next,
 
   /* Aligned body */
   while (count >= blksize) {
-    r = blk_write (blk, blknum, buf, err);
+    r = blk_write (h->blk, blknum, buf, err);
     if (r == -1)
       return -1;
 
@@ -418,10 +489,10 @@ cow_pwrite (nbdkit_next *next,
   if (count) {
     assert (block);
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memcpy (block, buf, count);
-      r = blk_write (blk, blknum, block, err);
+      r = blk_write (h->blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -438,6 +509,7 @@ cow_zero (nbdkit_next *next,
           void *handle, uint32_t count, uint64_t offset, uint32_t flags,
           int *err)
 {
+  struct handle *h = handle;
   CLEANUP_FREE uint8_t *block = NULL;
   uint64_t blknum, blkoffs;
   int r;
@@ -468,10 +540,10 @@ cow_zero (nbdkit_next *next,
      * Hold the rmw_lock over the whole operation.
      */
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (&block[blkoffs], 0, n);
-      r = blk_write (blk, blknum, block, err);
+      r = blk_write (h->blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -488,7 +560,7 @@ cow_zero (nbdkit_next *next,
     /* XXX There is the possibility of optimizing this: since this loop is
      * writing a whole, aligned block, we should use FALLOC_FL_ZERO_RANGE.
      */
-    r = blk_write (blk, blknum, block, err);
+    r = blk_write (h->blk, blknum, block, err);
     if (r == -1)
       return -1;
 
@@ -500,10 +572,10 @@ cow_zero (nbdkit_next *next,
   /* Unaligned tail */
   if (count) {
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (block, 0, count);
-      r = blk_write (blk, blknum, block, err);
+      r = blk_write (h->blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -520,6 +592,7 @@ cow_trim (nbdkit_next *next,
           void *handle, uint32_t count, uint64_t offset, uint32_t flags,
           int *err)
 {
+  struct handle *h = handle;
   CLEANUP_FREE uint8_t *block = NULL;
   uint64_t blknum, blkoffs;
   int r;
@@ -544,10 +617,10 @@ cow_trim (nbdkit_next *next,
      * Hold the lock over the whole operation.
      */
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (&block[blkoffs], 0, n);
-      r = blk_write (blk, blknum, block, err);
+      r = blk_write (h->blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -559,7 +632,7 @@ cow_trim (nbdkit_next *next,
 
   /* Aligned body */
   while (count >= blksize) {
-    r = blk_trim (blk, blknum, err);
+    r = blk_trim (h->blk, blknum, err);
     if (r == -1)
       return -1;
 
@@ -571,10 +644,10 @@ cow_trim (nbdkit_next *next,
   /* Unaligned tail */
   if (count) {
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
+    r = blk_read (h->blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (block, 0, count);
-      r = blk_write (blk, blknum, block, err);
+      r = blk_write (h->blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -598,6 +671,7 @@ cow_cache (nbdkit_next *next,
            void *handle, uint32_t count, uint64_t offset,
            uint32_t flags, int *err)
 {
+  struct handle *h = handle;
   CLEANUP_FREE uint8_t *block = NULL;
   uint64_t blknum, blkoffs;
   int r;
@@ -640,7 +714,7 @@ cow_cache (nbdkit_next *next,
 
   /* Aligned body */
   while (remaining) {
-    r = blk_cache (blk, next, blknum, block, mode, err);
+    r = blk_cache (h->blk, next, blknum, block, mode, err);
     if (r == -1)
       return -1;
 
@@ -658,6 +732,7 @@ cow_extents (nbdkit_next *next,
              void *handle, uint32_t count32, uint64_t offset, uint32_t flags,
              struct nbdkit_extents *extents, int *err)
 {
+  struct handle *h = handle;
   const bool can_extents = next->can_extents (next);
   const bool req_one = flags & NBDKIT_FLAG_REQ_ONE;
   uint64_t count = count32;
@@ -682,7 +757,7 @@ cow_extents (nbdkit_next *next,
     bool present, trimmed;
     struct nbdkit_extent e;
 
-    blk_status (blk, blknum, &present, &trimmed);
+    blk_status (h->blk, blknum, &present, &trimmed);
 
     /* Present in the overlay. */
     if (present) {
@@ -728,7 +803,7 @@ cow_extents (nbdkit_next *next,
         range_count += blksize;
 
         if (count == 0) break;
-        blk_status (blk, blknum, &present, &trimmed);
+        blk_status (h->blk, blknum, &present, &trimmed);
         if (present) break;
       }
 
@@ -790,9 +865,9 @@ static struct nbdkit_filter filter = {
   .load              = cow_load,
   .unload            = cow_unload,
   .open              = cow_open,
+  .close             = cow_close,
   .config            = cow_config,
   .config_help       = cow_config_help,
-  .get_ready         = cow_get_ready,
   .prepare           = cow_prepare,
   .get_size          = cow_get_size,
   .block_size        = cow_block_size,
