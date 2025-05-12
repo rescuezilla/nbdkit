@@ -33,30 +33,40 @@
 #ifndef NBDKIT_BLK_H
 #define NBDKIT_BLK_H
 
-/* Initialize the overlay and bitmap. */
-extern int blk_init (void);
+struct blk_overlay;
+
+extern void blk_load (void);
+extern void blk_unload (void);
+
+/* Initialize a new overlay and bitmap. */
+extern struct blk_overlay *blk_create (void);
 
 /* Close the overlay, free the bitmap. */
-extern void blk_free (void);
+extern void blk_free (struct blk_overlay *blk);
 
 /* Allocate or resize the overlay and bitmap. */
-extern int blk_set_size (uint64_t new_size);
+extern int blk_set_size (struct blk_overlay *blk, uint64_t new_size)
+  __attribute__ ((__nonnull__ (1)));
 
 /* Returns the status of the block in the overlay. */
-extern void blk_status (uint64_t blknum, bool *present, bool *trimmed);
+extern void blk_status (struct blk_overlay *blk,
+                        uint64_t blknum, bool *present, bool *trimmed)
+  __attribute__ ((__nonnull__ (1)));
 
 /* Read a single block from the overlay or plugin. */
-extern int blk_read (nbdkit_next *next,
+extern int blk_read (struct blk_overlay *blk,
+                     nbdkit_next *next,
                      uint64_t blknum, uint8_t *block,
                      bool cow_on_read, int *err)
-  __attribute__ ((__nonnull__ (1, 3, 5)));
+  __attribute__ ((__nonnull__ (1, 2, 4, 6)));
 
 /* Read multiple blocks from the overlay or plugin. */
-extern int blk_read_multiple (nbdkit_next *next,
+extern int blk_read_multiple (struct blk_overlay *blk,
+                              nbdkit_next *next,
                               uint64_t blknum, uint64_t nrblocks,
                               uint8_t *block,
                               bool cow_on_read, int *err)
-  __attribute__ ((__nonnull__ (1, 4, 6)));
+  __attribute__ ((__nonnull__ (1, 2, 5, 7)));
 
 /* Cache mode for blocks not already in overlay */
 enum cache_mode {
@@ -67,17 +77,20 @@ enum cache_mode {
 };
 
 /* Cache a single block from the plugin. */
-extern int blk_cache (nbdkit_next *next,
+extern int blk_cache (struct blk_overlay *blk,
+                      nbdkit_next *next,
                       uint64_t blknum, uint8_t *block, enum cache_mode,
                       int *err)
-  __attribute__ ((__nonnull__ (1, 3, 5)));
+  __attribute__ ((__nonnull__ (1, 2, 4, 6)));
 
 /* Write a single block. */
-extern int blk_write (uint64_t blknum, const uint8_t *block, int *err)
-  __attribute__ ((__nonnull__ (2, 3)));
+extern int blk_write (struct blk_overlay *blk,
+                      uint64_t blknum, const uint8_t *block, int *err)
+  __attribute__ ((__nonnull__ (1, 3, 4)));
 
 /* Trim a single block. */
-extern int blk_trim (uint64_t blknum, int *err)
-  __attribute__ ((__nonnull__ (2)));
+extern int blk_trim (struct blk_overlay *blk,
+                     uint64_t blknum, int *err)
+  __attribute__ ((__nonnull__ (1, 3)));
 
 #endif /* NBDKIT_BLK_H */

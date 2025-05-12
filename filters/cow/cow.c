@@ -75,10 +75,19 @@ extern enum cor_mode {
 enum cor_mode cor_mode = COR_OFF;
 const char *cor_path;
 
+static struct blk_overlay *blk;
+
+static void
+cow_load (void)
+{
+  blk_load ();
+}
+
 static void
 cow_unload (void)
 {
-  blk_free ();
+  blk_free (blk);
+  blk_unload ();
 }
 
 static int
@@ -132,7 +141,8 @@ cow_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
 static int
 cow_get_ready (int thread_model)
 {
-  if (blk_init () == -1)
+  blk = blk_create ();
+  if (blk == NULL)
     return -1;
 
   return 0;
@@ -175,7 +185,7 @@ cow_get_size (nbdkit_next *next,
 
   nbdkit_debug ("cow: underlying file size: %" PRIi64, size);
 
-  r = blk_set_size (size);
+  r = blk_set_size (blk, size);
   if (r == -1)
     return -1;
 
@@ -308,7 +318,7 @@ cow_pread (nbdkit_next *next,
     uint64_t n = MIN (blksize - blkoffs, count);
 
     assert (block);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r == -1)
       return -1;
 
@@ -323,7 +333,8 @@ cow_pread (nbdkit_next *next,
   /* Aligned body */
   nrblocks = count / blksize;
   if (nrblocks > 0) {
-    r = blk_read_multiple (next, blknum, nrblocks, buf, cow_on_read (), err);
+    r = blk_read_multiple (blk, next,
+                           blknum, nrblocks, buf, cow_on_read (), err);
     if (r == -1)
       return -1;
 
@@ -336,7 +347,7 @@ cow_pread (nbdkit_next *next,
   /* Unaligned tail */
   if (count) {
     assert (block);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r == -1)
       return -1;
 
@@ -377,10 +388,10 @@ cow_pwrite (nbdkit_next *next,
      */
     assert (block);
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memcpy (&block[blkoffs], buf, n);
-      r = blk_write (blknum, block, err);
+      r = blk_write (blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -393,7 +404,7 @@ cow_pwrite (nbdkit_next *next,
 
   /* Aligned body */
   while (count >= blksize) {
-    r = blk_write (blknum, buf, err);
+    r = blk_write (blk, blknum, buf, err);
     if (r == -1)
       return -1;
 
@@ -407,10 +418,10 @@ cow_pwrite (nbdkit_next *next,
   if (count) {
     assert (block);
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memcpy (block, buf, count);
-      r = blk_write (blknum, block, err);
+      r = blk_write (blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -457,10 +468,10 @@ cow_zero (nbdkit_next *next,
      * Hold the rmw_lock over the whole operation.
      */
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (&block[blkoffs], 0, n);
-      r = blk_write (blknum, block, err);
+      r = blk_write (blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -477,7 +488,7 @@ cow_zero (nbdkit_next *next,
     /* XXX There is the possibility of optimizing this: since this loop is
      * writing a whole, aligned block, we should use FALLOC_FL_ZERO_RANGE.
      */
-    r = blk_write (blknum, block, err);
+    r = blk_write (blk, blknum, block, err);
     if (r == -1)
       return -1;
 
@@ -489,10 +500,10 @@ cow_zero (nbdkit_next *next,
   /* Unaligned tail */
   if (count) {
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (block, 0, count);
-      r = blk_write (blknum, block, err);
+      r = blk_write (blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -533,10 +544,10 @@ cow_trim (nbdkit_next *next,
      * Hold the lock over the whole operation.
      */
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (&block[blkoffs], 0, n);
-      r = blk_write (blknum, block, err);
+      r = blk_write (blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -548,7 +559,7 @@ cow_trim (nbdkit_next *next,
 
   /* Aligned body */
   while (count >= blksize) {
-    r = blk_trim (blknum, err);
+    r = blk_trim (blk, blknum, err);
     if (r == -1)
       return -1;
 
@@ -560,10 +571,10 @@ cow_trim (nbdkit_next *next,
   /* Unaligned tail */
   if (count) {
     ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&rmw_lock);
-    r = blk_read (next, blknum, block, cow_on_read (), err);
+    r = blk_read (blk, next, blknum, block, cow_on_read (), err);
     if (r != -1) {
       memset (block, 0, count);
-      r = blk_write (blknum, block, err);
+      r = blk_write (blk, blknum, block, err);
     }
     if (r == -1)
       return -1;
@@ -629,7 +640,7 @@ cow_cache (nbdkit_next *next,
 
   /* Aligned body */
   while (remaining) {
-    r = blk_cache (next, blknum, block, mode, err);
+    r = blk_cache (blk, next, blknum, block, mode, err);
     if (r == -1)
       return -1;
 
@@ -671,7 +682,7 @@ cow_extents (nbdkit_next *next,
     bool present, trimmed;
     struct nbdkit_extent e;
 
-    blk_status (blknum, &present, &trimmed);
+    blk_status (blk, blknum, &present, &trimmed);
 
     /* Present in the overlay. */
     if (present) {
@@ -717,7 +728,7 @@ cow_extents (nbdkit_next *next,
         range_count += blksize;
 
         if (count == 0) break;
-        blk_status (blknum, &present, &trimmed);
+        blk_status (blk, blknum, &present, &trimmed);
         if (present) break;
       }
 
@@ -776,6 +787,7 @@ cow_extents (nbdkit_next *next,
 static struct nbdkit_filter filter = {
   .name              = "cow",
   .longname          = "nbdkit copy-on-write (COW) filter",
+  .load              = cow_load,
   .unload            = cow_unload,
   .open              = cow_open,
   .config            = cow_config,
