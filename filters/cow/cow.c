@@ -139,7 +139,7 @@ cow_get_ready (int thread_model)
 }
 
 /* Decide if cow-on-read is currently on or off. */
-bool
+static bool
 cow_on_read (void)
 {
   switch (cor_mode) {
