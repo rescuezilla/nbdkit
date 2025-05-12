@@ -414,6 +414,7 @@ vddk_config_complete (void)
 
 #define vddk_config_help \
   "[file=]<FILENAME>              The filename (eg. VMDK file) to serve.\n" \
+  "export=<WILDCARD>              Let client choose file matching wildcard.\n" \
   "Many optional parameters are supported, see nbdkit-vddk-plugin(1)."
 
 static void
