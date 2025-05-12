@@ -102,15 +102,6 @@
 #include "cow.h"
 #include "blk.h"
 
-/* The temporary overlay. */
-static int fd = -1;
-
-/* This lock protects the bitmap from parallel access. */
-static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
-/* Bitmap. */
-static struct bitmap bm;
-
 enum bm_entry {
   BLOCK_NOT_ALLOCATED = 0,
   BLOCK_ALLOCATED = 1,
@@ -131,76 +122,123 @@ state_to_string (enum bm_entry state)
 /* Extra debugging (-D cow.verbose=1). */
 NBDKIT_DLL_PUBLIC int cow_debug_verbose = 0;
 
-int
-blk_init (void)
+static char *template;
+
+void
+blk_load (void)
 {
-  const char *tmpdir;
-  size_t len;
-  char *template;
-
-  bitmap_init (&bm, blksize, 2 /* bits per block */);
-
-  tmpdir = getenv ("TMPDIR");
+  const char *tmpdir = getenv ("TMPDIR");
   if (!tmpdir)
     tmpdir = LARGE_TMPDIR;
 
   nbdkit_debug ("cow: temporary directory for overlay: %s", tmpdir);
 
-  len = strlen (tmpdir) + 8;
-  template = alloca (len);
-  snprintf (template, len, "%s/XXXXXX", tmpdir);
+  if (asprintf (&template, "%s/XXXXXX", tmpdir) == -1) {
+    nbdkit_error ("asprintf: %m");
+    exit (EXIT_FAILURE);
+  }
+}
+
+void
+blk_unload (void)
+{
+  free (template);
+}
+
+struct blk_overlay {
+  /* The temporary overlay. */
+  int fd;
+
+  /* This lock protects the bitmap from parallel access. */
+  pthread_mutex_t lock;
+
+  /* Bitmap. */
+  struct bitmap bm;
+
+  /* Because blk_set_size is called before the other blk_* functions
+   * this should be set to the true size before we need it.
+   */
+  uint64_t size;
+};
+
+struct blk_overlay *
+blk_create (void)
+{
+  struct blk_overlay *blk;
+  char *filename;
+
+  blk = calloc (1, sizeof *blk);
+  if (blk == NULL) {
+    nbdkit_error ("calloc: %m");
+    return NULL;
+  }
+
+  blk->fd = -1;
+  pthread_mutex_init (&blk->lock, NULL);
+  bitmap_init (&blk->bm, blksize, 2 /* bits per block */);
+
+  filename = strdup (template);
+  if (filename == NULL) {
+    nbdkit_error ("strdup: %m");
+    free (blk);
+    return NULL;
+  }
 
 #ifdef HAVE_MKOSTEMP
-  fd = mkostemp (template, O_CLOEXEC);
+  blk->fd = mkostemp (filename, O_CLOEXEC);
 #else
   /* Not atomic, but this is only invoked during .load, so the race
    * won't affect any plugin actions trying to fork
    */
-  fd = mkstemp (template);
-  if (fd >= 0) {
-    fd = set_cloexec (fd);
-    if (fd < 0) {
+  blk->fd = mkstemp (filename);
+  if (blk->fd >= 0) {
+    blk->fd = set_cloexec (blk->fd);
+    if (blk->fd < 0) {
       int e = errno;
       unlink (template);
       errno = e;
     }
   }
 #endif
-  if (fd == -1) {
-    nbdkit_error ("mkostemp: %s: %m", tmpdir);
-    return -1;
+  if (blk->fd == -1) {
+    nbdkit_error ("mkostemp: %s: %m", template);
+    free (blk);
+    free (filename);
+    return NULL;
   }
 
-  unlink (template);
-  return 0;
+  unlink (filename);
+  free (filename);
+
+  return blk;
 }
 
 void
-blk_free (void)
+blk_free (struct blk_overlay *blk)
 {
-  if (fd >= 0)
-    close (fd);
+  if (blk) {
+    if (blk->fd >= 0)
+      close (blk->fd);
 
-  bitmap_free (&bm);
+    bitmap_free (&blk->bm);
+
+    free (blk);
+  }
 }
 
-/* Because blk_set_size is called before the other blk_* functions
- * this should be set to the true size before we need it.
- */
-static uint64_t size = 0;
 
 /* Allocate or resize the overlay file and bitmap. */
 int
-blk_set_size (uint64_t new_size)
+blk_set_size (struct blk_overlay *blk, uint64_t new_size)
 {
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lock);
+  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&blk->lock);
 
-  size = new_size;
+  blk->size = new_size;
 
-  if (bitmap_resize (&bm, size) == -1)
+  if (bitmap_resize (&blk->bm, blk->size) == -1)
     return -1;
 
-  if (ftruncate (fd, ROUND_UP (size, blksize)) == -1) {
+  if (ftruncate (blk->fd, ROUND_UP (blk->size, blksize)) == -1) {
     nbdkit_error ("ftruncate: %m");
     return -1;
   }
@@ -212,10 +250,11 @@ blk_set_size (uint64_t new_size)
  * the blk module.  However it is needed when calculating extents.
  */
 void
-blk_status (uint64_t blknum, bool *present, bool *trimmed)
+blk_status (struct blk_overlay *blk,
+            uint64_t blknum, bool *present, bool *trimmed)
 {
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lock);
-  enum bm_entry state = bitmap_get_blk (&bm, blknum, BLOCK_NOT_ALLOCATED);
+  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&blk->lock);
+  enum bm_entry state = bitmap_get_blk (&blk->bm, blknum, BLOCK_NOT_ALLOCATED);
 
   *present = state != BLOCK_NOT_ALLOCATED;
   *trimmed = state == BLOCK_TRIMMED;
@@ -225,7 +264,8 @@ blk_status (uint64_t blknum, bool *present, bool *trimmed)
  * blocks of size ‘blksize’.
  */
 int
-blk_read_multiple (nbdkit_next *next,
+blk_read_multiple (struct blk_overlay *blk,
+                   nbdkit_next *next,
                    uint64_t blknum, uint64_t nrblocks,
                    uint8_t *block, bool cow_on_read, int *err)
 {
@@ -243,11 +283,12 @@ blk_read_multiple (nbdkit_next *next,
    * after the write returns should always return the correct data.
    */
   {
-    ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lock);
-    state = bitmap_get_blk (&bm, blknum, BLOCK_NOT_ALLOCATED);
+    ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&blk->lock);
+    state = bitmap_get_blk (&blk->bm, blknum, BLOCK_NOT_ALLOCATED);
 
     for (b = 1, runblocks = 1; b < nrblocks; ++b, ++runblocks) {
-      enum bm_entry s = bitmap_get_blk (&bm, blknum + b, BLOCK_NOT_ALLOCATED);
+      enum bm_entry s =
+        bitmap_get_blk (&blk->bm, blknum + b, BLOCK_NOT_ALLOCATED);
       if (state != s)
         break;
     }
@@ -266,8 +307,8 @@ blk_read_multiple (nbdkit_next *next,
     assert (blksize * runblocks <= UINT_MAX);
     n = blksize * runblocks;
 
-    if (offset + n > size) {
-      tail = offset + n - size;
+    if (offset + n > blk->size) {
+      tail = offset + n - blk->size;
       n -= tail;
     }
 
@@ -289,17 +330,17 @@ blk_read_multiple (nbdkit_next *next,
                       "at offset %" PRIu64 " into the cache",
                       runblocks, offset);
 
-      if (full_pwrite (fd, block, blksize * runblocks, offset) == -1) {
+      if (full_pwrite (blk->fd, block, blksize * runblocks, offset) == -1) {
         *err = errno;
         nbdkit_error ("pwrite: %m");
         return -1;
       }
       for (b = 0; b < runblocks; ++b)
-        bitmap_set_blk (&bm, blknum+b, BLOCK_ALLOCATED);
+        bitmap_set_blk (&blk->bm, blknum+b, BLOCK_ALLOCATED);
     }
   }
   else if (state == BLOCK_ALLOCATED) { /* Read overlay. */
-    if (full_pread (fd, block, blksize * runblocks, offset) == -1) {
+    if (full_pread (blk->fd, block, blksize * runblocks, offset) == -1) {
       *err = errno;
       nbdkit_error ("pread: %m");
       return -1;
@@ -314,7 +355,7 @@ blk_read_multiple (nbdkit_next *next,
     return 0;
 
   /* Recurse to read remaining blocks. */
-  return blk_read_multiple (next,
+  return blk_read_multiple (blk, next,
                             blknum + runblocks,
                             nrblocks - runblocks,
                             block + blksize * runblocks,
@@ -322,24 +363,26 @@ blk_read_multiple (nbdkit_next *next,
 }
 
 int
-blk_read (nbdkit_next *next,
+blk_read (struct blk_overlay *blk,
+          nbdkit_next *next,
           uint64_t blknum, uint8_t *block, bool cow_on_read, int *err)
 {
-  return blk_read_multiple (next, blknum, 1, block, cow_on_read, err);
+  return blk_read_multiple (blk, next, blknum, 1, block, cow_on_read, err);
 }
 
 int
-blk_cache (nbdkit_next *next,
+blk_cache (struct blk_overlay *blk,
+           nbdkit_next *next,
            uint64_t blknum, uint8_t *block, enum cache_mode mode, int *err)
 {
   /* XXX Could make this lock more fine-grained with some thought. */
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lock);
+  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&blk->lock);
   off_t offset = blknum * blksize;
-  enum bm_entry state = bitmap_get_blk (&bm, blknum, BLOCK_NOT_ALLOCATED);
+  enum bm_entry state = bitmap_get_blk (&blk->bm, blknum, BLOCK_NOT_ALLOCATED);
   unsigned n = blksize, tail = 0;
 
-  if (offset + n > size) {
-    tail = offset + n - size;
+  if (offset + n > blk->size) {
+    tail = offset + n - blk->size;
     n -= tail;
   }
 
@@ -349,7 +392,7 @@ blk_cache (nbdkit_next *next,
 
   if (state == BLOCK_ALLOCATED) {
 #if HAVE_POSIX_FADVISE
-    int r = posix_fadvise (fd, offset, blksize, POSIX_FADV_WILLNEED);
+    int r = posix_fadvise (blk->fd, offset, blksize, POSIX_FADV_WILLNEED);
     if (r) {
       errno = r;
       nbdkit_error ("posix_fadvise: %m");
@@ -374,18 +417,19 @@ blk_cache (nbdkit_next *next,
   memset (block + n, 0, tail);
 
   if (mode == BLK_CACHE_COW) {
-    if (full_pwrite (fd, block, blksize, offset) == -1) {
+    if (full_pwrite (blk->fd, block, blksize, offset) == -1) {
       *err = errno;
       nbdkit_error ("pwrite: %m");
       return -1;
     }
-    bitmap_set_blk (&bm, blknum, BLOCK_ALLOCATED);
+    bitmap_set_blk (&blk->bm, blknum, BLOCK_ALLOCATED);
   }
   return 0;
 }
 
 int
-blk_write (uint64_t blknum, const uint8_t *block, int *err)
+blk_write (struct blk_overlay *blk,
+           uint64_t blknum, const uint8_t *block, int *err)
 {
   off_t offset = blknum * blksize;
 
@@ -393,20 +437,21 @@ blk_write (uint64_t blknum, const uint8_t *block, int *err)
     nbdkit_debug ("cow: blk_write block %" PRIu64 " (offset %" PRIu64 ")",
                   blknum, (uint64_t) offset);
 
-  if (full_pwrite (fd, block, blksize, offset) == -1) {
+  if (full_pwrite (blk->fd, block, blksize, offset) == -1) {
     *err = errno;
     nbdkit_error ("pwrite: %m");
     return -1;
   }
 
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lock);
-  bitmap_set_blk (&bm, blknum, BLOCK_ALLOCATED);
+  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&blk->lock);
+  bitmap_set_blk (&blk->bm, blknum, BLOCK_ALLOCATED);
 
   return 0;
 }
 
 int
-blk_trim (uint64_t blknum, int *err)
+blk_trim (struct blk_overlay *blk,
+          uint64_t blknum, int *err)
 {
   off_t offset = blknum * blksize;
 
@@ -418,7 +463,7 @@ blk_trim (uint64_t blknum, int *err)
    * here.  However it's not trivial since blksize is unrelated to the
    * overlay filesystem block size.
    */
-  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lock);
-  bitmap_set_blk (&bm, blknum, BLOCK_TRIMMED);
+  ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&blk->lock);
+  bitmap_set_blk (&blk->bm, blknum, BLOCK_TRIMMED);
   return 0;
 }

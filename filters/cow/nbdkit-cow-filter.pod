@@ -24,6 +24,11 @@ If you want to save changes, either copy out the whole disk using a
 tool like L<nbdcopy(1)>, or use the method described in L</NOTES>
 below to create a diff.
 
+Since nbdkit 1.44, this filter is safe to use with plugins that serve
+multiple exports (such as L<nbdkit-file-plugin(1)> with the C<dir>
+parameter).  A separate copy-on-write overlay is created for each
+export.  For earlier versions this did not work correctly.
+
 Limitations of the filter include:
 
 =over 4
@@ -35,7 +40,7 @@ The underlying file/device must not be resized.
 =item *
 
 The underlying plugin must behave “normally”, meaning that it must
-serve the same data to each client.
+serve the same data to each client, for each export.
 
 =back
 

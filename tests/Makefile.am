@@ -1711,6 +1711,7 @@ if HAVE_MKE2FS_WITH_D
 TESTS += \
 	test-cow.sh \
 	test-cow-block-size.sh \
+	test-cow-export-safe.sh \
 	test-cow-extents1.sh \
 	test-cow-extents2.sh \
 	test-cow-extents-large.sh \
@@ -1723,6 +1724,7 @@ TESTS += test-cow-null.sh
 EXTRA_DIST += \
 	test-cow.sh \
 	test-cow-block-size.sh \
+	test-cow-export-safe.sh \
 	test-cow-extents1.sh \
 	test-cow-extents2.sh \
 	test-cow-extents-large.sh \
