@@ -263,6 +263,67 @@ I<Not supported>.
 
 =back
 
+=head1 EXPORT-SAFE FILTERS
+
+When a plugin supports NBD export names, it may serve different
+content (eg. different disk images) on each export.  Some nbdkit
+filters do not work properly in this case.
+
+ Filter                  Export safe?
+
+   blocksize               Yes
+   blocksize-policy        Yes
+   bzip2                   No
+   cache                   No
+   cacheextents            No
+   checkwrite              Yes
+   cow                     Yes, since 1.44
+   delay                   Yes
+   error                   Yes
+   evil                    Yes
+
+   exitlast                Yes
+   exitwhen                Yes
+   exportname              Yes
+   ext2                    No
+   extentlist              Not useful with exports
+   fua                     Yes
+   gzip                    No
+   ip                      Yes
+   limit                   Yes
+   log                     Yes
+
+   luks                    No
+   lzip                    No
+   multi-conn              Yes
+   nocache                 Yes
+   noextents               Yes
+   nofilter                Yes
+   noparallel              Yes
+   nozero                  Yes
+   offset                  Yes, but unlikely to be useful
+   partition               No
+
+   pause                   Yes
+   protect                 Yes, but unlikely to be useful
+   qcow2dec                No
+   rate                    Yes
+   readahead               Yes, since 1.32
+   readonly                Yes
+   retry                   Yes
+   retry-request           Yes
+   rotational              Yes
+   scan                    Yes
+
+   spinning                Yes
+   stats                   Yes
+   swab                    Yes
+   tar                     No
+   time-limit              Yes
+   tls-fallback            Yes
+   truncate                Yes, but unlikely to be useful
+   xz                      No
+
 =head1 SEE ALSO
 
 L<nbdkit(1)>,
