@@ -219,9 +219,8 @@ blk_free (struct blk_overlay *blk)
   if (blk) {
     if (blk->fd >= 0)
       close (blk->fd);
-
     bitmap_free (&blk->bm);
-
+    pthread_mutex_destroy (&blk->lock);
     free (blk);
   }
 }
