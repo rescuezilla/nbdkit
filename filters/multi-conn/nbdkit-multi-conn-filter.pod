@@ -226,6 +226,7 @@ L<nbdkit-nocache-filter(1)>,
 L<nbdkit-noextents-filter(1)>,
 L<nbdkit-noparallel-filter(1)>,
 L<nbdkit-nozero-filter(1)>,
+L<nbdkit-openonce-filter(1)>,
 L<https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md>
 
 =head1 AUTHORS

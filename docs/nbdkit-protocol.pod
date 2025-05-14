@@ -302,8 +302,9 @@ filters do not work properly in this case.
    noparallel              Yes
    nozero                  Yes
    offset                  Yes, but unlikely to be useful
-   partition               No
+   openonce                Yes
 
+   partition               No
    pause                   Yes
    protect                 Yes, but unlikely to be useful
    qcow2dec                No
@@ -313,8 +314,8 @@ filters do not work properly in this case.
    retry                   Yes
    retry-request           Yes
    rotational              Yes
-   scan                    Yes
 
+   scan                    Yes
    spinning                Yes
    stats                   Yes
    swab                    Yes

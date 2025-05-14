@@ -118,6 +118,7 @@ C<nbdkit-retry-filter> first appeared in nbdkit 1.16.
 
 L<nbdkit(1)>,
 L<nbdkit-filter(3)>,
+L<nbdkit-openonce-filter(1)>,
 L<nbdkit-readahead-filter(1)>,
 L<nbdkit-retry-request-filter(1)>,
 L<nbdkit_parse_delay(3)>.

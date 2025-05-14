@@ -326,6 +326,11 @@ nbdkit-time-limit-filter:
 
 * separate overall time limit and idle time limit
 
+nbdkit-openonce-filter:
+
+* Is TLS handling correct?  We might leak information between TLS and
+  non-TLS contexts to clients.
+
 Filters for security
 --------------------
 
