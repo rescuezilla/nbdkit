@@ -788,18 +788,25 @@ nbdkit_nanosleep (unsigned sec, unsigned nsec)
 
 /* This function will be deprecated for API V3 users.  The preferred
  * approach will be to get the exportname from .open().
+ *
+ * Note: filters must not call this.  Use the exportname from filter
+ * .open() method.
  */
 NBDKIT_DLL_PUBLIC const char *
 nbdkit_export_name (void)
 {
   struct context *c = threadlocal_get_context ();
 
-  if (!c || !c->conn) {
-    nbdkit_error ("no connection in this thread");
+  if (!c) {
+    nbdkit_error ("no context in this thread");
+    return NULL;
+  }
+  if (!c->exportname) {
+    nbdkit_error ("no context->exportname in this thread");
     return NULL;
   }
 
-  return c->conn->exportname;
+  return c->exportname;
 }
 
 /* This function will be deprecated for API V3 users.  The preferred
