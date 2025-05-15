@@ -82,7 +82,7 @@ test_layers_filter_config_complete (nbdkit_next_config_complete *next,
   "test_layers_" layer "_config_help"
 
 static int
-test_layers_filter_thread_model (void)
+test_layers_filter_thread_model (int next_thread_model)
 {
   DEBUG_FUNCTION;
   return NBDKIT_THREAD_MODEL_PARALLEL;

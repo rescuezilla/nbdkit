@@ -69,7 +69,7 @@ filter_thread_model (struct backend *b)
   int model = b->next->thread_model (b->next);
 
   if (f->filter.thread_model) {
-    filter_thread_model = f->filter.thread_model ();
+    filter_thread_model = f->filter.thread_model (model);
     if (filter_thread_model == -1)
       exit (EXIT_FAILURE);
   }

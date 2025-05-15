@@ -69,7 +69,7 @@ noparallel_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
 
 /* Apply runtime reduction to thread model. */
 static int
-noparallel_thread_model (void)
+noparallel_thread_model (int next_thread_model)
 {
   return thread_model;
 }

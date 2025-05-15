@@ -396,10 +396,12 @@ omit this.
 
 =head2 C<.thread_model>
 
- int (*thread_model) (void);
+ int (*thread_model) (int next_thread_model);
 
 Filters may tighten (but not relax) the thread model of the plugin, by
-defining this callback.
+defining this callback.  The C<next_thread_model> parameter passed in
+is the thread model of the underlying layer (for a plugin, its thread
+model, for a filter, what it returned from C<.thread_model>).
 
 See L<nbdkit-plugin(3)/THREADS> for a discussion of thread models.
 
