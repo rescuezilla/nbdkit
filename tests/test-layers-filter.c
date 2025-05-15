@@ -89,7 +89,7 @@ test_layers_filter_thread_model (void)
 }
 
 static int
-test_layers_filter_get_ready (int thread_model)
+test_layers_filter_get_ready (int final_thread_model)
 {
   DEBUG_FUNCTION;
   return 0;
