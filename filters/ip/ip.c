@@ -824,17 +824,10 @@ ip_open (nbdkit_next_open *next, nbdkit_context *nxdata,
   return NBDKIT_HANDLE_NOT_NEEDED;
 }
 
-static int
-ip_thread_model (void)
-{
-  return NBDKIT_THREAD_MODEL_PARALLEL;
-}
-
 static struct nbdkit_filter filter = {
   .name              = "ip",
   .longname          = "nbdkit ip filter",
   .unload            = ip_unload,
-  .thread_model      = ip_thread_model,
   .config            = ip_config,
   .config_complete   = ip_config_complete,
   .config_help       = ip_config_help,

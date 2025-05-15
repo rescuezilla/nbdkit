@@ -74,12 +74,6 @@ bzip2_unload (void)
     close (fd);
 }
 
-static int
-bzip2_thread_model (void)
-{
-  return NBDKIT_THREAD_MODEL_PARALLEL;
-}
-
 static void *
 bzip2_open (nbdkit_next_open *next, nbdkit_context *nxdata,
            int readonly, const char *exportname, int is_tls)
@@ -368,7 +362,6 @@ static struct nbdkit_filter filter = {
   .name               = "bzip2",
   .longname           = "nbdkit bzip2 filter",
   .unload             = bzip2_unload,
-  .thread_model       = bzip2_thread_model,
   .open               = bzip2_open,
   .prepare            = bzip2_prepare,
   .can_write          = bzip2_can_write,

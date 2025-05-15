@@ -108,12 +108,6 @@ tar_config_complete (nbdkit_next_config_complete *next,
   "tar-limit=SIZE                  Limit on reading to find entry.\n" \
   "tar=<PATH>                      Path of the tar binary."
 
-static int
-tar_thread_model (void)
-{
-  return NBDKIT_THREAD_MODEL_PARALLEL;
-}
-
 struct handle {
   /* These are copied from the globals during tar_prepare, so that we
    * don't have to keep grabbing the lock on each request.
@@ -426,7 +420,6 @@ static struct nbdkit_filter filter = {
   .config             = tar_config,
   .config_complete    = tar_config_complete,
   .config_help        = tar_config_help,
-  .thread_model       = tar_thread_model,
   .open               = tar_open,
   .close              = tar_close,
   .prepare            = tar_prepare,

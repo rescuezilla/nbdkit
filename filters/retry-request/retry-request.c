@@ -50,12 +50,6 @@ static unsigned delay_sec = 2, delay_nsec = 0;
 static bool retry_open_call = true;
 
 static int
-retry_request_thread_model (void)
-{
-  return NBDKIT_THREAD_MODEL_PARALLEL;
-}
-
-static int
 retry_request_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
                       const char *key, const char *value)
 {
@@ -276,7 +270,6 @@ retry_request_cache (nbdkit_next *next,
 static struct nbdkit_filter filter = {
   .name              = "retry-request",
   .longname          = "nbdkit retry request filter",
-  .thread_model      = retry_request_thread_model,
   .config            = retry_request_config,
   .config_help       = retry_request_config_help,
   .open              = retry_request_open,
