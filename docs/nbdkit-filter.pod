@@ -431,13 +431,13 @@ avoid conflicts.
 
 =head2 C<.get_ready>
 
- int (*get_ready) (int thread_model);
+ int (*get_ready) (int final_thread_model);
 
 This optional callback is reached if the plugin C<.get_ready> method
 succeeded (if the plugin failed, nbdkit has already exited), and can
 be used by the filter to get ready to serve requests.
 
-The C<thread_model> parameter informs the filter about the final
+The C<final_thread_model> parameter informs the filter about the final
 thread model chosen by nbdkit after considering the results of
 C<.thread_model> of all filters in the chain after
 C<.config_complete>.
