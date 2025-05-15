@@ -399,11 +399,9 @@ omit this.
  int (*thread_model) (void);
 
 Filters may tighten (but not relax) the thread model of the plugin, by
-defining this callback.  Note that while plugins use a compile-time
-definition of C<THREAD_MODEL>, filters do not need to declare a model
-at compile time; instead, this callback is called after
-C<.config_complete> and before any connections are created.  See
-L<nbdkit-plugin(3)/THREADS> for a discussion of thread models.
+defining this callback.
+
+See L<nbdkit-plugin(3)/THREADS> for a discussion of thread models.
 
 The final thread model used by nbdkit is the smallest (ie. most
 serialized) out of all the filters and the plugin, and applies for all
