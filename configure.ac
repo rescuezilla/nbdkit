@@ -169,6 +169,7 @@ filters="\
         noparallel \
         nozero \
         offset \
+        openonce \
         partition \
         pause \
         protect \
@@ -1810,6 +1811,7 @@ AC_CONFIG_FILES([Makefile
                  filters/noparallel/Makefile
                  filters/nozero/Makefile
                  filters/offset/Makefile
+                 filters/openonce/Makefile
                  filters/partition/Makefile
                  filters/pause/Makefile
                  filters/protect/Makefile

@@ -201,7 +201,7 @@ static uint64_t block_size;     /* in bytes */
 static struct random_state state; /* only used for cosmic-rays */
 
 static int
-evil_thread_model (void)
+evil_thread_model (int next_thread_model)
 {
   switch (evil_mode) {
   case COSMIC_RAYS:

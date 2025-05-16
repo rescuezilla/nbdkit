@@ -1994,6 +1994,10 @@ EXTRA_DIST += \
 TESTS += test-offset-truncate.sh
 EXTRA_DIST += test-offset-truncate.sh
 
+# openonce filter test.
+TESTS += test-openonce.sh
+EXTRA_DIST += test-openonce.sh
+
 # partition filter test.
 TESTS += \
 	test-partition1.sh \

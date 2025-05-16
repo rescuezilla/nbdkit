@@ -66,12 +66,6 @@ luks_unload (void)
 }
 
 static int
-luks_thread_model (void)
-{
-  return NBDKIT_THREAD_MODEL_PARALLEL;
-}
-
-static int
 luks_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
              const char *key, const char *value)
 {
@@ -429,7 +423,6 @@ static struct nbdkit_filter filter = {
   .name               = "luks",
   .longname           = "nbdkit luks filter",
   .unload             = luks_unload,
-  .thread_model       = luks_thread_model,
   .config             = luks_config,
   .config_complete    = luks_config_complete,
   .config_help        = luks_config_help,

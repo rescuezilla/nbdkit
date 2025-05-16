@@ -330,33 +330,10 @@ plugin_open (struct context *c, int readonly, const char *exportname,
 {
   struct backend *b = c->b;
   struct backend_plugin *p = container_of (b, struct backend_plugin, backend);
-  void *r;
 
   assert (p->plugin.open != NULL);
 
-  /* Save the exportname since the lifetime of the string passed in
-   * here is likely to be brief.  In addition this provides a place
-   * for nbdkit_export_name to retrieve it if called from the plugin.
-   * While readonly and the export name can be altered in plugins, the
-   * tls mode cannot.
-   *
-   * In API V3 we propose to pass the exportname and tls mode as extra
-   * parameters to the (new) plugin.open and deprecate
-   * nbdkit_export_name and nbdkit_is_tls for V3 users.  Even then we
-   * will still need to save the export name in the handle because of
-   * the lifetime issue.
-   */
-  if (c->conn) {
-    assert (c->conn->exportname == NULL);
-    c->conn->exportname = nbdkit_strdup_intern (exportname);
-    if (c->conn->exportname == NULL)
-      return NULL;
-  }
-
-  r = p->plugin.open (readonly);
-  if (r == NULL && c->conn)
-    c->conn->exportname = NULL;
-  return r;
+  return p->plugin.open (readonly);
 }
 
 /* We don't expose .prepare and .finalize to plugins since they aren't
@@ -384,8 +361,6 @@ plugin_close (struct context *c)
   assert (c->handle);
   if (p->plugin.close)
     p->plugin.close (c->handle);
-  if (c->conn)
-    c->conn->exportname = NULL;
 }
 
 static const char *

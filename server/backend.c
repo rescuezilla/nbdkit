@@ -290,6 +290,23 @@ backend_open (struct backend *b, int readonly, const char *exportname,
     }
   }
 
+  /* Save the exportname since the lifetime of the string passed in
+   * here is likely to be brief.  In addition this provides a place
+   * for nbdkit_export_name to retrieve it if called from the plugin.
+   *
+   * In API V3 we propose to pass the exportname and tls mode as extra
+   * parameters to the (new) plugin.open and deprecate
+   * nbdkit_export_name and nbdkit_is_tls for V3 users.  Even then we
+   * will still need to save the export name in the handle because of
+   * the lifetime issue.
+   */
+  c->exportname = strdup (exportname);
+  if (c->exportname == NULL) {
+    nbdkit_error ("strdup: %m");
+    free (c);
+    return NULL;
+  }
+
   /* Most filters will call next_open first, resulting in
    * inner-to-outer ordering.
    */
@@ -378,6 +395,7 @@ backend_close (struct context *c)
   assert (c->state & HANDLE_OPEN);
   controlpath_debug ("%s: close", b->name);
   b->close (c);
+  free (c->exportname);
   free (c);
   if (c_next != NULL)
     backend_close (c_next);

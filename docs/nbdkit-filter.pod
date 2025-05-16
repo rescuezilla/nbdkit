@@ -396,14 +396,14 @@ omit this.
 
 =head2 C<.thread_model>
 
- int (*thread_model) (void);
+ int (*thread_model) (int next_thread_model);
 
 Filters may tighten (but not relax) the thread model of the plugin, by
-defining this callback.  Note that while plugins use a compile-time
-definition of C<THREAD_MODEL>, filters do not need to declare a model
-at compile time; instead, this callback is called after
-C<.config_complete> and before any connections are created.  See
-L<nbdkit-plugin(3)/THREADS> for a discussion of thread models.
+defining this callback.  The C<next_thread_model> parameter passed in
+is the thread model of the underlying layer (for a plugin, its thread
+model, for a filter, what it returned from C<.thread_model>).
+
+See L<nbdkit-plugin(3)/THREADS> for a discussion of thread models.
 
 The final thread model used by nbdkit is the smallest (ie. most
 serialized) out of all the filters and the plugin, and applies for all
@@ -433,13 +433,13 @@ avoid conflicts.
 
 =head2 C<.get_ready>
 
- int (*get_ready) (int thread_model);
+ int (*get_ready) (int final_thread_model);
 
 This optional callback is reached if the plugin C<.get_ready> method
 succeeded (if the plugin failed, nbdkit has already exited), and can
 be used by the filter to get ready to serve requests.
 
-The C<thread_model> parameter informs the filter about the final
+The C<final_thread_model> parameter informs the filter about the final
 thread model chosen by nbdkit after considering the results of
 C<.thread_model> of all filters in the chain after
 C<.config_complete>.

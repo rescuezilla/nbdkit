@@ -281,6 +281,9 @@ struct context {
   struct context *c_next; /* Underlying context, only when b->next != NULL. */
   struct connection *conn; /* Active connection at context creation, if any. */
 
+  char *exportname;     /* Exportname, either from client or at
+                           context creation. */
+
   unsigned char state;  /* Bitmask of HANDLE_* values */
 
   uint64_t exportsize;
@@ -339,7 +342,6 @@ struct connection {
 
   string_vector interns;
   char *exportname_from_set_meta_context;
-  const char *exportname;
 
   int sockin, sockout;
   /* If nworkers > 1, only call this while read_lock is held */

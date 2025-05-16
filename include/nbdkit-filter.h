@@ -196,10 +196,10 @@ struct nbdkit_filter {
   int (*config_complete) (nbdkit_next_config_complete *next,
                           nbdkit_backend *nxdata);
   const char *config_help;
-  int (*thread_model) (void);
+  int (*thread_model) (int next_thread_model);
   void (*dump_plugin) (void);
 
-  int (*get_ready) (int thread_model);
+  int (*get_ready) (int final_thread_model);
   int (*after_fork) (nbdkit_backend *backend);
   void (*cleanup) (nbdkit_backend *backend);
   int (*preconnect) (nbdkit_next_preconnect *next, nbdkit_backend *nxdata,

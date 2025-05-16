@@ -189,6 +189,19 @@ prepend()
 }
 
 #----------------------------------------------------------------------
+# Define a variable from a heredoc.
+# eg:
+# define var <<'EOF'
+# ...anything here...
+# EOF
+# https://stackoverflow.com/a/8088167
+
+define()
+{
+    IFS= read -r -d '' ${1} || true
+}
+
+#----------------------------------------------------------------------
 # Test prerequisites.
 #
 # Various 'requires' and related functions that can be used at the top

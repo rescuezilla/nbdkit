@@ -68,12 +68,6 @@ gzip_unload (void)
     close (fd);
 }
 
-static int
-gzip_thread_model (void)
-{
-  return NBDKIT_THREAD_MODEL_PARALLEL;
-}
-
 static void *
 gzip_open (nbdkit_next_open *next, nbdkit_context *nxdata,
            int readonly, const char *exportname, int is_tls)
@@ -364,7 +358,6 @@ static struct nbdkit_filter filter = {
   .name               = "gzip",
   .longname           = "nbdkit gzip filter",
   .unload             = gzip_unload,
-  .thread_model       = gzip_thread_model,
   .open               = gzip_open,
   .prepare            = gzip_prepare,
   .can_write          = gzip_can_write,

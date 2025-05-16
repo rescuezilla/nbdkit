@@ -260,7 +260,7 @@ xz_pread (nbdkit_next *next,
   return 0;
 }
 
-static int xz_thread_model (void)
+static int xz_thread_model (int next_thread_model)
 {
   return NBDKIT_THREAD_MODEL_SERIALIZE_REQUESTS;
 }

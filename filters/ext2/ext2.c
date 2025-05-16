@@ -370,7 +370,7 @@ ext2_can_trim (nbdkit_next *next, void *handle)
  * but if we allowed parallel work on those handles then we would get
  * data corruption, so we need to serialize connections.
  */
-static int ext2_thread_model (void)
+static int ext2_thread_model (int next_thread_model)
 {
   return NBDKIT_THREAD_MODEL_SERIALIZE_CONNECTIONS;
 }

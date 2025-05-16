@@ -56,7 +56,7 @@ static bool force_readonly = false;
  * this is something we could improve in server/backend.c in future.
  */
 static int
-retry_thread_model (void)
+retry_thread_model (int next_thread_model)
 {
   return NBDKIT_THREAD_MODEL_SERIALIZE_REQUESTS;
 }
