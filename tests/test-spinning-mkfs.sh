@@ -43,10 +43,21 @@ pid=spinning-mkfs.pid
 rm -f $pid
 cleanup_fn rm -f $sock $pid
 
+# Defaults:
+#min_seek_time=10ms
+#half_seek_time=200ms
+#max_seek_time=500ms
+min_seek_time=2ms
+half_seek_time=20ms
+max_seek_time=50ms
+
 start_nbdkit -P $pid \
              -U $sock \
              memory 1G \
              --filter=spinning heads=3 \
+             min-seek-time=$min_seek_time \
+             half-seek-time=$half_seek_time \
+             max-seek-time=$max_seek_time \
              -D spinning.verbose=1
 
 # This doesn't really test the functionality of the filter, just that
