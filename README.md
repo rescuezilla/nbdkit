@@ -200,6 +200,7 @@ For non-essential enhancements to the test suite:
 * mke2fs (from e2fsprogs)
 * nbdcopy, nbdinfo, nbdsh (from libnbd)
 * qemu-img, qemu-io, qemu-nbd (usually shipped with qemu)
+* python3-packaging
 * socat
 * stat (from coreutils)
 
