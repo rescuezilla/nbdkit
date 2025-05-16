@@ -100,18 +100,6 @@ x86_64-debian-sid:
     TARGET_BASE_IMAGE: docker.io/library/debian:sid-slim
 
 
-x86_64-fedora-40:
-  extends: .native_build_job
-  needs:
-    - job: x86_64-fedora-40-container
-      optional: true
-  allow_failure: false
-  variables:
-    NAME: fedora-40
-    PERL: force
-    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:40
-
-
 x86_64-fedora-41:
   extends: .native_build_job
   needs:
@@ -122,6 +110,32 @@ x86_64-fedora-41:
     NAME: fedora-41
     PERL: force
     TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:41
+
+
+x86_64-fedora-42:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-fedora-42-container
+      optional: true
+  allow_failure: false
+  variables:
+    NAME: fedora-42
+    PERL: force
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:42
+
+
+x86_64-fedora-42-clang:
+  extends: .native_build_job
+  needs:
+    - job: x86_64-fedora-42-container
+      optional: true
+  allow_failure: false
+  variables:
+    CC: clang
+    CXX: clang++
+    NAME: fedora-42
+    PERL: skip
+    TARGET_BASE_IMAGE: registry.fedoraproject.org/fedora:42
 
 
 x86_64-fedora-rawhide:

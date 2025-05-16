@@ -46,6 +46,7 @@ RUN apk update && \
         pkgconf \
         py3-boto3 \
         py3-flake8 \
+        py3-packaging \
         python3 \
         python3-dev \
         qemu-img \
