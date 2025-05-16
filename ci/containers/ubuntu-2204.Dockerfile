@@ -59,6 +59,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
                       python3-boto3 \
                       python3-dev \
                       python3-libnbd \
+                      python3-packaging \
                       qemu-utils \
                       rust-clippy \
                       rustc \

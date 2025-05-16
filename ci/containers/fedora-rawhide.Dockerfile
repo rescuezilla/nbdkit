@@ -67,6 +67,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                python3-devel \
                python3-flake8 \
                python3-libnbd \
+               python3-packaging \
                qemu-img \
                rust \
                socat \

@@ -4,7 +4,7 @@
 #
 # https://gitlab.com/libvirt/libvirt-ci
 
-FROM registry.fedoraproject.org/fedora:40
+FROM registry.fedoraproject.org/fedora:42
 
 RUN dnf install -y nosync && \
     printf '#!/bin/sh\n\
@@ -21,7 +21,7 @@ exec "$@"\n' > /usr/bin/nosync && \
                autoconf \
                automake \
                bash \
-               bash-completion \
+               bash-completion-devel \
                bzip2 \
                bzip2-devel \
                ca-certificates \
@@ -66,10 +66,11 @@ exec "$@"\n' > /usr/bin/nosync && \
                python3-devel \
                python3-flake8 \
                python3-libnbd \
+               python3-packaging \
                qemu-img \
                rust \
                socat \
-               systemtap-sdt-devel \
+               systemtap-sdt-dtrace \
                tcl-devel \
                util-linux \
                xorriso \

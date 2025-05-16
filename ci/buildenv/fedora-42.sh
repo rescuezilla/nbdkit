@@ -10,7 +10,7 @@ function install_buildenv() {
         autoconf \
         automake \
         bash \
-        bash-completion \
+        bash-completion-devel \
         bzip2 \
         bzip2-devel \
         ca-certificates \
@@ -55,10 +55,11 @@ function install_buildenv() {
         python3-devel \
         python3-flake8 \
         python3-libnbd \
+        python3-packaging \
         qemu-img \
         rust \
         socat \
-        systemtap-sdt-devel \
+        systemtap-sdt-dtrace \
         tcl-devel \
         util-linux \
         xorriso \

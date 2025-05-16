@@ -49,12 +49,6 @@ targets:
 
   debian-sid: x86_64
 
-  fedora-40:
-    jobs:
-      - arch: x86_64
-        variables:
-          PERL: force
-
   fedora-41:
     jobs:
       - arch: x86_64
@@ -70,6 +64,19 @@ targets:
         variables:
           RUST: skip
           GOLANG: skip
+
+  fedora-42:
+    jobs:
+      - arch: x86_64
+        variables:
+          PERL: force
+
+      - arch: x86_64
+        suffix: -clang
+        variables:
+          CC: clang
+          CXX: clang++
+          PERL: skip
 
   fedora-rawhide:
     jobs:

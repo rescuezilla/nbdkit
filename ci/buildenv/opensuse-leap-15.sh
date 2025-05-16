@@ -51,6 +51,7 @@ function install_buildenv() {
            python3-devel \
            python3-flake8 \
            python3-libnbd \
+           python3-packaging \
            qemu-tools \
            rust \
            socat \
