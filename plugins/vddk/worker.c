@@ -375,9 +375,10 @@ add_extent (struct nbdkit_extents *extents,
     return 0;
 
   if (vddk_debug_extents)
-    nbdkit_debug ("adding extent type %s at [%" PRIu64 "...%" PRIu64 "]",
+    nbdkit_debug ("adding extent type %s at [%" PRIu64 "...%" PRIu64 "] "
+                  "(length %" PRIu64 ")",
                   is_hole ? "hole" : "allocated data",
-                  *position, next_position-1);
+                  *position, next_position-1, length);
   if (nbdkit_add_extent (extents, *position, length, type) == -1)
     return -1;
 
