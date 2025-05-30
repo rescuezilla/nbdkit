@@ -158,7 +158,7 @@ policy_config_complete (nbdkit_next_config_complete *next,
 
   if (config_minimum && config_disconnect) {
     if (config_disconnect <= config_minimum) {
-      nbdkit_error ("blocksize-write-disonnect must be larger than "
+      nbdkit_error ("blocksize-write-disconnect must be larger than "
                     "blocksize-minimum");
       return -1;
     }
