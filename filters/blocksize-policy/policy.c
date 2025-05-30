@@ -38,6 +38,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include <nbdkit-filter.h>
 
@@ -385,10 +386,22 @@ policy_extents (nbdkit_next *next,
                 void *handle, uint32_t count, uint64_t offset, uint32_t flags,
                 struct nbdkit_extents *extents, int *err)
 {
+  uint32_t minimum, preferred, maximum;
+  int res;
+
   if (check_policy (next, handle, "extents", false, count, offset, err) == -1)
     return -1;
 
-  return next->extents (next, count, offset, flags, extents, err);
+  /* Munge the plugin's response to values that match the alignment we
+   * are enforcing; that way, a client that performs later operations
+   * at boundaries determined by the block status result will still be
+   * aligned.  Since check_policy succeeded, policy_block_size will too.
+   */
+  res = policy_block_size (next, handle,
+                           &minimum, &preferred, &maximum);
+  assert (res == 0);
+  return nbdkit_extents_aligned (next, count, offset, flags,
+                                 minimum ?: 1, extents, err);
 }
 
 static struct nbdkit_filter filter = {
