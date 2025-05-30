@@ -175,6 +175,9 @@ struct vddk_handle {
 
   /* Cached disk size in bytes (set in get_size()). */
   uint64_t size;
+
+  /* Cached extents for readonly disks. */
+  struct nbdkit_extents *extents;
 };
 
 /* reexec.c */

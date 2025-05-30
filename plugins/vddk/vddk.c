@@ -929,6 +929,8 @@ vddk_close (void *handle)
   send_command_and_wait (h, &stop_cmd);
   pthread_join (h->thread, NULL);
 
+  nbdkit_extents_free (h->extents);
+
   VDDK_CALL_START (VixDiskLib_Close, "handle")
     VixDiskLib_Close (h->handle);
   VDDK_CALL_END (VixDiskLib_Close, 0);
