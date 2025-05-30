@@ -303,8 +303,13 @@ do_flush (struct command *cmd, struct vddk_handle *h)
   return 0;
 }
 
-static int
-do_can_extents (struct command *cmd, struct vddk_handle *h)
+/* Try the QueryAllocatedBlocks call and if it's non-functional return
+ * false.  At some point in future, perhaps when we move to baseline
+ * VDDK >= 7, we can just assume it works and remove this test
+ * entirely.
+ */
+static bool
+test_can_extents (struct vddk_handle *h)
 {
   VixError err;
   VixDiskLibBlockList *block_list;
@@ -314,9 +319,6 @@ do_can_extents (struct command *cmd, struct vddk_handle *h)
    */
   error_suppression = 1;
 
-  /* Try the QueryAllocatedBlocks call and if it's non-functional
-   * return false.
-   */
   VDDK_CALL_START (VixDiskLib_QueryAllocatedBlocks,
                    "handle, 0, %d sectors, %d sectors",
                    VIXDISKLIB_MIN_CHUNK_SIZE, VIXDISKLIB_MIN_CHUNK_SIZE)
@@ -502,6 +504,10 @@ vddk_worker_thread (void *handle)
 {
   struct vddk_handle *h = handle;
   bool stop = false;
+  bool can_extents;
+
+  /* Test if QueryAllocatedBlocks will work. */
+  can_extents = test_can_extents (h);
 
   while (!stop) {
     struct command *cmd;
@@ -544,12 +550,13 @@ vddk_worker_thread (void *handle)
       break;
 
     case CAN_EXTENTS:
-      r = do_can_extents (cmd, h);
-      if (r >= 0)
-        *(int *)cmd->ptr = r;
+      *(int *)cmd->ptr = can_extents;
+      r = 0;
       break;
 
     case EXTENTS:
+      /* If we returned false above, we should never be called here. */
+      assert (can_extents);
       r = do_extents (cmd, h);
       break;
 
