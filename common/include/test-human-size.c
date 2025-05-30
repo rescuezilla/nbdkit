@@ -36,10 +36,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
+#include <assert.h>
 
 #include "array-size.h"
 #include "human-size.h"
-#include "human-size-test-cases.h" /* defines 'pairs' below */
+#include "human-size-test-cases.h" /* defines 'tuples' below */
 
 int
 main (void)
@@ -47,20 +49,61 @@ main (void)
   size_t i;
   bool pass = true;
 
-  for (i = 0; i < ARRAY_SIZE (pairs); i++) {
+  for (i = 0; i < ARRAY_SIZE (tuples); i++) {
     const char *error = NULL, *pstr = NULL;
+    char *rest = NULL;
     int64_t r;
+    int64_t expect;
 
-    r = human_size_parse (pairs[i].str, &error, &pstr);
-    if (r != pairs[i].res) {
+    r = human_size_parse (tuples[i].str, &error, &pstr);
+    expect = tuples[i].tail && *tuples[i].tail ? -1 : tuples[i].res;
+    if (r != expect) {
       fprintf (stderr,
-               "Wrong parse for %s, got %" PRId64 ", expected %" PRId64 "\n",
-               pairs[i].str, r, pairs[i].res);
+               "Wrong parse for '%s', got %" PRId64 ", expected %" PRId64 "\n",
+               tuples[i].str, r, expect);
       pass = false;
     }
     if (r == -1) {
       if (error == NULL || pstr == NULL) {
-        fprintf (stderr, "Wrong error message handling for %s\n", pairs[i].str);
+        fprintf (stderr, "Wrong error message handling for '%s'\n",
+                 tuples[i].str);
+        pass = false;
+      }
+    }
+
+    r = human_size_parse_substr (tuples[i].str, &rest, &error, &pstr);
+    if (r != tuples[i].res) {
+      fprintf (stderr,
+               "Wrong parse for '%s', got %" PRId64 ", expected %" PRId64 "\n",
+               tuples[i].str, r, tuples[i].res);
+      pass = false;
+    }
+    if (r == -1) {
+      if (error == NULL || pstr == NULL) {
+        /* Work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=120526 */
+        assert (tuples[i].str);
+        fprintf (stderr, "Wrong error message handling for '%s'\n",
+                 tuples[i].str);
+        pass = false;
+      }
+      if (rest != NULL) {
+        fprintf (stderr,
+                 "Wrong suffix handling for '%s', expected NULL, got '%s'\n",
+                 tuples[i].str, rest);
+        pass = false;
+      }
+    }
+    else {
+      if (rest == NULL) {
+        fprintf (stderr,
+                 "Wrong suffix handling for '%s', expected '%s', got NULL\n",
+                 tuples[i].str, tuples[i].tail);
+        pass = false;
+      }
+      else if (strcmp (rest, tuples[i].tail) != 0) {
+        fprintf (stderr,
+                 "Wrong suffix handling for '%s', expected '%s', got '%s'\n",
+                 tuples[i].str, tuples[i].tail, rest);
         pass = false;
       }
     }

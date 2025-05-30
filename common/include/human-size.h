@@ -39,14 +39,17 @@
 
 /* Attempt to parse a string with a possible scaling suffix, such as
  * "2M".  Disk sizes cannot usefully exceed off_t (which is signed)
- * and cannot be negative.
+ * and cannot be negative.  If rest is not NULL, the number being
+ * parsed is treated as a substring within a larger input; if a value
+ * was parsed, *rest is set to the first unparsed byte of str.  If
+ * rest is NULL, any trailing garbage is treated as an error.
  *
  * On error, returns -1 and sets *error and *pstr.  You can form a
  * final error message by appending "<error>: <pstr>".
  */
-static inline int64_t
-human_size_parse (const char *str,
-                  const char **error, const char **pstr)
+static inline int64_t __attribute__ ((__nonnull__ (1, 3, 4)))
+human_size_parse_substr (const char *str, char **rest,
+                         const char **error, const char **pstr)
 {
   int64_t size;
   char *end;
@@ -56,6 +59,9 @@ human_size_parse (const char *str,
   /* XXX Should we allow hex? If so, hex cannot use scaling suffixes,
    * because some of them are valid hex digits.
    */
+  if (rest)
+    *rest = NULL;
+  *error = *pstr = NULL;
   errno = 0;
   size = strtoimax (str, &end, 10);
   if (str == end) {
@@ -77,7 +83,7 @@ human_size_parse (const char *str,
   switch (*end) {
     /* No suffix */
   case '\0':
-    end--; /* Safe, since we already filtered out empty string */
+    /* Safe, since we already filtered out empty string */
     break;
 
     /* Powers of 1024 */
@@ -100,6 +106,7 @@ human_size_parse (const char *str,
     scale *= 1024;
     /* fallthru */
   case 'b': case 'B':
+    end++;
     break;
 
     /* "sectors", ie. units of 512 bytes, even if that's not the real
@@ -107,22 +114,8 @@ human_size_parse (const char *str,
      */
   case 's': case 'S':
     scale = 512;
+    end++;
     break;
-
-  default:
-    *error = "could not parse size: unknown suffix";
-    *pstr = end;
-    return -1;
-  }
-
-  /* XXX Maybe we should support 'MiB' as a synonym for 'M'; and 'MB'
-   * for powers of 1000, for similarity to GNU tools. But for now,
-   * anything beyond 'M' is dropped.
-   */
-  if (end[1]) {
-    *error = "could not parse size: unknown suffix";
-    *pstr = end;
-    return -1;
   }
 
   if (INT64_MAX / scale < size) {
@@ -131,7 +124,34 @@ human_size_parse (const char *str,
     return -1;
   }
 
+  /* XXX Maybe we should support 'MiB' as a synonym for 'M'; and 'MB'
+   * for powers of 1000, for similarity to GNU tools. But for now,
+   * anything beyond 'M' is dropped.
+   */
+  if (rest)
+    *rest = end;
+  else if (*end) {
+    *error = "could not parse size: unknown suffix";
+    *pstr = end;
+    return -1;
+  }
+
   return size * scale;
 }
+
+/* Attempt to parse a string with a possible scaling suffix, such as
+ * "2M".  Disk sizes cannot usefully exceed off_t (which is signed)
+ * and cannot be negative.  str must not have any trailing garbage.
+ *
+ * On error, returns -1 and sets *error and *pstr.  You can form a
+ * final error message by appending "<error>: <pstr>".
+ */
+static inline int64_t __attribute__ ((__nonnull__ (1, 2, 3)))
+human_size_parse (const char *str,
+                  const char **error, const char **pstr)
+{
+  return human_size_parse_substr (str, NULL, error, pstr);
+}
+
 
 #endif /* NBDKIT_HUMAN_SIZE_H */
