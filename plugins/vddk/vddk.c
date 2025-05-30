@@ -752,6 +752,7 @@ vddk_open (int readonly)
     nbdkit_error ("calloc: %m");
     return NULL;
   }
+  h->readonly = readonly;
   h->commands = (command_queue) empty_vector;
   pthread_mutex_init (&h->commands_lock, NULL);
   pthread_cond_init (&h->commands_cond, NULL);
