@@ -230,7 +230,8 @@ generates the 4 byte sequence C<0 0 0 1>.
 
 Moves the current offset to C<OFFSET>.  The offset may be specified as
 either decimal, octal (prefixed by C<0>) or hexadecimal (prefixed by
-C<0x>).  Offset C<@0> is the first byte of the disk.
+C<0x>); when using decimal, it is also possible to supply a scaling
+suffix such as C<k> or C<M>.  Offset C<@0> is the first byte of the disk.
 
 =item B<@+>N
 
