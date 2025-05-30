@@ -116,11 +116,52 @@ VixDiskLib_FreeErrorText (char *text)
   free (text);
 }
 
+NBDKIT_DLL_PUBLIC VixError
+VixDiskLib_QueryAllocatedBlocks (VixDiskLibHandle diskHandle,
+                                 uint64_t start_sector, uint64_t nr_sectors,
+                                 uint64_t chunk_size,
+                                 VixDiskLibBlockList **block_list)
+{
+  VixDiskLibBlockList *ret;
+
+  /* This is safe because ret->blocks is a 1-sized array and we only
+   * use 1 entry here.
+   */
+  ret = calloc (1, sizeof *ret);
+  if (ret == NULL)
+    abort ();
+
+  /* Pretend it's all allocated. */
+  ret->numBlocks = 1;
+  ret->blocks[0].offset = start_sector;
+  ret->blocks[0].length = nr_sectors;
+
+  *block_list = ret;
+  return VIX_OK;
+}
+
+NBDKIT_DLL_PUBLIC VixError
+VixDiskLib_FreeBlockList (VixDiskLibBlockList *block_list)
+{
+  free (block_list);
+  return VIX_OK;
+}
+
+NBDKIT_DLL_PUBLIC VixDiskLibConnectParams *
+VixDiskLib_AllocateConnectParams (void)
+{
+  VixDiskLibConnectParams *ret;
+
+  ret = calloc (1, sizeof *ret);
+  if (ret == NULL)
+    abort ();
+  return ret;
+}
+
 NBDKIT_DLL_PUBLIC void
 VixDiskLib_FreeConnectParams (VixDiskLibConnectParams *params)
 {
-  /* never called since we don't define optional AllocateConnectParams */
-  abort ();
+  free (params);
 }
 
 NBDKIT_DLL_PUBLIC VixError

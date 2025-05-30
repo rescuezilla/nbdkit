@@ -430,15 +430,13 @@ is I<not> recommended.
 
 =over 4
 
-=item VDDK E<ge> 6.5 (released Nov 2016)
+=item VDDK E<ge> 6.7 (released Apr 2018)
 
 This is the minimum version of VDDK supported.  Older versions will
 not work.
 
-=item VDDK 6.7 (released Apr 2018)
-
-This is the first version that supported the
-C<VixDiskLib_QueryAllocatedBlocks> API.  This is required to provide
+This is also the first version that supported the
+C<VixDiskLib_QueryAllocatedBlocks> API.  This is used to provide
 sparseness (extent) information over NBD.
 
 =item VDDK 8.0.3 (released Jun 2024)

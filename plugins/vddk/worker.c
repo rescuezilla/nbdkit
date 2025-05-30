@@ -309,23 +309,13 @@ do_can_extents (struct command *cmd, struct vddk_handle *h)
   VixError err;
   VixDiskLibBlockList *block_list;
 
-  /* This call was added in VDDK 6.7.  In earlier versions the
-   * function pointer will be NULL and we cannot query extents.
-   */
-  if (VixDiskLib_QueryAllocatedBlocks == NULL) {
-    nbdkit_debug ("can_extents: VixDiskLib_QueryAllocatedBlocks == NULL, "
-                  "probably this is VDDK < 6.7");
-    return 0;
-  }
-
   /* Suppress errors around this call.  See:
    * https://bugzilla.redhat.com/show_bug.cgi?id=1709211#c7
    */
   error_suppression = 1;
 
-  /* However even when the call is available it rarely works well so
-   * the best thing we can do here is to try the call and if it's
-   * non-functional return false.
+  /* Try the QueryAllocatedBlocks call and if it's non-functional
+   * return false.
    */
   VDDK_CALL_START (VixDiskLib_QueryAllocatedBlocks,
                    "handle, 0, %d sectors, %d sectors",
