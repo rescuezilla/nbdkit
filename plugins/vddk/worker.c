@@ -116,7 +116,8 @@ complete_command (void *vp, VixError result)
   struct command *cmd = vp;
 
   if (vddk_debug_datapath)
-    nbdkit_debug ("command %" PRIu64 " completed", cmd->id);
+    nbdkit_debug ("command %" PRIu64 " (%s) completed",
+                  cmd->id, command_type_string (cmd->type));
 
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&cmd->mutex);
 
