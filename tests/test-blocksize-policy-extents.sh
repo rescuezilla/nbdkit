@@ -58,3 +58,13 @@ diff -u - blocksize-policy-extents.out <<EOF
          0       32768    3  hole,zero
      32768         512    0  data
 EOF
+
+# Also ensure that the server itself is not breaking alignment at 4G
+# boundaries.
+nbdkit data "@4G 1 @^512" --filter=blocksize-policy \
+       blocksize-minimum=512 blocksize-error-policy=error \
+       --run 'nbdinfo --map "$uri"' > blocksize-policy-extents.out
+diff -u - blocksize-policy-extents.out <<EOF
+         0  4294967296    3  hole,zero
+4294967296         512    0  data
+EOF

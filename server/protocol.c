@@ -493,13 +493,19 @@ extents_to_block_descriptors (struct nbdkit_extents *extents,
       if (i == 0)
         assert (e.offset == offset);
 
-      /* Must not exceed UINT32_MAX. */
-      blocks[i].length = length = MIN (e.length, UINT32_MAX);
+      /* Must not exceed UINT32_MAX.  However, if the plugin was
+       * supplying aligned answers, we don't want our truncation to
+       * result in an unaligned point.  Rather than tracking whether a
+       * minimum block size was advertised, it is simpler to just
+       * truncate at 64k shy of 4G, since minimum block size cannot
+       * exceed 64k.
+       */
+      blocks[i].length = length = MIN (e.length, UINT32_MAX & ~0xffff);
       blocks[i].status_flags = e.type & 3;
       (*nr_blocks)++;
 
       pos += length;
-      if (pos >= offset + count) /* this must be the last block */
+      if (pos >= offset + count || length < e.length)
         break;
 
       /* If we reach here then we must have consumed this whole

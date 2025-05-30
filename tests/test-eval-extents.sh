@@ -65,7 +65,7 @@ nbdkit eval \
        > eval-extents.out
 cat eval-extents.out
 diff -u - eval-extents.out <<EOF
-[4294967294, 1, 1073741824, 2]
-[4294967295, 1]
-[4294967295, 1]
+[4294901760, 1]
+[4294901760, 1]
+[4294901760, 1]
 EOF
