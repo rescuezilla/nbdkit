@@ -57,6 +57,32 @@ qemu-nbd) will give a hard disconnect for a write request larger than
 32M.  With this filter you can use C<blocksize-write-disconnect=32M>
 to emulate the behavior of other servers.
 
+=head2 Combining with L<nbdkit-truncate-filter(1)>
+
+This filter does not alter the underlying size of the plugin, even
+when that size is not a multiple of the minimum block size.  When the
+plugin size is unaligned, the client will be unable to access the last
+few bytes of the image without making an unaligned request.
+
+It is possible to combine this filter with the truncate filter to
+ensure that the client need only worry about aligned requests (note
+that the order of the filters is important).  It is possible to either
+ignore the unaligned tail:
+
+  nbdkit --filter=blocksize-policy \
+         --filter=truncate \
+         PLUGIN ... \
+         blocksize-error-policy=allow \
+         blocksize-minimum=512 round-down=512
+
+or to expose a larger image, where the extra bytes are forced to zero:
+
+  nbdkit --filter=blocksize-policy \
+         --filter=truncate \
+         PLUGIN ... \
+         blocksize-error-policy=allow \
+         blocksize-minimum=512 round-up=512
+
 =head2 Combining with L<nbdkit-blocksize-filter(1)>
 
 A related filter is L<nbdkit-blocksize-filter(1)>.  That filter can
@@ -146,6 +172,7 @@ C<nbdkit-limit-filter> first appeared in nbdkit 1.30.
 
 L<nbdkit(1)>,
 L<nbdkit-blocksize-filter(1)>,
+L<nbdkit-truncate-filter(1)>,
 L<nbdkit-filter(3)>,
 L<nbdkit-plugin(3)>.
 
