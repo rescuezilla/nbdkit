@@ -157,7 +157,22 @@ NBDKIT_EXTERN_DECL (const char *, nbdkit_vprintf_intern,
                     (const char *msg, va_list args)
                     ATTRIBUTE_FORMAT_PRINTF (1, 0));
 
+/* Extent functions. */
+struct nbdkit_extent {
+  uint64_t offset;
+  uint64_t length;
+  uint32_t type;
+};
+
 struct nbdkit_extents;
+
+NBDKIT_EXTERN_DECL (struct nbdkit_extents *, nbdkit_extents_new,
+                    (uint64_t start, uint64_t end));
+NBDKIT_EXTERN_DECL (void, nbdkit_extents_free, (struct nbdkit_extents *));
+NBDKIT_EXTERN_DECL (size_t, nbdkit_extents_count,
+                    (const struct nbdkit_extents *));
+NBDKIT_EXTERN_DECL (struct nbdkit_extent, nbdkit_get_extent,
+                    (const struct nbdkit_extents *, size_t));
 NBDKIT_EXTERN_DECL (int, nbdkit_add_extent,
                     (struct nbdkit_extents *,
                      uint64_t offset, uint64_t length, uint32_t type));
