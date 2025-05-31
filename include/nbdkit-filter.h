@@ -121,20 +121,7 @@ struct nbdkit_next_ops {
    */
 };
 
-/* Extent functions. */
-struct nbdkit_extent {
-  uint64_t offset;
-  uint64_t length;
-  uint32_t type;
-};
-
-NBDKIT_EXTERN_DECL (struct nbdkit_extents *, nbdkit_extents_new,
-                    (uint64_t start, uint64_t end));
-NBDKIT_EXTERN_DECL (void, nbdkit_extents_free, (struct nbdkit_extents *));
-NBDKIT_EXTERN_DECL (size_t, nbdkit_extents_count,
-                    (const struct nbdkit_extents *));
-NBDKIT_EXTERN_DECL (struct nbdkit_extent, nbdkit_get_extent,
-                    (const struct nbdkit_extents *, size_t));
+/* Extent helpers. */
 NBDKIT_EXTERN_DECL (struct nbdkit_extents *, nbdkit_extents_full,
                     (nbdkit_next *next,
                      uint32_t count, uint64_t offset,
