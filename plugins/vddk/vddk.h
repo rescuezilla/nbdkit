@@ -170,8 +170,14 @@ struct vddk_handle {
   /* VDDK filename. */
   const char *filename;
 
+  /* Cached readonly flag from the open call. */
+  int readonly;
+
   /* Cached disk size in bytes (set in get_size()). */
   uint64_t size;
+
+  /* Cached extents for readonly disks. */
+  struct nbdkit_extents *extents;
 };
 
 /* reexec.c */

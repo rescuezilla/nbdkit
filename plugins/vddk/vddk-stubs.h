@@ -132,16 +132,22 @@ STUB (VixDiskLib_Wait,
       VixError,
       (VixDiskLibHandle handle));
 
-/* Added in VDDK 6.7, these will be NULL for earlier versions: */
-OPTIONAL_STUB (VixDiskLib_QueryAllocatedBlocks,
-               VixError,
-               (VixDiskLibHandle diskHandle,
-                uint64_t start_sector, uint64_t nr_sectors,
-                uint64_t chunk_size,
-                VixDiskLibBlockList **block_list));
-OPTIONAL_STUB (VixDiskLib_FreeBlockList,
-               VixError,
-               (VixDiskLibBlockList *block_list));
-OPTIONAL_STUB (VixDiskLib_AllocateConnectParams,
-               VixDiskLibConnectParams *,
-               (void));
+/* Added in VDDK 6.7. */
+STUB (VixDiskLib_QueryAllocatedBlocks,
+      VixError,
+      (VixDiskLibHandle diskHandle,
+       uint64_t start_sector, uint64_t nr_sectors,
+       uint64_t chunk_size,
+       VixDiskLibBlockList **block_list));
+STUB (VixDiskLib_FreeBlockList,
+      VixError,
+      (VixDiskLibBlockList *block_list));
+STUB (VixDiskLib_AllocateConnectParams,
+      VixDiskLibConnectParams *,
+      (void));
+
+/* OPTIONAL_STUB can be used to add new APIs which are not supported
+ * by older versions of VDDK, and to make them NULL if not present.
+ * However VDDK >= 6.7 has everything we need for now so we are no
+ * longer using this macro.
+ */

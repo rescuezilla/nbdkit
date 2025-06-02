@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <time.h>
 
 #include <pthread.h>
 
@@ -116,7 +117,8 @@ complete_command (void *vp, VixError result)
   struct command *cmd = vp;
 
   if (vddk_debug_datapath)
-    nbdkit_debug ("command %" PRIu64 " completed", cmd->id);
+    nbdkit_debug ("command %" PRIu64 " (%s) completed",
+                  cmd->id, command_type_string (cmd->type));
 
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&cmd->mutex);
 
@@ -302,30 +304,22 @@ do_flush (struct command *cmd, struct vddk_handle *h)
   return 0;
 }
 
-static int
-do_can_extents (struct command *cmd, struct vddk_handle *h)
+/* Try the QueryAllocatedBlocks call and if it's non-functional return
+ * false.  At some point in future, perhaps when we move to baseline
+ * VDDK >= 7, we can just assume it works and remove this test
+ * entirely.
+ */
+static bool
+test_can_extents (struct vddk_handle *h)
 {
   VixError err;
   VixDiskLibBlockList *block_list;
-
-  /* This call was added in VDDK 6.7.  In earlier versions the
-   * function pointer will be NULL and we cannot query extents.
-   */
-  if (VixDiskLib_QueryAllocatedBlocks == NULL) {
-    nbdkit_debug ("can_extents: VixDiskLib_QueryAllocatedBlocks == NULL, "
-                  "probably this is VDDK < 6.7");
-    return 0;
-  }
 
   /* Suppress errors around this call.  See:
    * https://bugzilla.redhat.com/show_bug.cgi?id=1709211#c7
    */
   error_suppression = 1;
 
-  /* However even when the call is available it rarely works well so
-   * the best thing we can do here is to try the call and if it's
-   * non-functional return false.
-   */
   VDDK_CALL_START (VixDiskLib_QueryAllocatedBlocks,
                    "handle, 0, %d sectors, %d sectors",
                    VIXDISKLIB_MIN_CHUNK_SIZE, VIXDISKLIB_MIN_CHUNK_SIZE)
@@ -387,7 +381,7 @@ add_extent (struct nbdkit_extents *extents,
 }
 
 static int
-do_extents (struct command *cmd, struct vddk_handle *h)
+get_extents_slow (struct command *cmd, struct vddk_handle *h)
 {
   const uint32_t count = cmd->count;
   const uint64_t offset = cmd->offset;
@@ -503,6 +497,169 @@ do_extents (struct command *cmd, struct vddk_handle *h)
   return 0;
 }
 
+static int
+pre_cache_extents (struct vddk_handle *h)
+{
+  struct nbdkit_extents *extents;
+  uint64_t start_sector = 0;
+  uint64_t nr_chunks_remaining =
+    h->size / VIXDISKLIB_MIN_CHUNK_SIZE / VIXDISKLIB_SECTOR_SIZE;
+  uint64_t position = 0;
+
+  extents = nbdkit_extents_new (0, h->size);
+  if (extents == NULL)
+    return -1;
+
+  /* Scan through the disk reading whole "chunks" (32 GB), the most
+   * efficient way to use QueryAllocatedBlocks.
+   */
+  while (nr_chunks_remaining > 0) {
+    VixError err;
+    uint32_t i;
+    uint64_t nr_chunks, nr_sectors;
+    VixDiskLibBlockList *block_list;
+
+    assert (IS_ALIGNED (start_sector, VIXDISKLIB_MIN_CHUNK_SIZE));
+
+    nr_chunks = MIN (nr_chunks_remaining, VIXDISKLIB_MAX_CHUNK_NUMBER);
+    nr_sectors = nr_chunks * VIXDISKLIB_MIN_CHUNK_SIZE;
+
+    VDDK_CALL_START (VixDiskLib_QueryAllocatedBlocks,
+                     "handle, %" PRIu64 " sectors, %" PRIu64 " sectors, "
+                     "%d sectors",
+                     start_sector, nr_sectors, VIXDISKLIB_MIN_CHUNK_SIZE)
+      err = VixDiskLib_QueryAllocatedBlocks (h->handle,
+                                             start_sector, nr_sectors,
+                                             VIXDISKLIB_MIN_CHUNK_SIZE,
+                                             &block_list);
+    VDDK_CALL_END (VixDiskLib_QueryAllocatedBlocks, 0);
+    if (err != VIX_OK) {
+      VDDK_ERROR (err, "VixDiskLib_QueryAllocatedBlocks");
+      nbdkit_extents_free (extents);
+      return -1;
+    }
+
+    for (i = 0; i < block_list->numBlocks; ++i) {
+      uint64_t blk_offset, blk_length;
+
+      blk_offset = block_list->blocks[i].offset * VIXDISKLIB_SECTOR_SIZE;
+      blk_length = block_list->blocks[i].length * VIXDISKLIB_SECTOR_SIZE;
+
+      /* The query returns allocated blocks.  We must insert holes
+       * between the blocks as necessary.
+       */
+      if ((position < blk_offset &&
+           add_extent (extents, &position, blk_offset, true) == -1) ||
+          (add_extent (extents,
+                       &position, blk_offset + blk_length, false) == -1)) {
+        VDDK_CALL_START (VixDiskLib_FreeBlockList, "block_list")
+          VixDiskLib_FreeBlockList (block_list);
+        VDDK_CALL_END (VixDiskLib_FreeBlockList, 0);
+        nbdkit_extents_free (extents);
+        return -1;
+      }
+    }
+    VDDK_CALL_START (VixDiskLib_FreeBlockList, "block_list")
+      VixDiskLib_FreeBlockList (block_list);
+    VDDK_CALL_END (VixDiskLib_FreeBlockList, 0);
+
+    /* There's an implicit hole after the returned list of blocks,
+     * up to the end of the QueryAllocatedBlocks request.
+     */
+    if (add_extent (extents,
+                    &position,
+                    (start_sector + nr_sectors) * VIXDISKLIB_SECTOR_SIZE,
+                    true) == -1) {
+      nbdkit_extents_free (extents);
+      return -1;
+    }
+
+    start_sector += nr_sectors;
+    nr_chunks_remaining -= nr_chunks;
+  }
+
+  /* Add the allocated unaligned bit at the end. */
+  if (position < h->size) {
+    if (add_extent (extents, &position, h->size, false) == -1) {
+      nbdkit_extents_free (extents);
+      return -1;
+    }
+  }
+
+  /* Save the pre-cached extents in the handle. */
+  h->extents = extents;
+  return 0;
+}
+
+static int
+get_extents_from_cache (struct command *cmd, struct vddk_handle *h)
+{
+  struct nbdkit_extents *rextents = cmd->ptr;
+  struct nbdkit_extent e;
+  size_t i;
+
+  /* We can just copy from the pre-cached extents in the handle which
+   * cover the entire disk, into the returned extents, because
+   * nbdkit_add_extent does the right thing.
+   */
+  for (i = 0; i < nbdkit_extents_count (h->extents); ++i) {
+    e = nbdkit_get_extent (h->extents, i);
+    if (nbdkit_add_extent (rextents, e.offset, e.length, e.type) == -1)
+      return -1;
+  }
+
+  return 0;
+}
+
+/* Handle extents.
+ *
+ * Oh QueryAllocatedBlocks, how much I hate you.  The API has two
+ * enormous problems: (a) It's slow, taking about 1 second per
+ * invocation regardless of how much or little data you request.  (b)
+ * It serialises all other requests to the disk, like concurrent
+ * reads.
+ *
+ * NBD / nbdkit doesn't help much either by having a 4GB - 1 byte
+ * limit on the size of extent requests.  This means that for each 4GB
+ * of disk, we will need to run QueryAllocatedBlocks twice.  For a 1TB
+ * virtual disk, about 500 seconds would be used directly in the API
+ * calls, and much more time is lost because of serialization.
+ *
+ * To work around these problems, in the readonly case (used by
+ * virt-v2v), when the first NBD_BLOCK_STATUS request is received, we
+ * will read over the whole disk and cache the extents.  We will read
+ * in 32 GB chunks (the maximum possible for the underlying
+ * QueryAllocatedBlocks API).  For a 1TB disk this will take ~ 30
+ * seconds, but avoids all the overheads above.  The cached extents
+ * are stored in the handle, and subsequent NBD_BLOCK_STATUS will use
+ * the cache only.
+ *
+ * For writable disks we can't easily do any caching so don't attempt
+ * it.
+ */
+static int
+do_extents (struct command *cmd, struct vddk_handle *h)
+{
+  if (h->readonly && !h->extents) {
+    time_t start_t, end_t;
+
+    time (&start_t);
+    nbdkit_debug ("vddk: pre-caching extents");
+
+    if (pre_cache_extents (h) == -1)
+      return -1;
+
+    time (&end_t);
+    nbdkit_debug ("vddk: finished pre-caching extents in %d second(s)",
+                  (int) (end_t - start_t));
+  }
+
+  if (h->extents)
+    return get_extents_from_cache (cmd, h);
+  else
+    return get_extents_slow (cmd, h);
+}
+
 /* Background worker thread, one per connection, which is where the
  * VDDK commands are issued.
  */
@@ -511,6 +668,10 @@ vddk_worker_thread (void *handle)
 {
   struct vddk_handle *h = handle;
   bool stop = false;
+  bool can_extents;
+
+  /* Test if QueryAllocatedBlocks will work. */
+  can_extents = test_can_extents (h);
 
   while (!stop) {
     struct command *cmd;
@@ -553,12 +714,13 @@ vddk_worker_thread (void *handle)
       break;
 
     case CAN_EXTENTS:
-      r = do_can_extents (cmd, h);
-      if (r >= 0)
-        *(int *)cmd->ptr = r;
+      *(int *)cmd->ptr = can_extents;
+      r = 0;
       break;
 
     case EXTENTS:
+      /* If we returned false above, we should never be called here. */
+      assert (can_extents);
       r = do_extents (cmd, h);
       break;
 

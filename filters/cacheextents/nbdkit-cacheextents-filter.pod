@@ -6,6 +6,14 @@ nbdkit-cacheextents-filter - cache extents
 
  nbdkit --filter=cacheextents plugin
 
+=head1 DEPRECATED
+
+B<The cacheextents filter is deprecated in S<nbdkit E<ge> 1.43.10> and
+will be removed in S<nbdkit 1.46>>.  There is no direct replacement,
+but as the filter only worked for a narrow and unusual range of access
+patterns it is likely that it has no effect and you can just stop
+using it.
+
 =head1 DESCRIPTION
 
 C<nbdkit-cacheextents-filter> is a filter that caches the result of last

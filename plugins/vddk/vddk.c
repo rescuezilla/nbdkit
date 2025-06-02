@@ -705,37 +705,6 @@ vddk_dump_plugin (void)
 /* Lock protecting open/close calls - see above. */
 static pthread_mutex_t open_close_lock = PTHREAD_MUTEX_INITIALIZER;
 
-static inline VixDiskLibConnectParams *
-allocate_connect_params (void)
-{
-  VixDiskLibConnectParams *ret;
-
-  if (VixDiskLib_AllocateConnectParams != NULL) {
-    VDDK_CALL_START (VixDiskLib_AllocateConnectParams, "")
-      ret = VixDiskLib_AllocateConnectParams ();
-    VDDK_CALL_END (VixDiskLib_AllocateConnectParams, 0);
-  }
-  else
-    ret = calloc (1, sizeof (VixDiskLibConnectParams));
-
-  return ret;
-}
-
-static inline void
-free_connect_params (VixDiskLibConnectParams *params)
-{
-  /* Only use FreeConnectParams if AllocateConnectParams was
-   * originally called.  Otherwise use free.
-   */
-  if (VixDiskLib_AllocateConnectParams != NULL) {
-    VDDK_CALL_START (VixDiskLib_FreeConnectParams, "params")
-      VixDiskLib_FreeConnectParams (params);
-    VDDK_CALL_END (VixDiskLib_FreeConnectParams, 0);
-  }
-  else
-    free (params);
-}
-
 /* Create the per-connection handle. */
 static void *
 vddk_open (int readonly)
@@ -752,6 +721,7 @@ vddk_open (int readonly)
     nbdkit_error ("calloc: %m");
     return NULL;
   }
+  h->readonly = readonly;
   h->commands = (command_queue) empty_vector;
   pthread_mutex_init (&h->commands_lock, NULL);
   pthread_cond_init (&h->commands_cond, NULL);
@@ -796,7 +766,9 @@ vddk_open (int readonly)
   }
   assert (h->filename != NULL);
 
-  h->params = allocate_connect_params ();
+  VDDK_CALL_START (VixDiskLib_AllocateConnectParams, "")
+    h->params = VixDiskLib_AllocateConnectParams ();
+  VDDK_CALL_END (VixDiskLib_AllocateConnectParams, 0);
   if (h->params == NULL) {
     nbdkit_error ("allocate VixDiskLibConnectParams: %m");
     goto err0;
@@ -936,7 +908,9 @@ vddk_open (int readonly)
     VixDiskLib_Disconnect (h->connection);
   VDDK_CALL_END (VixDiskLib_Disconnect, 0);
  err1:
-  free_connect_params (h->params);
+  VDDK_CALL_START (VixDiskLib_FreeConnectParams, "params")
+    VixDiskLib_FreeConnectParams (h->params);
+  VDDK_CALL_END (VixDiskLib_FreeConnectParams, 0);
  err0:
   pthread_mutex_destroy (&h->commands_lock);
   pthread_cond_destroy (&h->commands_cond);
@@ -955,6 +929,8 @@ vddk_close (void *handle)
   send_command_and_wait (h, &stop_cmd);
   pthread_join (h->thread, NULL);
 
+  nbdkit_extents_free (h->extents);
+
   VDDK_CALL_START (VixDiskLib_Close, "handle")
     VixDiskLib_Close (h->handle);
   VDDK_CALL_END (VixDiskLib_Close, 0);
@@ -962,7 +938,9 @@ vddk_close (void *handle)
     VixDiskLib_Disconnect (h->connection);
   VDDK_CALL_END (VixDiskLib_Disconnect, 0);
 
-  free_connect_params (h->params);
+  VDDK_CALL_START (VixDiskLib_FreeConnectParams, "params")
+    VixDiskLib_FreeConnectParams (h->params);
+  VDDK_CALL_END (VixDiskLib_FreeConnectParams, 0);
   pthread_mutex_destroy (&h->commands_lock);
   pthread_cond_destroy (&h->commands_cond);
   command_queue_reset (&h->commands);
