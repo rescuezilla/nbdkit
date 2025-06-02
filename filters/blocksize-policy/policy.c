@@ -53,7 +53,7 @@ static uint32_t config_maximum;
 static uint32_t config_disconnect;
 
 /* Error policy. */
-static enum { EP_ALLOW, EP_ERROR } error_policy = EP_ALLOW;
+static enum { EP_ALLOW, EP_ERROR, EP_STRICT_ERROR } error_policy = EP_ALLOW;
 
 static int
 policy_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
@@ -66,6 +66,9 @@ policy_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
       error_policy = EP_ALLOW;
     else if (strcmp (value, "error") == 0)
       error_policy = EP_ERROR;
+    else if (strcmp (value, "strict") == 0 ||
+             strcmp (value, "strict-error") == 0)
+      error_policy = EP_STRICT_ERROR;
     else {
       nbdkit_error ("unknown %s: %s", key, value);
       return -1;
@@ -264,6 +267,8 @@ check_policy (nbdkit_next *next, void *handle,
               uint32_t count, uint64_t offset, int *err)
 {
   uint32_t minimum, preferred, maximum;
+  int64_t size;
+  uint64_t count64 = count;
 
   if (error_policy == EP_ALLOW)
     return 0;
@@ -279,13 +284,36 @@ check_policy (nbdkit_next *next, void *handle,
     *err = errno ? : EINVAL;
     return -1;
   }
-
   /* If there are no constraints, allow. */
   if (minimum == 0)
     return 0;
 
+  /* If we are not being strict about unaligned tails, fudge requests
+   * that coincide with the end of an unaligned image.  As with block
+   * constraints, this is cached in the backend, so that the plugin is
+   * only asked once.
+   */
+  if (error_policy == EP_ERROR)
+    {
+      size = next->get_size (next);
+      if (size == -1) {
+        *err = errno ? : EINVAL;
+        return -1;
+      }
+      if (count + offset == size)
+        count64 = ROUND_UP (count64, minimum);
+    }
+
   /* Check constraints. */
-  if (count < minimum) {
+  if ((offset % minimum) != 0) {
+    *err = EINVAL;
+    nbdkit_error ("client %s request rejected: "
+                  "offset %" PRIu64 " is not aligned to a multiple "
+                  "of minimum size %" PRIu32,
+                  type, offset, minimum);
+    return -1;
+  }
+  if (count64 < minimum) {
     *err = EINVAL;
     nbdkit_error ("client %s request rejected: "
                   "count %" PRIu32 " is smaller than minimum size %" PRIu32,
@@ -299,20 +327,12 @@ check_policy (nbdkit_next *next, void *handle,
                   type, count, maximum);
     return -1;
   }
-  if ((count % minimum) != 0) {
+  if ((count64 % minimum) != 0) {
     *err = EINVAL;
     nbdkit_error ("client %s request rejected: "
                   "count %" PRIu32 " is not a multiple "
                   "of minimum size %" PRIu32,
                   type, count, minimum);
-    return -1;
-  }
-  if ((offset % minimum) != 0) {
-    *err = EINVAL;
-    nbdkit_error ("client %s request rejected: "
-                  "offset %" PRIu64 " is not aligned to a multiple "
-                  "of minimum size %" PRIu32,
-                  type, offset, minimum);
     return -1;
   }
 

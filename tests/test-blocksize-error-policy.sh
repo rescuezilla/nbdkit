@@ -43,12 +43,14 @@ requires dd iflag=count_bytes </dev/null
 
 # The plugin intentionally does not support extents, meaning nbdkit
 # supplies a default that reports all data.
+# When the image size is aligned, 'error' and 'strict-error' are identical.
+for policy in error strict-error; do
 nbdkit -v eval \
        block_size="echo 512 4096 1M" \
        get_size="echo 64M" \
        pread=" dd if=/dev/zero count=\$3 iflag=count_bytes " \
        --filter=blocksize-policy \
-       blocksize-error-policy=error \
+       blocksize-error-policy=$policy \
        --run '
 nbdsh \
     --base-allocation -u "$uri" \
@@ -115,3 +117,96 @@ except nbd.Error as ex:
 h.block_status(2*1024*1024, 0, f)
 "
 '
+done
+
+# When the image size is unaligned, the policies differ on unaligned length
+# that reaches to the end of the image.
+for policy in error strict-error; do
+nbdkit -v eval \
+       block_size="echo 512 4096 1M" \
+       get_size="echo 1026" \
+       pread=" dd if=/dev/zero count=\$3 iflag=count_bytes " \
+       --filter=blocksize-policy \
+       blocksize-error-policy=$policy \
+       --run 'policy='$policy'; export policy
+nbdsh \
+    --base-allocation -u "$uri" \
+    -c "
+import os
+
+def cb(context, offset, entries, err):
+    assert entries[0] in [2, 1024, 1026]
+    assert entries[1] == 0
+
+policy = os.getenv(\"policy\")
+" \
+    -c "assert h.get_block_size(nbd.SIZE_MINIMUM) == 512" \
+    -c "assert h.get_block_size(nbd.SIZE_PREFERRED) == 4096" \
+    -c "assert h.get_block_size(nbd.SIZE_MAXIMUM) == 1024 * 1024" \
+    -c "h.set_strict_mode(h.get_strict_mode() & ~nbd.STRICT_ALIGN)" \
+    -c "
+# This request should work
+b = h.pread(512, 0)
+" \
+    -c "
+# Count not a multiple of minimum size
+try:
+    h.pread(768, 0)
+    assert False
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+" \
+    -c "
+# Offset not a multiple of minimum size
+try:
+    h.pread(512, 514)
+    assert False
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+" \
+    -c "
+# Count smaller than minimum size
+try:
+    h.pread(1, 1024)
+    assert False
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+" \
+    -c "
+# Accessing the unaligned tail with small count exposes the difference
+try:
+    h.pread(2, 1024)
+    assert policy == \"error\"
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+    assert policy == \"strict-error\"
+" \
+    -c "
+# Accessing the unaligned tail with large count exposes the difference
+try:
+    h.pread(1026, 0)
+    assert policy == \"error\"
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+    assert policy == \"strict-error\"
+" \
+    -c "
+# Accessing the unaligned tail with small count exposes the difference
+try:
+    h.block_status(2, 1024, cb)
+    assert policy == \"error\"
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+    assert policy == \"strict-error\"
+" \
+    -c "
+# Accessing the unaligned tail with large count exposes the difference
+try:
+    h.block_status(1026, 0, cb)
+    assert policy == \"error\"
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+    assert policy == \"strict-error\"
+"
+'
+done

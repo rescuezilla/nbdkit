@@ -6,7 +6,7 @@ maximum block size, and apply error policy
 =head1 SYNOPSIS
 
  nbdkit --filter=blocksize-policy PLUGIN
-        [blocksize-error-policy=allow|error]
+        [blocksize-error-policy=allow|error|strict-error]
         [blocksize-minimum=N]
         [blocksize-preferred=N]
         [blocksize-maximum=N]
@@ -61,8 +61,14 @@ to emulate the behavior of other servers.
 
 This filter does not alter the underlying size of the plugin, even
 when that size is not a multiple of the minimum block size.  When the
-plugin size is unaligned, the client will be unable to access the last
-few bytes of the image without making an unaligned request.
+plugin size is unaligned, C<blocksize-error-policy=error> will permit
+unaligned lengths for requests that extend through the end of the
+plugin size, so that the client may attempt to access those last few
+bytes of the image; C<blocksize-error-policy=strict-error> prevents
+any access to the unaligned tail.  However, it may be more convenient
+to ensure that the client sees an image size that is a multiple of the
+minimum block size, at which point there is no difference between the
+C<error> and C<strict-error> policies.
 
 It is possible to combine this filter with the truncate filter to
 ensure that the client need only worry about aligned requests (note
@@ -72,7 +78,7 @@ ignore the unaligned tail:
   nbdkit --filter=blocksize-policy \
          --filter=truncate \
          PLUGIN ... \
-         blocksize-error-policy=allow \
+         blocksize-error-policy=error \
          blocksize-minimum=512 round-down=512
 
 or to expose a larger image, where the extra bytes are forced to zero:
@@ -80,7 +86,7 @@ or to expose a larger image, where the extra bytes are forced to zero:
   nbdkit --filter=blocksize-policy \
          --filter=truncate \
          PLUGIN ... \
-         blocksize-error-policy=allow \
+         blocksize-error-policy=error \
          blocksize-minimum=512 round-up=512
 
 =head2 Combining with L<nbdkit-blocksize-filter(1)>
@@ -120,6 +126,18 @@ means pass the request through to the plugin.
 
 Use C<error> to return an EINVAL error back to the client.  The plugin
 will not see the badly formed request in this case.
+
+=item B<blocksize-error-policy=strict-error>
+
+(nbdkit E<ge> 1.44)
+
+The C<strict-error> policy is like the C<error> policy except when the
+image size advertised to the plugin is not a multiple of the minimum
+block size.  In that case, the normal C<error> policy permits
+unaligned lengths that coincide with the end of the image (offsets
+must still be aligned, and any unaligned length that does not reach to
+the end of the image is still rejected), while C<strict-error>
+also prevents any attempt to access the unaligned tail of the image.
 
 =item B<blocksize-write-disconnect=>N
 
