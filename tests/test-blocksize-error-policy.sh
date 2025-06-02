@@ -41,6 +41,8 @@ requires nbdsh -c 'print(h.get_strict_mode)'
 requires_nbdsh_uri
 requires dd iflag=count_bytes </dev/null
 
+# The plugin intentionally does not support extents, meaning nbdkit
+# supplies a default that reports all data.
 nbdkit -v eval \
        block_size="echo 512 4096 1M" \
        get_size="echo 64M" \
@@ -49,7 +51,11 @@ nbdkit -v eval \
        blocksize-error-policy=error \
        --run '
 nbdsh \
-    -u "$uri" \
+    --base-allocation -u "$uri" \
+    -c "
+def f(context, offset, extents, err):
+    pass
+" \
     -c "assert h.get_block_size(nbd.SIZE_MINIMUM) == 512" \
     -c "assert h.get_block_size(nbd.SIZE_PREFERRED) == 4096" \
     -c "assert h.get_block_size(nbd.SIZE_MAXIMUM) == 1024 * 1024" \
@@ -67,11 +73,21 @@ try:
     assert False
 except nbd.Error as ex:
     assert ex.errno == \"EINVAL\"
+try:
+    h.block_status(768, 0, f)
+    assert False
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
 " \
     -c "
 # Offset not a multiple of minimum size
 try:
     h.pread(512, 768)
+    assert False
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
+try:
+    h.block_status(512, 768, f)
     assert False
 except nbd.Error as ex:
     assert ex.errno == \"EINVAL\"
@@ -83,13 +99,19 @@ try:
     assert False
 except nbd.Error as ex:
     assert ex.errno == \"EINVAL\"
+try:
+    h.block_status(256, 0, f)
+    assert False
+except nbd.Error as ex:
+    assert ex.errno == \"EINVAL\"
 " \
     -c "
-# Count larger than maximum size
+# Count larger than maximum size; only an error on data commands.
 try:
     h.pread(2*1024*1024, 0)
     assert False
 except nbd.Error as ex:
     assert ex.errno == \"EINVAL\"
+h.block_status(2*1024*1024, 0, f)
 "
 '

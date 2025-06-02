@@ -235,6 +235,18 @@ policy_block_size (nbdkit_next *next, void *handle,
   return 0;
 }
 
+/* We need the server to call our .extents for alignment checks, even
+ * when the plugin lacks .extents, since otherwise the server would
+ * synthesize a response of all data regardless of alignment.
+ */
+static int
+policy_can_extents (nbdkit_next *next, void *handle)
+{
+  if (next->can_extents (next) == -1)
+    return -1;
+  return 1;
+}
+
 /* This function checks the error policy for all request functions
  * below.
  *
@@ -386,6 +398,7 @@ static struct nbdkit_filter filter = {
   .config_complete   = policy_config_complete,
 
   .block_size        = policy_block_size,
+  .can_extents       = policy_can_extents,
 
   .pread             = policy_pread,
   .pwrite            = policy_pwrite,
