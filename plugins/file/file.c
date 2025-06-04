@@ -500,6 +500,7 @@ file_list_exports (int readonly, int default_only,
 /* The per-connection handle. */
 struct handle {
   int fd;
+  char *name;                   /* Filename or equivalent. */
   struct stat statbuf;
   bool is_block_device;
   int sector_size;
@@ -557,7 +558,6 @@ static void *
 file_open (int readonly)
 {
   struct handle *h;
-  const char *file;
 
   h = malloc (sizeof *h);
   if (h == NULL) {
@@ -566,36 +566,44 @@ file_open (int readonly)
   }
   h->can_write = !readonly;
   h->fd = -1;
+  h->name = NULL;
 
   switch (mode) {
   case mode_filename:
-    file = filename;
-    if (open_file_by_name (h, readonly, -1, file) == -1) {
-      free (h);
-      return NULL;
+    h->name = strdup (filename);
+    if (h->name == NULL) {
+      nbdkit_error ("strdup: %m");
+      goto err;
     }
+    if (open_file_by_name (h, readonly, -1, h->name) == -1)
+      goto err;
     break;
 
   case mode_directory: {
     int dfd;
+    const char *export_name = nbdkit_export_name ();
 
-    file = nbdkit_export_name ();
-    if (strchr (file, '/')) {
-      nbdkit_error ("exportname cannot contain /");
-      free (h);
+    if (export_name == NULL)
+      goto err;
+
+    h->name = strdup (export_name);
+    if (h->name == NULL) {
+      nbdkit_error ("strdup: %m");
+      goto err;
+    }
+    if (strchr (h->name, '/')) {
+      nbdkit_error ("%s: exportname cannot contain /", h->name);
       errno = EINVAL;
-      return NULL;
+      goto err;
     }
     dfd = open (directory, O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (dfd == -1) {
       nbdkit_error ("open %s: %m", directory);
-      free (h);
-      return NULL;
+      goto err;
     }
-    if (open_file_by_name (h, readonly, dfd, file) == -1) {
-      free (h);
+    if (open_file_by_name (h, readonly, dfd, h->name) == -1) {
       close (dfd);
-      return NULL;
+      goto err;
     }
     close (dfd);
     break;
@@ -604,14 +612,14 @@ file_open (int readonly)
   case mode_fd: {
     int r;
 
-    /* This is needed for error messages. */
-    file = "<file descriptor>";
-
+    if (asprintf (&h->name, "fd=%d", filedesc) == -1) {
+      nbdkit_error ("asprintf: %m");
+      goto err;
+    }
     h->fd = dup (filedesc);
     if (h->fd == -1) {
-      nbdkit_error ("dup fd=%d: %m", filedesc);
-      free (h);
-      return NULL;
+      nbdkit_error ("dup: %s: %m", h->name);
+      goto err;
     }
 
     /* If the file descriptor is readonly then we should not advertise
@@ -619,10 +627,8 @@ file_open (int readonly)
      */
     r = fcntl (h->fd, F_GETFL);
     if (r == -1) {
-      nbdkit_error ("fcntl: F_GETFL: %m");
-      close (h->fd);
-      free (h);
-      return NULL;
+      nbdkit_error ("fcntl: %s: F_GETFL: %m", h->name);
+      goto err;
     }
     r &= O_ACCMODE;
     if (r == O_RDONLY)
@@ -636,25 +642,30 @@ file_open (int readonly)
 
   case mode_dirfd: {
     int dfd;
+    const char *export_name = nbdkit_export_name ();
 
-    file = nbdkit_export_name ();
-    if (strchr (file, '/')) {
-      nbdkit_error ("exportname cannot contain /");
-      free (h);
+    if (export_name == NULL)
+      goto err;
+
+    h->name = strdup (export_name);
+    if (h->name == NULL) {
+      nbdkit_error ("strdup: %m");
+      goto err;
+    }
+    if (strchr (h->name, '/')) {
+      nbdkit_error ("%s: exportname cannot contain /", h->name);
       errno = EINVAL;
-      return NULL;
+      goto err;
     }
     /* We don't fork, so no need to worry about FD_CLOEXEC on the directory */
     dfd = dup (filedesc);
     if (dfd == -1) {
-      nbdkit_error ("dup dirfd=%d: %m", filedesc);
-      free (h);
-      return NULL;
+      nbdkit_error ("dup: dirfd=%d: %m", filedesc);
+      goto err;
     }
-    if (open_file_by_name (h, readonly, dfd, file) == -1) {
-      free (h);
+    if (open_file_by_name (h, readonly, dfd, h->name) == -1) {
       close (dfd);
-      return NULL;
+      goto err;
     }
     close (dfd);
     break;
@@ -665,12 +676,11 @@ file_open (int readonly)
   }
 
   assert (h->fd >= 0);
+  assert (h->name != NULL);
 
   if (fstat (h->fd, &h->statbuf) == -1) {
-    nbdkit_error ("fstat: %s: %m", file);
-    close (h->fd);
-    free (h);
-    return NULL;
+    nbdkit_error ("fstat: %s: %m", h->name);
+    goto err;
   }
 
   if (fadvise_mode != -1) {
@@ -678,7 +688,7 @@ file_open (int readonly)
 #ifdef HAVE_POSIX_FADVISE
     int r = posix_fadvise (h->fd, 0, 0, fadvise_mode);
     if (r == -1)
-      nbdkit_debug ("posix_fadvise: %s: %m (ignored)", file);
+      nbdkit_debug ("posix_fadvise: %s: %m (ignored)", h->name);
 #else
     nbdkit_debug ("fadvise is not supported");
 #endif
@@ -689,17 +699,15 @@ file_open (int readonly)
   else if (S_ISREG (h->statbuf.st_mode))
     h->is_block_device = false;
   else {
-    nbdkit_error ("file is not regular or block device: %s", file);
-    close (h->fd);
-    free (h);
-    return NULL;
+    nbdkit_error ("file is not regular or block device: %s", h->name);
+    goto err;
   }
 
   h->sector_size = 4096; /* Start with safe guess */
 #ifdef BLKSSZGET
   if (h->is_block_device) {
     if (ioctl (h->fd, BLKSSZGET, &h->sector_size) == -1)
-      nbdkit_debug ("cannot get sector size: %s: %m", file);
+      nbdkit_debug ("cannot get sector size: %s: %m", h->name);
   }
 #endif
 
@@ -707,7 +715,7 @@ file_open (int readonly)
 #ifdef BLKROTATIONAL
   if (h->is_block_device) {
     if (ioctl (h->fd, BLKROTATIONAL, &h->rotational) == -1)
-      nbdkit_debug ("cannot get rotational property: %s: %m", file);
+      nbdkit_debug ("cannot get rotational property: %s: %m", h->name);
   }
 #endif
 
@@ -717,10 +725,10 @@ file_open (int readonly)
     unsigned int minimum_io_size = 0, optimal_io_size = 0;
 
     if (ioctl (h->fd, BLKIOMIN, &minimum_io_size) == -1)
-      nbdkit_debug ("cannot get BLKIOMIN: %s: %m", file);
+      nbdkit_debug ("cannot get BLKIOMIN: %s: %m", h->name);
 
     if (ioctl (h->fd, BLKIOOPT, &optimal_io_size) == -1)
-      nbdkit_debug ("cannot get BLKIOOPT: %s: %m", file);
+      nbdkit_debug ("cannot get BLKIOOPT: %s: %m", h->name);
     else if (optimal_io_size == 0)
       /* All devices in the Linux kernel except for MD report optimal
        * as 0.  In that case guess a good value.
@@ -754,6 +762,13 @@ file_open (int readonly)
   h->can_blkdiscard = h->is_block_device;
 
   return h;
+
+ err:
+  if (h->fd >= 0)
+    close (h->fd);
+  free (h->name);
+  free (h);
+  return NULL;
 }
 
 /* Free up the per-connection handle. */
@@ -766,6 +781,7 @@ file_close (void *handle)
   remove_fd_from_window (h->fd);
 #endif
   close (h->fd);
+  free (h->name);
   free (h);
 }
 
