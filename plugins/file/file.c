@@ -797,7 +797,7 @@ file_get_size (void *handle)
 
   r = device_size (h->fd, &h->statbuf);
   if (r == -1) {
-    nbdkit_error ("device_size: %m");
+    nbdkit_error ("device_size: %s: %m", h->name);
     return -1;
   }
   return r;
@@ -883,7 +883,7 @@ file_flush (void *handle, uint32_t flags)
   struct handle *h = handle;
 
   if (fdatasync (h->fd) == -1) {
-    nbdkit_error ("fdatasync: %m");
+    nbdkit_error ("fdatasync: %s: %m", h->name);
     return -1;
   }
 
@@ -904,11 +904,11 @@ file_pread (void *handle, void *buf, uint32_t count, uint64_t offset,
   while (count > 0) {
     ssize_t r = pread (h->fd, buf, count, offset);
     if (r == -1) {
-      nbdkit_error ("pread: %m");
+      nbdkit_error ("pread: %s: %m", h->name);
       return -1;
     }
     if (r == 0) {
-      nbdkit_error ("pread: unexpected end of file");
+      nbdkit_error ("pread: %s: unexpected end of file", h->name);
       return -1;
     }
     buf += r;
@@ -939,7 +939,7 @@ file_pwrite (void *handle, const void *buf, uint32_t count, uint64_t offset,
   while (count > 0) {
     ssize_t r = pwrite (h->fd, buf, count, offset);
     if (r == -1) {
-      nbdkit_error ("pwrite: %m");
+      nbdkit_error ("pwrite: %s: %m", h->name);
       return -1;
     }
     buf += r;
@@ -1021,7 +1021,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     }
 
     if (!is_enotsup (errno)) {
-      nbdkit_error ("zero: %m");
+      nbdkit_error ("zero: %s: %m", h->name);
       return -1;
     }
 
@@ -1057,7 +1057,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
       }
 
       if (!is_enotsup (errno)) {
-        nbdkit_error ("zero: %m");
+        nbdkit_error ("zero: %s: %m", h->name);
         return -1;
       }
 
@@ -1065,7 +1065,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     }
     else {
       if (!is_enotsup (errno)) {
-        nbdkit_error ("zero: %m");
+        nbdkit_error ("zero: %s: %m", h->name);
         return -1;
       }
 
@@ -1087,7 +1087,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     }
 
     if (!is_enotsup (errno)) {
-      nbdkit_error ("zero: %m");
+      nbdkit_error ("zero: %s: %m", h->name);
       return -1;
     }
 
@@ -1115,14 +1115,14 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
       }
 
       if (!is_enotsup (errno)) {
-        nbdkit_error ("zero: %m");
+        nbdkit_error ("zero: %s: %m", h->name);
         return -1;
       }
 
       h->can_fallocate = false;
     } else {
       if (!is_enotsup (errno)) {
-        nbdkit_error ("zero: %m");
+        nbdkit_error ("zero: %s: %m", h->name);
         return -1;
       }
 
@@ -1146,7 +1146,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     }
 
     if (errno != ENOTTY) {
-      nbdkit_error ("zero: %m");
+      nbdkit_error ("zero: %s: %m", h->name);
       return -1;
     }
 
@@ -1183,7 +1183,7 @@ file_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
                       offset, count);
     if (r == -1) {
       if (!is_enotsup (errno)) {
-        nbdkit_error ("fallocate: %m");
+        nbdkit_error ("fallocate: %s: %m", h->name);
         return -1;
       }
 
@@ -1204,7 +1204,7 @@ file_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     r = ioctl (h->fd, BLKDISCARD, &range);
     if (r == -1) {
       if (!is_enotsup (errno)) {
-        nbdkit_error ("ioctl: BLKDISCARD: %m");
+        nbdkit_error ("ioctl: %s: BLKDISCARD: %m", h->name);
         return -1;
       }
 
@@ -1322,7 +1322,7 @@ file_cache (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
   r = posix_fadvise (h->fd, offset, count, POSIX_FADV_WILLNEED);
   if (r) {
     errno = r;
-    nbdkit_error ("posix_fadvise: %m");
+    nbdkit_error ("posix_fadvise: %s: %m", h->name);
     return -1;
   }
   return 0;
