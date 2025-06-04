@@ -242,12 +242,12 @@ if test "x$compiler_warnings" = "xyes"; then
     WARNINGS_CFLAGS="-Wall -Wshadow -Wvla -Werror"
     AC_SUBST([WARNINGS_CFLAGS])
 
-    dnl Hack (temporary?) for FreeBSD which complains about:
+    dnl Hack for clang which complains about:
     dnl c++: error: argument unused during compilation: '-pthread' [-Werror,-Wunused-command-line-argument]
     WARNINGS_MODULE_CXXFLAGS="$WARNINGS_CFLAGS"
     AC_MSG_CHECKING([if we should disable unused-command-line-argument warning])
-    AS_CASE([$host_os],
-      [freebsd*], [
+    AS_CASE([$CXX],
+      [*clang*], [
           WARNINGS_MODULE_CXXFLAGS="$WARNINGS_MODULE_CXXFLAGS -Xcompiler -Wno-unused-command-line-argument"
           AC_MSG_RESULT([yes])
       ],
