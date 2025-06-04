@@ -1656,11 +1656,13 @@ TESTS += \
 	test-blocksize-policy.sh \
 	test-blocksize-error-policy.sh \
 	test-blocksize-write-disconnect.sh \
+	test-blocksize-policy-extents.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-blocksize-policy.sh \
 	test-blocksize-error-policy.sh \
 	test-blocksize-write-disconnect.sh \
+	test-blocksize-policy-extents.sh \
 	$(NULL)
 
 if HAVE_BZLIB

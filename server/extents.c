@@ -220,8 +220,15 @@ nbdkit_extents_aligned (struct context *next_c,
   struct nbdkit_next_ops *next = &next_c->next;
   size_t i;
   struct nbdkit_extent *e, *e2;
+  int64_t size;
 
-  assert (IS_ALIGNED (count | offset, align));
+  size = next->get_size (next_c);
+  if (size == -1) {
+    *err = EIO;
+    return -1;
+  }
+  assert (IS_ALIGNED (offset, align));
+  assert (IS_ALIGNED (count, align) || offset + count == size);
 
   /* Perform an initial query, then scan for the first unaligned extent. */
   if (next->extents (next_c, count, offset, flags, exts, err) == -1)
@@ -248,6 +255,8 @@ nbdkit_extents_aligned (struct context *next_c,
        * correct type for our merged extent.
        */
       assert (i == 0);
+      if (count < align)
+        align = count;
       while (e->length < align) {
         if (exts->extents.len > 1) {
           e->length += exts->extents.ptr[1].length;

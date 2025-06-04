@@ -41,6 +41,7 @@
 #include <string.h>
 #include <assert.h>
 #include <signal.h>
+#include <ctype.h>
 
 #define NBDKIT_API_VERSION 2
 #include <nbdkit-plugin.h>
@@ -51,6 +52,7 @@
 #include "checked-overflow.h"
 #include "cleanup.h"
 #include "hexdigit.h"
+#include "human-size.h"
 #include "ispowerof2.h"
 #include "minmax.h"
 #include "nbdkit-string.h"
@@ -494,6 +496,9 @@ parser (int level, const char *value, size_t *start, size_t len,
     int j, n;
     int64_t i64, m;
     size_t flen;
+    char sign;
+    char *end;
+    const char *err, *pstr;
 
     switch (value[i]) {
     case '#':                   /* # comment */
@@ -505,68 +510,60 @@ parser (int level, const char *value, size_t *start, size_t len,
     case '@':                   /* @OFFSET */
       if (++i == len) goto parse_error;
       switch (value[i]) {
-      case '+':                 /* @+N */
-        if (++i == len) goto parse_error;
-        if (sscanf (&value[i], "%" SCNi64 "%n", &i64, &n) == 1) {
-          if (i64 < 0) {
-            nbdkit_error ("data parameter after @+ must not be negative");
-            return -1;
-          }
-          i += n;
-          APPEND_EXPR (new_node (expr (EXPR_REL_OFFSET, i64)));
-        }
-        else
-          goto parse_error;
-        break;
-      case '-':                 /* @-N */
-        if (++i == len) goto parse_error;
-        if (sscanf (&value[i], "%" SCNi64 "%n", &i64, &n) == 1) {
-          if (i64 < 0) {
-            nbdkit_error ("data parameter after @- must not be negative");
-            return -1;
-          }
-          i += n;
-          APPEND_EXPR (new_node (expr (EXPR_REL_OFFSET, -i64)));
-        }
-        else
-          goto parse_error;
-        break;
-      case '^':                 /* @^ALIGNMENT */
-        if (++i == len) goto parse_error;
-        /* We must use %i into i64 in order to parse 0x etc. */
-        if (sscanf (&value[i], "%" SCNi64 "%n", &i64, &n) == 1) {
-          if (i64 < 0) {
-            nbdkit_error ("data parameter after @^ must not be negative");
-            return -1;
-          }
-          /* XXX fix this arbitrary restriction */
-          if (!is_power_of_2 (i64)) {
-            nbdkit_error ("data parameter @^%" PRIi64 " must be a power of 2",
-                          i64);
-            return -1;
-          }
-          i += n;
-          APPEND_EXPR (new_node (expr (EXPR_ALIGN_OFFSET, (uint64_t) i64)));
-        }
-        else
-          goto parse_error;
-        break;
-      case '0': case '1': case '2': case '3': case '4':
-      case '5': case '6': case '7': case '8': case '9':
-        /* We must use %i into i64 in order to parse 0x etc. */
-        if (sscanf (&value[i], "%" SCNi64 "%n", &i64, &n) == 1) {
-          if (i64 < 0) {
-            nbdkit_error ("data parameter @OFFSET must not be negative");
-            return -1;
-          }
-          i += n;
-          APPEND_EXPR (new_node (expr (EXPR_ABS_OFFSET, (uint64_t) i64)));
-        }
-        else
-          goto parse_error;
+      case '+':
+      case '-':
+      case '^':
+        sign = value[i++];
         break;
       default:
+        sign = '\0';
+      }
+      if (value[i] == '0') {
+        /* hex or octal, no scaling suffix possible */
+        if (sscanf (&value[i], "%" SCNi64 "%n", &i64, &n) == 1) {
+          if (i64 < 0) {
+            nbdkit_error ("data parameter after @ must not be negative");
+            return -1;
+          }
+          i += n;
+        }
+        else
+          goto parse_error;
+      }
+      else if (isdigit(value[i])) {
+        /* decimal, scaling suffix allowed */
+        i64 = human_size_parse_substr (&value[i], &end, &err, &pstr);
+        if (i64 == -1) {
+          nbdkit_error ("%s: %s", err, pstr);
+          return -1;
+        }
+        if (*end && !isspace (*end) && *end != ')')
+          goto parse_error;
+        i = end - value;
+      }
+      else
+        /* empty string or unknown byte */
         goto parse_error;
+
+      switch (sign) {
+      case '+':                 /* @+N */
+        APPEND_EXPR (new_node (expr (EXPR_REL_OFFSET, i64)));
+        break;
+      case '-':                 /* @-N */
+        APPEND_EXPR (new_node (expr (EXPR_REL_OFFSET, -i64)));
+        break;
+      case '^':                 /* @^ALIGNMENT */
+        /* XXX fix this arbitrary restriction */
+        if (!is_power_of_2 (i64)) {
+          nbdkit_error ("data parameter @^%" PRIi64 " must be a power of 2",
+                        i64);
+          return -1;
+        }
+        APPEND_EXPR (new_node (expr (EXPR_ALIGN_OFFSET, (uint64_t) i64)));
+        break;
+      default:
+        APPEND_EXPR (new_node (expr (EXPR_ABS_OFFSET, (uint64_t) i64)));
+        break;
       }
       break;
 

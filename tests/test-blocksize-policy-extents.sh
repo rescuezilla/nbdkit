@@ -30,42 +30,41 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
+# Demonstrate blocksize-policy rounding extents
+
 source ./functions.sh
 set -e
 set -x
 
 requires_run
-requires_plugin eval
-requires_nbdsh_uri
-requires nbdsh --base-allocation --version
+requires_plugin data
+requires_nbdinfo
 
-files="eval-extents.out"
+files="blocksize-policy-extents.out"
 rm -f $files
 cleanup_fn rm -f $files
 
-# Trigger an off-by-one bug introduced in v1.11.10 and fixed in v1.43.7
-export script='
-def f(context, offset, extents, status):
-  print(extents)
+if ! nbdinfo --help | grep -- --map ; then
+    echo "$0: nbdinfo --map option required to run this test"
+    exit 77
+fi
 
-# First, probe where the server should return 2 extents.
-h.block_status(2**32-1, 2, f)
+# When the truncate filter rounds an unaligned file up, the client should
+# still see aligned results.
+nbdkit data "@32k 1" --filter=blocksize-policy --filter=truncate \
+       round-up=512 blocksize-minimum=512 blocksize-error-policy=error \
+       --run 'nbdinfo --map "$uri"' > blocksize-policy-extents.out
+diff -u - blocksize-policy-extents.out <<EOF
+         0       32768    3  hole,zero
+     32768         512    0  data
+EOF
 
-# Next, probe where the server has exactly 2**32-1 bytes in its first extent.
-h.block_status(2**32-1, 1, f)
-
-# Now, probe where the first extent has to be truncated.
-h.block_status(2**32-1, 0, f)
-'
-nbdkit eval \
-       get_size='echo 5G' \
-       pread='dd if=/dev/zero count=$3 iflag=count_bytes' \
-       extents='echo 0 4G 1; echo 4G 1G 2' \
-       --run 'nbdsh --base-allocation --uri "$uri" -c "$script"' \
-       > eval-extents.out
-cat eval-extents.out
-diff -u - eval-extents.out <<EOF
-[4294901760, 1]
-[4294901760, 1]
-[4294901760, 1]
+# Also ensure that the server itself is not breaking alignment at 4G
+# boundaries.
+nbdkit data "@4G 1 @^512" --filter=blocksize-policy \
+       blocksize-minimum=512 blocksize-error-policy=error \
+       --run 'nbdinfo --map "$uri"' > blocksize-policy-extents.out
+diff -u - blocksize-policy-extents.out <<EOF
+         0  4294967296    3  hole,zero
+4294967296         512    0  data
 EOF

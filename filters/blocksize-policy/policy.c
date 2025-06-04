@@ -38,6 +38,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include <nbdkit-filter.h>
 
@@ -52,7 +53,7 @@ static uint32_t config_maximum;
 static uint32_t config_disconnect;
 
 /* Error policy. */
-static enum { EP_ALLOW, EP_ERROR } error_policy = EP_ALLOW;
+static enum { EP_ALLOW, EP_ERROR, EP_STRICT_ERROR } error_policy = EP_ALLOW;
 
 static int
 policy_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
@@ -65,6 +66,9 @@ policy_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
       error_policy = EP_ALLOW;
     else if (strcmp (value, "error") == 0)
       error_policy = EP_ERROR;
+    else if (strcmp (value, "strict") == 0 ||
+             strcmp (value, "strict-error") == 0)
+      error_policy = EP_STRICT_ERROR;
     else {
       nbdkit_error ("unknown %s: %s", key, value);
       return -1;
@@ -235,6 +239,18 @@ policy_block_size (nbdkit_next *next, void *handle,
   return 0;
 }
 
+/* We need the server to call our .extents for alignment checks, even
+ * when the plugin lacks .extents, since otherwise the server would
+ * synthesize a response of all data regardless of alignment.
+ */
+static int
+policy_can_extents (nbdkit_next *next, void *handle)
+{
+  if (next->can_extents (next) == -1)
+    return -1;
+  return 1;
+}
+
 /* This function checks the error policy for all request functions
  * below.
  *
@@ -251,6 +267,8 @@ check_policy (nbdkit_next *next, void *handle,
               uint32_t count, uint64_t offset, int *err)
 {
   uint32_t minimum, preferred, maximum;
+  int64_t size;
+  uint64_t count64 = count;
 
   if (error_policy == EP_ALLOW)
     return 0;
@@ -266,13 +284,36 @@ check_policy (nbdkit_next *next, void *handle,
     *err = errno ? : EINVAL;
     return -1;
   }
-
   /* If there are no constraints, allow. */
   if (minimum == 0)
     return 0;
 
+  /* If we are not being strict about unaligned tails, fudge requests
+   * that coincide with the end of an unaligned image.  As with block
+   * constraints, this is cached in the backend, so that the plugin is
+   * only asked once.
+   */
+  if (error_policy == EP_ERROR)
+    {
+      size = next->get_size (next);
+      if (size == -1) {
+        *err = errno ? : EINVAL;
+        return -1;
+      }
+      if (count + offset == size)
+        count64 = ROUND_UP (count64, minimum);
+    }
+
   /* Check constraints. */
-  if (count < minimum) {
+  if ((offset % minimum) != 0) {
+    *err = EINVAL;
+    nbdkit_error ("client %s request rejected: "
+                  "offset %" PRIu64 " is not aligned to a multiple "
+                  "of minimum size %" PRIu32,
+                  type, offset, minimum);
+    return -1;
+  }
+  if (count64 < minimum) {
     *err = EINVAL;
     nbdkit_error ("client %s request rejected: "
                   "count %" PRIu32 " is smaller than minimum size %" PRIu32,
@@ -286,20 +327,12 @@ check_policy (nbdkit_next *next, void *handle,
                   type, count, maximum);
     return -1;
   }
-  if ((count % minimum) != 0) {
+  if ((count64 % minimum) != 0) {
     *err = EINVAL;
     nbdkit_error ("client %s request rejected: "
                   "count %" PRIu32 " is not a multiple "
                   "of minimum size %" PRIu32,
                   type, count, minimum);
-    return -1;
-  }
-  if ((offset % minimum) != 0) {
-    *err = EINVAL;
-    nbdkit_error ("client %s request rejected: "
-                  "offset %" PRIu64 " is not aligned to a multiple "
-                  "of minimum size %" PRIu32,
-                  type, offset, minimum);
     return -1;
   }
 
@@ -373,10 +406,22 @@ policy_extents (nbdkit_next *next,
                 void *handle, uint32_t count, uint64_t offset, uint32_t flags,
                 struct nbdkit_extents *extents, int *err)
 {
+  uint32_t minimum, preferred, maximum;
+  int res;
+
   if (check_policy (next, handle, "extents", false, count, offset, err) == -1)
     return -1;
 
-  return next->extents (next, count, offset, flags, extents, err);
+  /* Munge the plugin's response to values that match the alignment we
+   * are enforcing; that way, a client that performs later operations
+   * at boundaries determined by the block status result will still be
+   * aligned.  Since check_policy succeeded, policy_block_size will too.
+   */
+  res = policy_block_size (next, handle,
+                           &minimum, &preferred, &maximum);
+  assert (res == 0);
+  return nbdkit_extents_aligned (next, count, offset, flags,
+                                 minimum ?: 1, extents, err);
 }
 
 static struct nbdkit_filter filter = {
@@ -386,6 +431,7 @@ static struct nbdkit_filter filter = {
   .config_complete   = policy_config_complete,
 
   .block_size        = policy_block_size,
+  .can_extents       = policy_can_extents,
 
   .pread             = policy_pread,
   .pwrite            = policy_pwrite,

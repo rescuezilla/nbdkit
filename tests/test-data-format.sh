@@ -66,7 +66,7 @@ if size > 0:
     actual = h.pread(size, 0)
 else:
     actual = b\"\"
-def trunc(s): return s[:128] + (s[128:] and b\"...\")
+def trunc(s): return s[:128] + (s[128:] and b\"...\" + s[-4:])
 print(\"actual:   %r\" % trunc(actual))
 print(\"expected: %r\" % trunc(expected))
 assert actual == expected
@@ -116,6 +116,12 @@ do_test '@4 "\x00"' 'b"\x00\x00\x00\x00\x00"'
 do_test '@+4 "\x00"' 'b"\x00\x00\x00\x00\x00"'
 do_test '@+4 @-1 "\x00"' 'b"\x00\x00\x00\x00"'
 do_test '1 @^4 "\x00"' 'b"\x01\x00\x00\x00\x00"'
+
+#----------------------------------------------------------------------
+# Larger offsets.
+do_test '@1k "\x01"' 'bytearray(1024) + b"\x01"'
+do_test '@0x400 "\x01"' 'bytearray(1024) + b"\x01"'
+do_test '@02000 "\x01"' 'bytearray(1024) + b"\x01"'
 
 #----------------------------------------------------------------------
 # Comments.

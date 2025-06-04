@@ -110,7 +110,7 @@ backend_default_export (struct backend *b, int readonly)
 
 /* Unit tests. */
 
-#include "human-size-test-cases.h" /* defines 'pairs' below */
+#include "human-size-test-cases.h" /* defines 'tuples' below */
 
 static bool
 test_nbdkit_parse_size (void)
@@ -118,19 +118,20 @@ test_nbdkit_parse_size (void)
   size_t i;
   bool pass = true;
 
-  for (i = 0; i < ARRAY_SIZE (pairs); i++) {
+  for (i = 0; i < ARRAY_SIZE (tuples); i++) {
     int64_t r;
+    int64_t expect = tuples[i].tail && *tuples[i].tail ? -1 : tuples[i].res;
 
     error_flagged = false;
-    r = nbdkit_parse_size (pairs[i].str);
-    if (r != pairs[i].res) {
+    r = nbdkit_parse_size (tuples[i].str);
+    if (r != expect) {
       fprintf (stderr,
                "Wrong parse for %s, got %" PRId64 ", expected %" PRId64 "\n",
-               pairs[i].str, r, pairs[i].res);
+               tuples[i].str, r, expect);
       pass = false;
     }
     if ((r == -1) != error_flagged) {
-      fprintf (stderr, "Wrong error message handling for %s\n", pairs[i].str);
+      fprintf (stderr, "Wrong error message handling for %s\n", tuples[i].str);
       pass = false;
     }
   }
