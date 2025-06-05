@@ -225,6 +225,8 @@ AS_IF([$CXX --version >&AS_MESSAGE_LOG_FD 2>&1],[have_cxx=yes],[have_cxx=no])
 AC_MSG_RESULT([$have_cxx])
 AM_CONDITIONAL([HAVE_CXX], [test "$have_cxx" = "yes"])
 
+AX_PTHREAD
+
 dnl If --enable-gcc-warnings is used, then compiler warnings are
 dnl turned on.  Despite the name this applies to GCC, Clang and
 dnl Rust (clippy) warnings.
@@ -245,9 +247,11 @@ if test "x$compiler_warnings" = "xyes"; then
     dnl Hack for clang which complains about:
     dnl c++: error: argument unused during compilation: '-pthread' [-Werror,-Wunused-command-line-argument]
     WARNINGS_MODULE_CXXFLAGS="$WARNINGS_CFLAGS"
+    dnl ax_pthread.m4 already tested if we are building with clang, and
+    dnl tries to avoid -pthread to the linker for C; but since it is getting
+    dnl added back in for C++, we can shut it up with extra CXXFLAGS.
     AC_MSG_CHECKING([if we should disable unused-command-line-argument warning])
-    AS_CASE([$CXX],
-      [*clang*], [
+    AS_IF([test "x$ax_pthread_clang" = "xyes"], [
           WARNINGS_MODULE_CXXFLAGS="$WARNINGS_MODULE_CXXFLAGS -Xcompiler -Wno-unused-command-line-argument"
           AC_MSG_RESULT([yes])
       ],
@@ -297,8 +301,6 @@ AC_DEFINE_UNQUOTED([LARGE_TMPDIR],["$LARGE_TMPDIR"],
 
 dnl Check if libc has program_invocation_short_name.
 AC_CHECK_DECLS([program_invocation_short_name], [], [], [#include <errno.h>])
-
-AX_PTHREAD
 
 dnl Check if __attribute__((cleanup(...))) works.
 dnl Set -Werror, otherwise gcc will only emit a warning for attributes
