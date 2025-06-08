@@ -98,7 +98,7 @@ display_stats (void)
 
   nbdkit_debug ("VDDK function stats (-D vddk.stats=1):");
   nbdkit_debug ("%-24s  %15s %5s %15s",
-                "VixDiskLib_...", "µs", "calls", "bytes");
+                "VixDiskLib_...", "us", "calls", "bytes");
   for (i = 0; i < stats.len; ++i) {
     if (stats.ptr[i].usecs) {
       if (stats.ptr[i].bytes > 0)
