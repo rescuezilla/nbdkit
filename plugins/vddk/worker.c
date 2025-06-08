@@ -120,6 +120,11 @@ complete_command (void *vp, VixError result)
     nbdkit_debug ("command %" PRIu64 " (%s) completed",
                   cmd->id, command_type_string (cmd->type));
 
+  /* Update the stats for this asynchronous call. */
+  update_stats (&cmd->start_t, cmd->count,
+                cmd->type == READ ? &stats_VixDiskLib_ReadAsync :
+                &stats_VixDiskLib_WriteAsync);
+
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&cmd->mutex);
 
   if (result == VIX_OK) {
@@ -219,13 +224,15 @@ do_read (struct command *cmd, struct vddk_handle *h)
   offset /= VIXDISKLIB_SECTOR_SIZE;
   count /= VIXDISKLIB_SECTOR_SIZE;
 
+  gettimeofday (&cmd->start_t, NULL);
+
   VDDK_CALL_START (VixDiskLib_ReadAsync,
                    "handle, %" PRIu64 " sectors, "
                    "%" PRIu32 " sectors, buffer, callback, %" PRIu64,
                    offset, count, cmd->id)
     err = VixDiskLib_ReadAsync (h->handle, offset, count, buf,
                                 complete_command, cmd);
-  VDDK_CALL_END (VixDiskLib_ReadAsync, count * VIXDISKLIB_SECTOR_SIZE);
+  VDDK_CALL_END_ASYNC ();
   if (err != VIX_ASYNC) {
     VDDK_ERROR (err, "VixDiskLib_ReadAsync");
     return -1;
@@ -256,13 +263,15 @@ do_write (struct command *cmd, struct vddk_handle *h)
   offset /= VIXDISKLIB_SECTOR_SIZE;
   count /= VIXDISKLIB_SECTOR_SIZE;
 
+  gettimeofday (&cmd->start_t, NULL);
+
   VDDK_CALL_START (VixDiskLib_WriteAsync,
                    "handle, %" PRIu64 " sectors, "
                    "%" PRIu32 " sectors, buffer, callback, %" PRIu64,
                    offset, count, cmd->id)
     err = VixDiskLib_WriteAsync (h->handle, offset, count, buf,
                                  complete_command, cmd);
-  VDDK_CALL_END (VixDiskLib_WriteAsync, count * VIXDISKLIB_SECTOR_SIZE);
+  VDDK_CALL_END_ASYNC ();
   if (err != VIX_ASYNC) {
     VDDK_ERROR (err, "VixDiskLib_WriteAsync");
     return -1;

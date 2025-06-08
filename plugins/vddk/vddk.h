@@ -39,6 +39,7 @@
 
 #include <pthread.h>
 
+#include "cleanup.h"
 #include "isaligned.h"
 #include "tvdiff.h"
 #include "vector.h"
@@ -92,7 +93,7 @@ extern int vddk_debug_stats;
  */
 #define VDDK_CALL_START(fn, fs, ...)                                    \
   do {                                                                  \
-  struct timeval start_t, end_t;                                        \
+  struct timeval start_t;                                               \
   /* GCC can optimize this away at compile time: */                     \
   const bool datapath =                                                 \
     strcmp (#fn, "VixDiskLib_Read") == 0 ||                             \
@@ -106,13 +107,13 @@ extern int vddk_debug_stats;
   do
 #define VDDK_CALL_END(fn, bytes_)                       \
   while (0);                                            \
-  if (vddk_debug_stats) {                               \
-    gettimeofday (&end_t, NULL);                        \
-    ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&stats_lock);       \
-    stats_##fn.usecs += tvdiff_usec (&start_t, &end_t); \
-    stats_##fn.calls++;                                 \
-    stats_##fn.bytes += bytes_;                         \
-  }                                                     \
+  update_stats (&start_t, bytes_, &stats_##fn);         \
+  } while (0)
+/* Same as VDDK_CALL_END, but for {Read,Write}Async, where we will
+ * update the stats ourself.
+ */
+#define VDDK_CALL_END_ASYNC()                           \
+  while (0);                                            \
   } while (0)
 
 /* Print VDDK errors. */
@@ -142,6 +143,7 @@ struct command {
   uint64_t id;                  /* serial number */
 
   /* These fields are used by the internal implementation. */
+  struct timeval start_t;       /* start time */
   pthread_mutex_t mutex;        /* completion mutex */
   pthread_cond_t cond;          /* completion condition */
   enum { SUBMITTED, SUCCEEDED, FAILED } status;
@@ -200,6 +202,25 @@ extern pthread_mutex_t stats_lock;
 #undef STUB
 #undef OPTIONAL_STUB
 extern void display_stats (void);
+
+static inline void
+update_stats (const struct timeval *start_t, uint64_t bytes,
+              struct vddk_stat *stat)
+{
+  if (vddk_debug_stats) {
+    struct timeval end_t;
+    int64_t usecs;
+
+    gettimeofday (&end_t, NULL);
+    usecs = tvdiff_usec (start_t, &end_t);
+
+    /* Keep this critical section as small as possible. */
+    ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&stats_lock);
+    stat->usecs += usecs;
+    stat->calls++;
+    stat->bytes += bytes;
+  }
+}
 
 /* utils.c */
 extern void trim (char *str);
