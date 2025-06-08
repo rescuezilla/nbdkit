@@ -97,7 +97,7 @@ display_stats (void)
   qsort (stats.ptr, stats.len, sizeof stats.ptr[0], stat_compare);
 
   nbdkit_debug ("VDDK function stats (-D vddk.stats=1):");
-  nbdkit_debug ("%-24s  %15s %5s %15s",
+  nbdkit_debug ("%-24s %15s %5s %15s",
                 "VixDiskLib_...", "us", "calls", "bytes");
   for (i = 0; i < stats.len; ++i) {
     if (stats.ptr[i].usecs) {
