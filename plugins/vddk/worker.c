@@ -327,7 +327,8 @@ test_can_extents (struct vddk_handle *h)
                                            0, VIXDISKLIB_MIN_CHUNK_SIZE,
                                            VIXDISKLIB_MIN_CHUNK_SIZE,
                                            &block_list);
-  VDDK_CALL_END (VixDiskLib_QueryAllocatedBlocks, 0);
+  VDDK_CALL_END (VixDiskLib_QueryAllocatedBlocks,
+                 VIXDISKLIB_MIN_CHUNK_SIZE * VIXDISKLIB_SECTOR_SIZE);
   error_suppression = 0;
   if (err == VIX_OK) {
     VDDK_CALL_START (VixDiskLib_FreeBlockList, "block_list")
@@ -435,7 +436,8 @@ get_extents_slow (struct command *cmd, struct vddk_handle *h)
                                              start_sector, nr_sectors,
                                              VIXDISKLIB_MIN_CHUNK_SIZE,
                                              &block_list);
-    VDDK_CALL_END (VixDiskLib_QueryAllocatedBlocks, 0);
+    VDDK_CALL_END (VixDiskLib_QueryAllocatedBlocks,
+                   nr_sectors * VIXDISKLIB_SECTOR_SIZE);
     if (err != VIX_OK) {
       VDDK_ERROR (err, "VixDiskLib_QueryAllocatedBlocks");
       return -1;
@@ -532,7 +534,8 @@ pre_cache_extents (struct vddk_handle *h)
                                              start_sector, nr_sectors,
                                              VIXDISKLIB_MIN_CHUNK_SIZE,
                                              &block_list);
-    VDDK_CALL_END (VixDiskLib_QueryAllocatedBlocks, 0);
+    VDDK_CALL_END (VixDiskLib_QueryAllocatedBlocks,
+                   nr_sectors * VIXDISKLIB_SECTOR_SIZE);
     if (err != VIX_OK) {
       VDDK_ERROR (err, "VixDiskLib_QueryAllocatedBlocks");
       nbdkit_extents_free (extents);
