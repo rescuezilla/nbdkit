@@ -83,7 +83,7 @@ const char *server[2] = { NULL, NULL };
 static void
 cleanup (void)
 {
-  int status;
+  int status, final_status = 0;
   struct test_nbdkit *next;
   const char *s;
 
@@ -108,7 +108,9 @@ cleanup (void)
         _exit (EXIT_FAILURE);
       }
       if (WIFEXITED (status) && WEXITSTATUS (status) != 0) {
-        _exit (WEXITSTATUS (status));
+        fprintf (stderr, "nbdkit exited with non-zero status %d\n",
+                 WEXITSTATUS (status));
+        final_status = WEXITSTATUS (status);
       }
       if (WIFSIGNALED (status)) {
         /* Note that nbdkit is supposed to catch the signal we send and
@@ -131,6 +133,12 @@ cleanup (void)
     free (head);
     head = next;
   }
+
+  /* If any nbdkit child died with a non-zero status, return that
+   * which will cause the test to fail.
+   */
+  if (final_status != 0)
+    _exit (final_status);
 }
 
 int
