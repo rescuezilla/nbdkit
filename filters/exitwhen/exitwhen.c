@@ -447,8 +447,15 @@ exitwhen_get_ready (int thread_model)
 {
   ACQUIRE_LOCK_FOR_CURRENT_SCOPE (&lock);
 
-  if (check_for_event ())
+  if (check_for_event ()) {
+    nbdkit_debug ("exitwhen: exit condition detected before starting");
+    /* Returning -1 here would also exit, but nbdkit would return a
+     * non-zero error code which is not correct since this is a
+     * non-error case.  Calling nbdkit_shutdown() would also work but
+     * is not necessary before nbdkit forks.
+     */
     exit (EXIT_SUCCESS);
+  }
 
   return 0;
 }
