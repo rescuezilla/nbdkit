@@ -34,7 +34,7 @@
 #define NBDKIT_TMPDIR_H
 
 /* Temporary directory for scripts to use. */
-extern char tmpdir[];
+extern char *tmpdir;
 
 /* Copy of environ, with $tmpdir added. */
 extern char **env;

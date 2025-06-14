@@ -190,6 +190,9 @@ set_nonblock (int fd)
 char *
 make_temporary_directory (void)
 {
+  /* NB: Callers assume this path will not need to be quoted, eg.  for
+   * running shell scripts etc.
+   */
   char template[] = "/tmp/nbdkitXXXXXX";
 
   if (mkdtemp (template) == NULL)
