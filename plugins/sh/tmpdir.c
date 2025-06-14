@@ -48,14 +48,15 @@
 extern char **environ;
 #endif
 
-char tmpdir[] = "/tmp/nbdkitXXXXXX";
+char *tmpdir;
 char **env;
 
 void
 tmpdir_load (void)
 {
   /* Create the temporary directory for the shell script to use. */
-  if (mkdtemp (tmpdir) == NULL) {
+  tmpdir = make_temporary_directory ();
+  if (!tmpdir) {
     nbdkit_error ("mkdtemp: /tmp: %m");
     exit (EXIT_FAILURE);
   }
@@ -79,6 +80,7 @@ tmpdir_unload (void)
   /* Delete the temporary directory.  Ignore all errors. */
   if (asprintf (&cmd, "rm -rf %s", tmpdir) >= 0)
     system (cmd);
+  free (tmpdir);
 
   /* Free the private copy of environ. */
   for (i = 0; env[i] != NULL; ++i)

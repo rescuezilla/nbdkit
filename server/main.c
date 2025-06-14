@@ -81,6 +81,7 @@
 #endif
 
 static char *make_random_fifo (void);
+static void cleanup_random_fifo (void);
 static struct backend *open_plugin_so (size_t i, const char *filename,
                                        int short_name);
 static struct backend *open_filter_so (struct backend *next, size_t i,
@@ -318,6 +319,7 @@ main (int argc, char *argv[])
     switch (c) {
     case DUMP_CONFIG_OPTION:
       dump_config ();
+      cleanup_random_fifo ();
       exit (EXIT_SUCCESS);
 
     case DUMP_PLUGIN_OPTION:
@@ -389,6 +391,7 @@ main (int argc, char *argv[])
             strcmp (long_options[i].name, "short-options") != 0)
           printf ("--%s\n", long_options[i].name);
       }
+      cleanup_random_fifo ();
       exit (EXIT_SUCCESS);
 
     case MASK_HANDSHAKE_OPTION:
@@ -428,6 +431,7 @@ main (int argc, char *argv[])
         if (short_options[i] != ':')
           printf ("-%c\n", short_options[i]);
       }
+      cleanup_random_fifo ();
       exit (EXIT_SUCCESS);
 
     case SWAP_OPTION:
@@ -602,10 +606,12 @@ main (int argc, char *argv[])
   if (optind >= argc) {
     if (help) {
       usage ();
+      cleanup_random_fifo ();
       exit (EXIT_SUCCESS);
     }
     if (version) {
       display_version ();
+      cleanup_random_fifo ();
       exit (EXIT_SUCCESS);
     }
     if (dump_plugin) {
@@ -615,6 +621,7 @@ main (int argc, char *argv[])
                "'nbdkit /path/to/plugin." SOEXT " --dump-plugin' or\n"
                "if you want to find out about the server use --dump-config\n",
                program_name);
+      cleanup_random_fifo ();
       exit (EXIT_FAILURE);
     }
 
@@ -805,6 +812,7 @@ main (int argc, char *argv[])
       b->usage (b);
     }
     top->free (top);
+    cleanup_random_fifo ();
     exit (EXIT_SUCCESS);
   }
 
@@ -820,6 +828,7 @@ main (int argc, char *argv[])
       printf ("\n");
     }
     top->free (top);
+    cleanup_random_fifo ();
     exit (EXIT_SUCCESS);
   }
 
@@ -874,6 +883,7 @@ main (int argc, char *argv[])
     top->dump_fields (top);
     top->free (top);
     free_interns ();
+    cleanup_random_fifo ();
     exit (EXIT_SUCCESS);
   }
 
@@ -916,16 +926,7 @@ main (int argc, char *argv[])
   free (pidfile);
   free (uri);
 
-  if (random_fifo) {
-    unlink (random_fifo);
-    free (random_fifo);
-  }
-
-  if (random_fifo_dir) {
-    rmdir (random_fifo_dir);
-    free (random_fifo_dir);
-  }
-
+  cleanup_random_fifo ();
   crypto_free ();
   close_quit_pipe ();
 
@@ -964,12 +965,22 @@ make_random_fifo (void)
   return sock;
 
  error:
-  free (random_fifo);
-  random_fifo = NULL;
-  rmdir (random_fifo_dir);
-  free (random_fifo_dir);
-  random_fifo_dir = NULL;
+  cleanup_random_fifo ();
   return NULL;
+}
+
+static void
+cleanup_random_fifo (void)
+{
+  if (random_fifo) {
+    unlink (random_fifo);
+    free (random_fifo);
+  }
+
+  if (random_fifo_dir) {
+    rmdir (random_fifo_dir);
+    free (random_fifo_dir);
+  }
 }
 
 const char *
