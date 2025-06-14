@@ -232,8 +232,10 @@ run_header_script (struct curl_handle *ch)
 
   if (pclose (fp) != 0) {
     error_from_tmpfile ("header-script", tmpfile);
+    unlink (tmpfile);
     return -1;
   }
+  unlink (tmpfile);
 
   nbdkit_debug ("header-script returned %zu header(s)", nr_headers);
   return 0;
@@ -311,8 +313,10 @@ run_cookie_script (struct curl_handle *ch)
 
   if (pclose (fp) != 0) {
     error_from_tmpfile ("cookie-script", tmpfile);
+    unlink (tmpfile);
     return -1;
   }
+  unlink (tmpfile);
 
   nbdkit_debug ("cookie-script returned %scookies",
                 cookies_from_script ? "" : "no ");
