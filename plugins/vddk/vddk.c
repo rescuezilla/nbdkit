@@ -421,7 +421,7 @@ static void
 missing_required_symbol (const char *fn)
 {
   nbdkit_error ("required VDDK symbol \"%s\" is missing. "
-                "VDDK version must be >= 6.5. "
+                "VDDK version must be >= 6.7. "
                 "See nbdkit-vddk-plugin(1) man page "
                 "section \"SUPPORTED VERSIONS OF VDDK\". "
                 "Original dlopen error: %s\n",
@@ -440,7 +440,7 @@ load_library (bool load_error_is_fatal)
     /* Prefer the newest library in case multiple exist.  Check two
      * possible directories: the usual VDDK installation puts .so
      * files in an arch-specific subdirectory of $libdir (our minimum
-     * supported version is VDDK 6.5, which only supports x64-64); but
+     * supported version is VDDK 6.7, which only supports x64-64); but
      * our testsuite is easier to write if we point libdir directly to
      * a stub .so.
      */
@@ -1006,7 +1006,7 @@ vddk_block_size (void *handle,
   return 0;
 }
 
-/* The Flush call was added in VDDK 6.0, since we support minimum 6.5
+/* The Flush call was added in VDDK 6.0, since we support minimum 6.7
  * we are always able to do FUA / flush.
  */
 static int
