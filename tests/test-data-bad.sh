@@ -41,12 +41,22 @@ requires_run
 # Since this test is expected to fail, valgrind will also fail.
 skip_if_valgrind
 
+sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
+rm -f $sock
+cleanup_fn rm -f $sock
+
 bad ()
 {
     data="$1"
 
     # This command is expected to fail.
-    if nbdkit -fv -D data.AST=1 data "$data" --run true; then
+    #
+    # The socket is never used.  However the alternative '-U -'
+    # creates a temporary directory in /tmp which never gets cleaned
+    # up along this code path, creating one temporary directory per
+    # test when running the test suite.
+    rm -f $sock
+    if nbdkit -fv -U $sock -D data.AST=1 data "$data" --run true; then
         echo "$0: data plugin was expected to fail on bad input: $data"
         exit 1
     fi

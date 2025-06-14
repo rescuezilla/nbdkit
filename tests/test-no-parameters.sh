@@ -44,6 +44,10 @@ if is_windows; then
     exit 77
 fi
 
+sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
+rm -f $sock
+cleanup_fn rm -f $sock
+
 run_test ()
 {
     # What we're doing here is running the plugin with no parameters,
@@ -51,7 +55,13 @@ run_test ()
     # exitwhen filter will trigger shutdown in .get_ready().  That is
     # after plugin configuration is done which is the most likely time
     # to see a crash.
-    nbdkit -f -v -U - --filter=exitwhen $1 exit-when-script="exit 88"
+    #
+    # The socket is never used.  However the alternative '-U -'
+    # creates a temporary directory in /tmp which never gets cleaned
+    # up along this code path, creating dozens of temporary
+    # directories when running the test suite.
+    rm -f $sock
+    nbdkit -f -v -U $sock --filter=exitwhen $1 exit-when-script="exit 88"
     r=$?
     if [ $r -eq 119 ]; then
         echo "FAIL: valgrind failure in plugin $1"
