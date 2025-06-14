@@ -48,9 +48,9 @@ run_test ()
 {
     # What we're doing here is running the plugin with no parameters,
     # but ensuring that nbdkit will shutdown almost immediately.  The
-    # exitwhen filter will trigger shutdown in .after_fork, after
-    # configuration is done which is the most likely time to see a
-    # crash.
+    # exitwhen filter will trigger shutdown in .get_ready().  That is
+    # after plugin configuration is done which is the most likely time
+    # to see a crash.
     nbdkit -f -v -U - --filter=exitwhen $1 exit-when-script="exit 88"
     r=$?
     if [ $r -eq 119 ]; then
