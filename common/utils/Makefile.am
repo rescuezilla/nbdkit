@@ -47,6 +47,7 @@ libutils_la_SOURCES = \
 	full-rw.c \
 	quote.c \
 	nbdkit-string.h \
+	string.c \
 	string-vector.h \
 	utils.c \
 	utils.h \

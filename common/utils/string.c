@@ -1,6 +1,9 @@
 /* nbdkit
  * Copyright Red Hat
  *
+ * This is based on code from util-linux/lib/blkdev.c which is
+ * distributed under a compatible license.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -30,19 +33,44 @@
  * SUCH DAMAGE.
  */
 
-/* Extensible string.  The implementation uses vector.h. */
+#include <config.h>
 
-#ifndef NBDKIT_STRING_H
-#define NBDKIT_STRING_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
 
-#include "vector.h"
+#include "cleanup.h"
+#include "nbdkit-string.h"
 
-DEFINE_VECTOR_TYPE (string, char);
-#define CLEANUP_FREE_STRING __attribute__ ((cleanup (string_reset)))
+ssize_t
+string_append_format (string *s, const char *fs, ...)
+{
+  CLEANUP_FREE char *s2 = NULL;
+  va_list ap;
+  size_t i, len;
+  ssize_t need;
+  int r;
 
-/* Append a formatted string to the end of string 's'.  Returns the
- * new length of 's'.  On error, returns -1.
- */
-extern ssize_t string_append_format (string *s, const char *fs, ...);
+  va_start (ap, fs);
+  r = vasprintf (&s2, fs, ap);
+  va_end (ap);
+  if (r == -1) return -1;
 
-#endif /* NBDKIT_STRING_H */
+  /* Make sure the string is always \0-terminated by ensuring the
+   * reservation is 1 byte longer than we need.
+   */
+  len = strlen (s2);
+  need = s->len + len + 1 - s->cap;
+  if (need > 0 && string_reserve (s, need) == -1)
+    return -1;
+
+  for (i = 0; i < len; ++i)
+    string_append (s, s2[i]);
+
+  /* Make sure the string is \0-terminated in the byte of space
+   * reserved after the string.
+   */
+  s->ptr[s->len] = '\0';
+
+  return s->len;
+}
