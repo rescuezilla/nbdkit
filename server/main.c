@@ -67,11 +67,13 @@
 #include "ascii-string.h"
 #include "exit-with-parent.h"
 #include "nbd-protocol.h"
+#include "nbdkit-string.h"
 #include "open_memstream.h"
 #include "realpath.h"
 #include "strndup.h"
 #include "syslog.h"
 #include "utils.h"
+#include "vector.h"
 
 #include "internal.h"
 #include "options.h"
@@ -789,6 +791,30 @@ main (int argc, char *argv[])
 
     filter_filenames = t->next;
     free (t);
+  }
+
+  /* In verbose mode, print the layers for easier understanding of how
+   * requests are processed.
+   */
+  if (verbose) {
+    CLEANUP_FREE_STRING string s = empty_vector;
+    struct backend *b;
+
+    for_each_backend (b) {
+      if (string_append_format (&s,
+                                "%s%s (%s%s)",
+                                b != top ? " -> " : "",
+                                b->name,
+                                b->i > 0 ? "filter" : "plugin",
+                                b == top ? ", first" :
+                                  b->i == 0 ? ", last": "")
+          == -1) {
+        fprintf (stderr, "%s: string_append_format: %m", program_name);
+        exit (EXIT_FAILURE);
+      }
+    }
+
+    nbdkit_debug ("request processing: %s", s.ptr);
   }
 
   /* Apply nbdkit.* flags for the server. */
