@@ -151,7 +151,7 @@ start_nbdkit ()
 
 # kill_nbdkit pid
 #
-# End the nbkdit process with the given pid.  Exit this script with an
+# End the nbdkit process with the given pid.  Exit this script with an
 # error if nbdkit does not gracefully shutdown in a timely manner.
 kill_nbdkit ()
 {
