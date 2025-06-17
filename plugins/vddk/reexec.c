@@ -128,10 +128,16 @@ perform_reexec (const char *env, const char *prepend)
    * problematic since the file will be read twice, which may break
    * for special files.
    *
-   * However we may write the password to a temporary file and
-   * substitute password=-<FD> of the opened temporary file here.
-   * The trick is described by Eric Blake here:
-   * https://www.redhat.com/archives/libguestfs/2020-June/msg00021.html
+   * We cannot copy the password to a temporary file and use
+   * password=+TEMPORARY since there is no easy way to delete the file
+   * after reexec (and leaving files with passwords around isn't nice
+   * even if it's not necessarily a security issue).  However we may
+   * write the password to a temporary file and substitute
+   * password=-FD of the opened temporary file, then delete the
+   * temporary file here.
+   *
+   * The trick was described by Eric Blake here:
+   * https://web.archive.org/web/20230820095915/https://listman.redhat.com/archives/libguestfs/2020-June/msg00021.html
    *
    * (RHBZ#1842440)
    */
