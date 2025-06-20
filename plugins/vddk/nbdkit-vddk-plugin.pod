@@ -50,6 +50,17 @@ The C<libdir> parameter points to the location of VDDK, see
 L</LIBRARY LOCATION> below.  In the examples below it is omitted for
 brevity.
 
+=head2 Show the amount of space used in a local VMDK file
+
+This requires the L<nbdinfo(1)> utility from libnbd:
+
+ $ nbdkit vddk -r /absolute/path/to/file.vmdk \
+          --run 'nbdinfo --map --totals "$uri"'
+  132055040   0.3%   0 data
+ 42817617920  99.7%   3 hole,zero
+
+In this case the VMDK file is thin provisioned and almost entirely empty.
+
 =head2 Create a new local VMDK file
 
 You can use VDDK to create a VMDK file and fill it with the contents
@@ -853,6 +864,7 @@ L<nbdkit-blocksize-filter(1)>,
 L<nbdkit-readahead-filter(1)>,
 L<nbdkit-retry-filter(1)>,
 L<nbdkit-scan-filter(1)>,
+L<nbdinfo(1)>,
 L<virsh(1)>,
 L<https://gitlab.com/nbdkit/vddk-remote>,
 L<https://libvirt.org/drvesx.html>,
