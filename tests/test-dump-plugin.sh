@@ -43,7 +43,7 @@ do_test ()
 {
     vg=; [ "$NBDKIT_VALGRIND" = "1" ] && vg="-valgrind"
     case "$1$vg" in
-        python-valgrind | tcl-valgrind)
+        S3-valgrind | gcs-valgrind | python-valgrind | tcl-valgrind)
             echo "$0: skipping $1$vg because this language doesn't support valgrind"
             ;;
         example4*)
