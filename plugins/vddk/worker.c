@@ -457,6 +457,9 @@ get_extents_slow (struct command *cmd, struct vddk_handle *h)
 
       blk_offset = block_list->blocks[i].offset * VIXDISKLIB_SECTOR_SIZE;
       blk_length = block_list->blocks[i].length * VIXDISKLIB_SECTOR_SIZE;
+      nbdkit_debug ("QueryAllocatedBlocks returned allocated block at "
+                    "%" PRIu64 "-%" PRIu64 " (length %" PRIu64 ")",
+                    blk_offset, blk_offset + blk_length-1, blk_length);
 
       /* The query returns allocated blocks.  We must insert holes
        * between the blocks as necessary.
@@ -556,6 +559,9 @@ pre_cache_extents (struct vddk_handle *h)
 
       blk_offset = block_list->blocks[i].offset * VIXDISKLIB_SECTOR_SIZE;
       blk_length = block_list->blocks[i].length * VIXDISKLIB_SECTOR_SIZE;
+      nbdkit_debug ("QueryAllocatedBlocks returned allocated block at "
+                    "%" PRIu64 "-%" PRIu64 " (length %" PRIu64 ")",
+                    blk_offset, blk_offset + blk_length-1, blk_length);
 
       /* The query returns allocated blocks.  We must insert holes
        * between the blocks as necessary.
