@@ -761,6 +761,16 @@ With VDDK E<ge> 8.0.2 on Red Hat Enterprise Linux 8:
 This is a bug in VDDK.  The workaround is to use VDDK 8.0.1.
 See also: L<https://issues.redhat.com/browse/RHEL-28533>
 
+=head2 Extents information may not be reliable for local VMDK files
+
+The underlying C<QueryAllocatedBlocks> call which we use to return
+extents information does not seem to work reliably for local VMDK
+files, often returning wildly incorrect information such as showing
+allocated files to be completely sparse.  This can affect
+sparseness-aware tools like L<nbdcopy(1)>.  If you see this you can
+ignore sparseness information by adding I<--filter=noextents> on the
+nbdkit command line (see L<nbdkit-noextents-filter(1)>).
+
 =head1 DEBUG FLAGS
 
 Debugging messages can be very helpful if you have problems connecting
@@ -813,9 +823,12 @@ C<nbdkit-vddk-plugin> first appeared in nbdkit 1.2.
 L<nbdkit(1)>,
 L<nbdkit-plugin(3)>,
 L<nbdkit-blocksize-filter(1)>,
+L<nbdkit-noextents-filter(1)>,
 L<nbdkit-readahead-filter(1)>,
 L<nbdkit-retry-filter(1)>,
 L<nbdkit-scan-filter(1)>,
+L<nbdcopy(1)>,
+L<nbdinfo(1)>,
 L<virsh(1)>,
 L<https://gitlab.com/nbdkit/vddk-remote>,
 L<https://libvirt.org/drvesx.html>,
