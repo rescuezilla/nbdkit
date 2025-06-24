@@ -12,7 +12,7 @@ nbdkit 1.44.0 was released on B<XXX XXX 2025>.
 =head2 Security
 
 Fix off-by-one for maximum block_status length (CVE-2025-47711), and a
-32-bit overflow in extents handing (CVE-2025-47712) (reported by
+32-bit overflow in extents handling (CVE-2025-47712) (reported by
 Nikolay Ivanets and Eric Blake, and fixed by Eric Blake).
 
 Thread-local storage is now used when printing certain protocol
@@ -118,7 +118,7 @@ The particularly long-running C<test-spinning-mkfs.sh> test has been
 modified to finish more quickly.
 
 Previously running the whole test suite would leave many
-F</tmp/nbdkitXXXXXX> temporary directories over.  These have been
+F</tmp/nbdkitXXXXXX> temporary directories behind.  These have been
 reduced although not quite eliminated.
 
 =head2 Build
