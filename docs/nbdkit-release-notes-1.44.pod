@@ -17,8 +17,12 @@ Nikolay Ivanets and Eric Blake, and fixed by Eric Blake).
 
 Thread-local storage is now used when printing certain protocol
 messages in verbose mode, which avoids possible output corruption.
-The existing code was examined to see if this could have been a
-security problem, but it is not thought so.
+Since these messages were generated based on untrusted client input,
+the existing code was examined to see if this could have been
+exploitable, but it is not thought so.  Nevertheless the fix was
+backported to stable version 1.42.2 and updating is recommended.
+
+See L<nbdkit-security(1)> for past security issues.
 
 =head2 Plugins
 
@@ -60,7 +64,7 @@ expected to be removed in S<nbdkit 1.46>.
 
 L<nbdkit-cow-filter(1)> now understands that the NBD protocol export
 name causes multiple disk images to be exported, and correctly creates
-an overlay per export.
+an overlay per export.  (See also L</Documentation> below.)
 
 L<nbdkit-ext2-filter(1)> now permits concurrent client connections
 (Eric Blake).
@@ -77,12 +81,13 @@ to block that.  (Eric Blake).
 
 =head2 Language bindings
 
-L<Plugins written in golang|nbdkit-golang-plugin(3)> now issue a
+L<Plugins written in Golang|nbdkit-golang-plugin(3)> now issue a
 warning if L<fork(2)> is called, since that will likely cause the
 plugin to break.
 
-In L<nbdkit-rust-plugin(3)>, clippy warnings are now tied to the
-C<./configure --enable-gcc-warnings> flag.
+For L<the Rust plugin and Rust examples|nbdkit-rust-plugin(3)>, clippy
+warnings are now only enabled if the
+S<C<./configure --enable-gcc-warnings>> build option is used.
 
 =head2 Server
 
@@ -94,7 +99,7 @@ default output (the same as if I<--log> is not used at all).
 
 The filter API (which is not part of our API promise) changes the
 C<.thread_model> call, allowing the current thread model to be changed
-conditionally.
+conditionally based on what the plugin sets it to.
 
 =begin comment
 
@@ -121,6 +126,10 @@ Previously running the whole test suite would leave many
 F</tmp/nbdkitXXXXXX> temporary directories behind.  These have been
 reduced although not quite eliminated.
 
+New C<define> function in F<tests/functions.sh> which provides a
+simpler way to add inline plugins and scripts to tests, reducing
+concerns around quoting.
+
 =head2 Build
 
 The C<./configure> output has been beautified, which also helps to
@@ -132,14 +141,17 @@ Allow User Statically Defined Tracing (USDT) probes to be added into
 the server.  Few actual probes are added so far, but the build system
 has been modified to allow it.
 
-L<nbdkit-vddk-plugin(1)> now requires minimum VDDK E<ge> 6.7.
+L<nbdkit-vddk-plugin(1)> drops support for S<VDDK 6.5>, so the minimum
+required version is now S<VDDK E<ge> 6.7>.  Support for
+S<VDDK 9.0.0.0> has been added.
 
 Builds on clang were complaining about unused I<-pthread> option.
 This warning has been fixed (Eric Blake).
 
 =head2 Internals
 
-In Python code, remove unnecessary C<global> statements.
+In Python code, remove unnecessary C<global> statements (thanks Nir
+Soffer).
 
 L<nbdkit-file-plugin(1)> now produces more detailed information in
 error messages, particularly about the file being accessed and the
