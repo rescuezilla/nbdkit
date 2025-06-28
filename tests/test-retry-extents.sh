@@ -47,20 +47,7 @@ touch retry-extents-count retry-extents-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying.
-nbdkit -v \
-       sh - \
-       --filter=retry retry-delay=1 \
-       --run 'nbdsh --base-allocation --uri "$uri" -c "
-entries = []
-def f(metacontext, offset, e, err):
-    global entries
-    assert err.value == 0
-    assert metacontext == nbd.CONTEXT_BASE_ALLOCATION
-    entries = e
-h.block_status(1024, 0, f)
-assert entries == [ 512, 0,
-                    512, 3]
-       "' <<'EOF'
+define plugin <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
     open)
@@ -91,6 +78,24 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+define script <<'EOF'
+entries = []
+def f(metacontext, offset, e, err):
+    global entries
+    assert err.value == 0
+    assert metacontext == nbd.CONTEXT_BASE_ALLOCATION
+    entries = e
+h.block_status(1024, 0, f)
+assert entries == [ 512, 0,
+                    512, 3]
+EOF
+export script
+
+nbdkit -v \
+       sh - <<<"$plugin" \
+       --filter=retry retry-delay=1 \
+       --run 'nbdsh --base-allocation --uri "$uri" -c "$script"'
 
 # In this test we should see 3 failures:
 # extents FAILS

@@ -59,10 +59,7 @@ files="$sock $pid"
 rm -f $files
 cleanup_fn rm -f $files
 
-# Run dual-mode server
-start_nbdkit -P $pid -U $sock \
-             --tls=on --tls-psk=keys.psk -D nbdkit.tls.session=1 \
-             --filter=tls-fallback sh - tlsreadme=$'dummy\n' <<\EOF
+define plugin <<'EOF'
 check () {
  if test "$1" != true; then
    echo 'EINVAL unexpected tls mode' 2>&1; exit 1
@@ -81,6 +78,12 @@ case $1 in
   *) exit 2 ;;
 esac
 EOF
+
+# Run dual-mode server
+start_nbdkit -P $pid -U $sock \
+             --tls=on --tls-psk=keys.psk -D nbdkit.tls.session=1 \
+             --filter=tls-fallback \
+             sh - <<<"$plugin" tlsreadme=$'dummy\n'
 
 # Plaintext client sees only dummy volume
 nbdsh -c '

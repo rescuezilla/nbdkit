@@ -46,10 +46,7 @@ touch retry-readonly-count retry-readonly-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying.
-nbdkit -v \
-       sh - \
-       --filter=retry retry-delay=1 retry-readonly=yes \
-       --run 'qemu-io -f raw -c "w 0 512" -c "w 0 512" "$uri" || :' <<'EOF'
+define plugin <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
     open)
@@ -76,6 +73,11 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+nbdkit -v \
+       sh - <<<"$plugin" \
+       --filter=retry retry-delay=1 retry-readonly=yes \
+       --run 'qemu-io -f raw -c "w 0 512" -c "w 0 512" "$uri" || :'
 
 # In this test we should see 3 failures:
 # first pwrite FAILS

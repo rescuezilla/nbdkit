@@ -43,8 +43,7 @@ requires nbdsh --version
 requires_nbdsh_uri
 requires dd iflag=count_bytes </dev/null
 
-nbdkit sh - --filter=checkwrite <<'EOF' \
-       --run 'nbdsh -u "$uri" -c "h.zero (655360, 262144, 0)"'
+define plugin <<'EOF'
 case "$1" in
   get_size) echo 1048576 ;;
   pread) dd if=/dev/zero count=$3 iflag=count_bytes ;;
@@ -57,3 +56,6 @@ case "$1" in
   *) exit 2 ;;
 esac
 EOF
+
+nbdkit sh - <<<"$plugin" --filter=checkwrite \
+       --run 'nbdsh -u "$uri" -c "h.zero (655360, 262144, 0)"'

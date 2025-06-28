@@ -49,25 +49,8 @@ files="retry-reopen-fail-count retry-reopen-fail-open-count
 rm -f $files
 cleanup_fn rm -f $files
 
-# do_test retries mintime expcount status
-do_test ()
-{
-    retries=$1
-    mintime=$2
-    expcount=$3
-    status=$4
-
-    echo 0 > retry-reopen-fail-count
-    echo 0 > retry-reopen-fail-open-count
-    : > retry-reopen-fail-status
-    start_t=$SECONDS
-
-    # Create a custom plugin which will test retrying.
-    nbdkit -v \
-           sh - \
-           --filter=retry retry-delay=1 retries=$retries \
-           --run 'qemu-io -r -f raw "$uri" -c "r 0 512" -c "r 0 512"
-                  echo $? >> retry-reopen-fail-status' <<'EOF'
+# Create a custom plugin which will test retrying.
+define plugin <<'EOF'
 #!/usr/bin/env bash
 handle=$2
 check_handle () {
@@ -108,6 +91,25 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+# do_test retries mintime expcount status
+do_test ()
+{
+    retries=$1
+    mintime=$2
+    expcount=$3
+    status=$4
+
+    echo 0 > retry-reopen-fail-count
+    echo 0 > retry-reopen-fail-open-count
+    : > retry-reopen-fail-status
+    start_t=$SECONDS
+
+    nbdkit -v \
+           sh - <<<"$plugin" \
+           --filter=retry retry-delay=1 retries=$retries \
+           --run 'qemu-io -r -f raw "$uri" -c "r 0 512" -c "r 0 512"
+                  echo $? >> retry-reopen-fail-status'
 
     # Check that running time appears reasonable.
     end_t=$SECONDS

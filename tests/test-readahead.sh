@@ -43,15 +43,7 @@ files="readahead.out"
 rm -f $files
 cleanup_fn rm -f $files
 
-nbdkit -fv sh - \
-       --filter=readahead \
-       --run 'nbdsh --uri "$uri" -c "
-import time
-for i in range(0, 512*10, 512):
-    h.pread(512, i)
-# Give some time for bgthread to finish.
-time.sleep(5)
-"' <<'EOF'
+define plugin <<'EOF'
 case "$1" in
      block_size)
          echo 512 512 512
@@ -77,6 +69,19 @@ case "$1" in
          ;;
 esac
 EOF
+
+define script <<'EOF'
+import time
+for i in range(0, 512*10, 512):
+    h.pread(512, i)
+# Give some time for bgthread to finish.
+time.sleep(5)
+EOF
+export script
+
+nbdkit -fv sh - <<<"$plugin" \
+       --filter=readahead \
+       --run 'nbdsh --uri "$uri" -c "$script"'
 
 cat readahead.out
 

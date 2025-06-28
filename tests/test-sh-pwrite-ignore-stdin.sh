@@ -38,14 +38,9 @@ set -x
 
 requires_plugin sh
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-pid=sh-pwrite-ignore-stdin.pid
-files="$sock $pid"
-rm -f $files
-cleanup_fn rm -f $files
-
-start_nbdkit -P $pid -U $sock sh - <<'EOF'
+define plugin <<'EOF'
 case "$1" in
     can_write)
         exit 0
@@ -66,7 +61,7 @@ case "$1" in
 esac
 EOF
 
-nbdsh -u "nbd+unix://?socket=$sock" -c '
+define script <<'EOF'
 import errno
 
 buf = bytearray(16*1024*1024)
@@ -78,4 +73,7 @@ try:
 except nbd.Error as ex:
     # Expect an ENOSPC error here.
     assert ex.errnum == errno.ENOSPC
-'
+EOF
+export script
+
+nbdkit sh - <<<"$plugin" --run 'nbdsh -u "$uri" -c "$script"'

@@ -45,8 +45,7 @@ cleanup_fn rm -f $files
 
 # Create an nbdkit sh plugin which reflects the export name back to
 # the caller in the virtual device data and size.
-start_nbdkit -P export-name.pid -U $sock \
-             sh - <<'EOF'
+define plugin <<'EOF'
 case "$1" in
     open)
         # The export name is the handle.  nbdkit-sh-plugin removes
@@ -65,6 +64,8 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+start_nbdkit -P export-name.pid -U $sock sh - <<<"$plugin"
 
 # Try to read back various export names from the plugin.
 for e in "" "test" "/" "//" " " "/ " "?" "テスト" "-n" '\\' $'\n' "%%" \

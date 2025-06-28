@@ -48,10 +48,7 @@ echo 0 > retry-open2-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying open.
-nbdkit -v \
-       sh - \
-       --filter=retry retry-delay=1 \
-       --run 'qemu-io -f raw -c "r -P0 0 512" "$uri" || :' <<'EOF'
+define plugin <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
     open)
@@ -67,6 +64,11 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+nbdkit -v \
+       sh - <<<"$plugin" \
+       --filter=retry retry-delay=1 \
+       --run 'qemu-io -f raw -c "r -P0 0 512" "$uri" || :'
 
 # In this test we should see 1 failure:
 # first open FAILS

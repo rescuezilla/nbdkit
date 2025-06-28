@@ -43,8 +43,7 @@ rm -f $files
 cleanup_fn rm -f $files
 
 # Create an nbdkit sh plugin for checking NBD_INFO replies to NBD_OPT_GO.
-start_nbdkit -P export-info.pid -U $sock \
-             sh - <<'EOF'
+define plugin <<'EOF'
 case "$1" in
     default_export) echo hello ;;
     open) echo "$3" ;;
@@ -53,6 +52,8 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+start_nbdkit -P export-info.pid -U $sock sh - <<<"$plugin"
 
 # Without client request, nothing is advertised
 nbdsh -c '

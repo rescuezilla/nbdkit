@@ -47,18 +47,7 @@ touch retry-zero-flags-count retry-zero-flags-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying.
-nbdkit -v \
-       sh - \
-       --filter=retry retry-delay=1 \
-       --run 'nbdsh --uri "$uri" -c "
-h.zero(512, 0)
-try:
-    h.zero(512, 0,
-           nbd.CMD_FLAG_FUA | nbd.CMD_FLAG_NO_HOLE | nbd.CMD_FLAG_FAST_ZERO)
-except nbd.Error as ex:
-    assert ex.errno == \"ENOTSUP\"
-h.zero(512, 0, nbd.CMD_FLAG_FUA)
-       "' <<'EOF'
+define plugin <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
     open)
@@ -98,6 +87,22 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+define script <<'EOF'
+h.zero(512, 0)
+try:
+    h.zero(512, 0,
+           nbd.CMD_FLAG_FUA | nbd.CMD_FLAG_NO_HOLE | nbd.CMD_FLAG_FAST_ZERO)
+except nbd.Error as ex:
+    assert ex.errno == "ENOTSUP"
+h.zero(512, 0, nbd.CMD_FLAG_FUA)
+EOF
+export script
+
+nbdkit -v \
+       sh - <<<"$plugin" \
+       --filter=retry retry-delay=1 \
+       --run 'nbdsh --uri "$uri" -c "$script"'
 
 # In this test we should see the following pattern:
 # open count 1: both fua and fast_zero supported

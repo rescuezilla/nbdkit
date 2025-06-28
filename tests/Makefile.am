@@ -1961,7 +1961,6 @@ TESTS += \
 	test-multi-conn-name.sh \
 	$(NULL)
 EXTRA_DIST += \
-	test-multi-conn-plugin.sh \
 	test-multi-conn.sh \
 	test-multi-conn-name.sh \
 	$(NULL)

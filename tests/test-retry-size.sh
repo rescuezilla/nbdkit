@@ -49,12 +49,7 @@ touch retry-size-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying.
-st=0
-nbdkit -v \
-       sh - \
-       --filter=retry retry-delay=1 \
-       --run 'nbdsh -u "$uri" \
-           -c "h.pread(512, 0)" -c "h.cache(512, 512)"' <<'EOF' || st=$?
+define plugin <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
     open)
@@ -93,6 +88,13 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+st=0
+nbdkit -v \
+       sh - <<<"$plugin" \
+       --filter=retry retry-delay=1 \
+       --run 'nbdsh -u "$uri" \
+           -c "h.pread(512, 0)" -c "h.cache(512, 512)"' || st=$?
 
 # In this test we should see the following:
 # open reports size 1024

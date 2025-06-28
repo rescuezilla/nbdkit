@@ -47,10 +47,7 @@ touch retry-request-open-count
 start_t=$SECONDS
 
 # Create a custom plugin which will test retrying requests.
-nbdkit -v \
-       sh - \
-       --filter=retry-request retry-request-retries=3 retry-request-delay=1 \
-       --run 'nbdcopy --synchronous "$uri" retry-request-open.img' <<'EOF'
+define plugin <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
     open)
@@ -73,6 +70,11 @@ case "$1" in
     *) exit 2 ;;
 esac
 EOF
+
+nbdkit -v \
+       sh - <<<"$plugin" \
+       --filter=retry-request retry-request-retries=3 retry-request-delay=1 \
+       --run 'nbdcopy --synchronous "$uri" retry-request-open.img'
 
 # In this test we should see 3 failures:
 # open FAILS

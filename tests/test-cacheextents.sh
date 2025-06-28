@@ -49,12 +49,7 @@ files="$pidfile $sock"
 rm -f $files $accessfile
 cleanup_fn rm -f $files
 
-export accessfile_full
-start_nbdkit \
-    -P $pidfile \
-    -U $sock \
-    --filter=cacheextents \
-    sh - <<'EOF'
+define plugin <<'EOF'
 echo "Call: $@" >>$accessfile_full
 size=4M
 block_size=$((1024*1024))
@@ -83,6 +78,12 @@ case "$1" in
 esac
 EOF
 
+export accessfile_full
+start_nbdkit \
+    -P $pidfile \
+    -U $sock \
+    --filter=cacheextents \
+    sh - <<<"$plugin"
 
 test_me() {
     num_accesses=$1
