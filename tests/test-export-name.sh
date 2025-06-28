@@ -39,13 +39,13 @@ requires nbdsh --version
 requires dd iflag=count_bytes </dev/null
 
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock exportname.pid"
+files="$sock export-name.pid"
 rm -f $files
 cleanup_fn rm -f $files
 
 # Create an nbdkit sh plugin which reflects the export name back to
 # the caller in the virtual device data and size.
-start_nbdkit -P exportname.pid -U $sock \
+start_nbdkit -P export-name.pid -U $sock \
              sh - <<'EOF'
 case "$1" in
     open)
