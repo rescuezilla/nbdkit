@@ -35,18 +35,9 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock error10.pid"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the error filter.
-start_nbdkit -P error10.pid -U $sock \
-             --filter=error \
-             pattern 1G error-rate=10%
-
-nbdsh --connect "nbd+unix://?socket=$sock" -c '
+define script <<'EOF'
 # The error rate is 10% so about every 1 in 10 operations should fail.
 errors=0
 for i in range(0,1000):
@@ -61,4 +52,10 @@ for i in range(0,1000):
 # boundaries here.
 print("error rate: %d/1000" % errors)
 assert errors >= 50 and errors <= 150
-'
+EOF
+export script
+
+# Run nbdkit with the error filter.
+nbdkit --filter=error \
+       pattern 1G error-rate=10% \
+       --run ' nbdsh -u "$uri" -c "$script" '

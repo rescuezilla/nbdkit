@@ -35,21 +35,19 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock error0.pid"
-rm -f $files
-cleanup_fn rm -f $files
+define script <<'EOF'
+mbytes = 2**20
+# Because error rate is 0%, reads should never fail.
+h.pread(10*mbytes, 0)
+h.pread(10*mbytes, 20*mbytes)
+h.pread(10*mbytes, 40*mbytes)
+h.pread(10*mbytes, 60*mbytes)
+EOF
+export script
 
 # Run nbdkit with the error filter.
-start_nbdkit -P error0.pid -U $sock \
-             --filter=error \
-             pattern 1G error-rate=0%
-
-# Because error rate is 0%, reads should never fail.
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c 'mbytes = 2**20' \
-      -c 'h.pread(10*mbytes, 0)' \
-      -c 'h.pread(10*mbytes, 20*mbytes)' \
-      -c 'h.pread(10*mbytes, 40*mbytes)' \
-      -c 'h.pread(10*mbytes, 60*mbytes)'
+nbdkit --filter=error \
+       pattern 1G error-rate=0% \
+       --run ' nbdsh -u "$uri" -c "$script" '

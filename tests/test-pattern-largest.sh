@@ -38,19 +38,9 @@ source ./functions.sh
 set -e
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="pattern-largest.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with pattern plugin.
-# size = 2^63-1
-start_nbdkit -P pattern-largest.pid -U $sock \
-       pattern 9223372036854775807
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Construct what we expect to see in the last 511 bytes.
 expected = b""
 for i in range(0, 512-8, 8):
@@ -65,4 +55,9 @@ expected = expected + b"\x7f\xff\xff\xff\xff\xff\xff"
 buf = h.pread(511, 9223372036854775296)
 print("buf = %r\nexpected = %r\n" % (buf, expected))
 assert buf == expected
-'
+EOF
+export script
+
+# Run nbdkit with pattern plugin.
+# size = 2^63-1
+nbdkit pattern 9223372036854775807 --run ' nbdsh -u "$uri" -c "$script" '

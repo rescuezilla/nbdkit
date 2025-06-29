@@ -38,18 +38,21 @@ set -x
 
 requires_run
 requires_nbdsh_uri
+requires_filter offset
+requires_plugin pattern
+
+define script <<'EOF'
+buf = h.pread(512, 0)
+expected = bytearray()
+for i in range(8070450532247927808, 8070450532247927809+512+8, 8):
+    expected = expected + i.to_bytes(8, 'big')
+assert buf == expected[1:513]
+EOF
+export script
 
 # Run nbdkit with pattern plugin and offset filter in front.
 # 8070450532247927809 = 7E - 1023
 nbdkit --filter=offset \
        pattern 7E \
        offset=8070450532247927809 range=512 \
-       --run 'nbdsh -u "$uri" -c -' <<'EOF'
-
-buf = h.pread(512, 0)
-expected = bytearray()
-for i in range(8070450532247927808, 8070450532247927809+512+8, 8):
-    expected = expected + i.to_bytes(8, 'big')
-assert buf == expected[1:513]
-
-EOF
+       --run ' nbdsh -u "$uri" -c "$script" '

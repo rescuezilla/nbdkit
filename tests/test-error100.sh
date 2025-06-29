@@ -35,27 +35,22 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock error100.pid"
-rm -f $files
-cleanup_fn rm -f $files
+define script <<'EOF'
+# The error rate is 100% so every operation must fail with error EIO.
+for i in range(1,100):
+    try:
+        h.pread(512, 0)
+        # This should not happen.
+        exit(1)
+    except nbd.Error as ex:
+        # Check the errno is expected.
+        assert ex.errno == "EIO"
+EOF
+export script
 
 # Run nbdkit with the error filter.
-start_nbdkit -P error100.pid -U $sock \
-             --filter=error \
-             pattern 1G error-rate=100%
-
-# The error rate is 100% so every operation must fail with error EIO.
-for i in {1..100}; do
-    nbdsh --connect "nbd+unix://?socket=$sock" \
-          -c '
-try:
-    h.pread(512, 0)
-    # This should not happen.
-    exit(1)
-except nbd.Error as ex:
-    # Check the errno is expected.
-    assert ex.errno == "EIO"
-'
-done
+nbdkit --filter=error \
+       pattern 1G error-rate=100% \
+       --run ' nbdsh -u "$uri" -c "$script" '

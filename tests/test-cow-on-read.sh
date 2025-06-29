@@ -36,6 +36,7 @@ set -x
 
 requires_filter cow
 requires_nbdsh_uri
+requires_run
 
 # On Windows, calling ftruncate in the cow filter fails with:
 # nbdkit: memory[1]: error: ftruncate: File too large
@@ -44,18 +45,7 @@ if is_windows; then
    exit 77
 fi
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock cow-on-read.pid"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the cow filter and cow-on-read.
-start_nbdkit -P cow-on-read.pid -U $sock \
-             --filter=cow \
-             memory 128K cow-on-read=true
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Write some pattern data to the overlay and check it reads back OK.
 buf = b"abcd" * 16384
 h.pwrite(buf, 32768)
@@ -63,4 +53,10 @@ zero = h.pread(32768, 0)
 assert zero == bytearray(32768)
 buf2 = h.pread(65536, 32768)
 assert buf == buf2
-'
+EOF
+export script
+
+# Run nbdkit with the cow filter and cow-on-read.
+nbdkit --filter=cow \
+       memory 128K cow-on-read=true \
+       --run ' nbdsh -u "$uri" -c "$script" '

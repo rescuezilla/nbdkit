@@ -37,6 +37,7 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
 # Test if the base64 parameter is supported in this build.
 if ! nbdkit data --dump-plugin | grep -sq "data_base64=yes"; then
@@ -44,17 +45,11 @@ if ! nbdkit data --dump-plugin | grep -sq "data_base64=yes"; then
     exit 77
 fi
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="data-base64.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit.
-start_nbdkit -P data-base64.pid -U $sock \
-       data base64=MTIz size=512
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 buf = h.pread(512, 0)
 assert buf == b"\x31\x32\x33" + b"\x00" * (512-3)
-'
+EOF
+export script
+
+# Run nbdkit.
+nbdkit data base64=MTIz size=512 --run ' nbdsh -u "$uri" -c "$script" '

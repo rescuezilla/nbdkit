@@ -37,24 +37,15 @@ source ./functions.sh
 set -e
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="full.pid $sock full.out"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the full plugin.
-start_nbdkit -P full.pid -U $sock full 1M
-
+define script <<'EOF'
 # All reads should succeed.
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c 'h.pread(512, 0)' \
-      -c 'h.pread(512, 512)' \
-      -c 'h.pread(512, 1048064)'
+h.pread(512, 0)
+h.pread(512, 512)
+h.pread(512, 1048064)
 
 # All writes should fail with the ENOSPC error.
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
 def test(offset):
     try:
         h.pwrite(bytearray(512), offset)
@@ -66,4 +57,9 @@ def test(offset):
 
 test(0)
 test(1048064)
-'
+
+EOF
+export script
+
+# Run nbdkit with the full plugin.
+nbdkit full 1M --run ' nbdsh -u "$uri" -c "$script" '

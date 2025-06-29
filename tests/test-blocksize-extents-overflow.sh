@@ -55,7 +55,7 @@ echo 0 5G 0
 # FIXME: Once nbdkit plugin version 3 allows 64-bit block extents, run
 # this test twice, once for each bit size (32-bit needs 2 extents, 64-bit
 # will get the same result with only 1 extent).
-export script='
+define script <<'EOF'
 size = h.get_size()
 offs = 0
 entries = []
@@ -75,7 +75,8 @@ while offs < size:
     len = min(size - offs, 2**32-1)
     h.block_status(len, offs, f)
 assert entries == [(5 * 2**30, 0)]
-'
+EOF
+export script
 
 # Now run everything
 nbdkit --filter=blocksize eval minblock=512 \

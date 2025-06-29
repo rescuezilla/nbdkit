@@ -37,17 +37,13 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="data-raw.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit.
-start_nbdkit -P data-raw.pid -U $sock data raw=123 size=512
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 buf = h.pread(512, 0)
 assert buf == b"\x31\x32\x33" + b"\x00" * (512-3)
-'
+EOF
+export script
+
+# Run nbdkit.
+nbdkit data raw=123 size=512 --run ' nbdsh -u "$uri" -c "$script" '

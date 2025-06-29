@@ -44,7 +44,7 @@ rm -f $files
 cleanup_fn rm -f $files
 
 # Trigger an off-by-one bug introduced in v1.11.10 and fixed in v1.43.7
-export script='
+define script <<'EOF'
 def f(context, offset, extents, status):
   print(extents)
 
@@ -56,7 +56,9 @@ h.block_status(2**32-1, 1, f)
 
 # Now, probe where the first extent has to be truncated.
 h.block_status(2**32-1, 0, f)
-'
+EOF
+export script
+
 nbdkit eval \
        get_size='echo 5G' \
        pread='dd if=/dev/zero count=$3 iflag=count_bytes' \

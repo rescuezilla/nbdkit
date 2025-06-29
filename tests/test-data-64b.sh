@@ -40,15 +40,9 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="data-64b.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit.
-start_nbdkit -P data-64b.pid -U $sock \
-       data '
+define data <<'EOF'
 # Construct a named subexpression which is larger than 32 bits
 # in size and has markers at the beginning and end.  This is 8 GB
 # (sparse).
@@ -57,10 +51,9 @@ start_nbdkit -P data-64b.pid -U $sock \
 # Construct a sparse disk containing several copies using the "*"
 # operator.  The total disk image will be 8*4 = 32 GB (sparse).
 \1 * 4
-'
+EOF
 
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 print ("%d" % h.get_size())
 assert h.get_size() == 0x800000000
 
@@ -71,4 +64,8 @@ for i in range(4):
     assert buf == b"\x55\xAA"
     buf = h.pread(2, offset + 0x200000000 - 2)
     assert buf == b"\x55\xAA"
-'
+EOF
+export script
+
+# Run nbdkit.
+nbdkit data "$data" --run ' nbdsh -u "$uri" -c "$script" '

@@ -49,7 +49,8 @@ cleanup_fn rm -f $files
 # file exists, cache reads; when absent, reads fail if not already cached.
 export witness="$PWD/eval-cache.witness"
 export cache="$PWD/eval-cache.cache"
-export script='
+
+define script <<'EOF'
 import os
 import errno
 
@@ -73,7 +74,9 @@ os.unlink(witness)
 buf = h.pread(64 * 1024 * 1024, 64 * 1024 * 1024)
 if hasattr(buf, "is_zero"):
     assert buf.is_zero()
-'
+EOF
+export script
+
 nbdkit -v eval \
     get_size='echo 128M' can_cache='echo emulate' open='touch "$cache"' \
     pread='
@@ -83,7 +86,7 @@ nbdkit -v eval \
         echo EIO >&2; exit 1
       fi
       dd if=/dev/zero count=$3 iflag=count_bytes
-    ' --run 'nbdsh -u "$uri" -c "$script"'
+    ' --run ' nbdsh -u "$uri" -c "$script" '
 
 # This plugin provides .cache but not .can_cache; eval should synthesize one.
 nbdkit -v eval \

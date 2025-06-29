@@ -46,17 +46,13 @@ fi
 requires_plugin file
 requires_nbdsh_uri
 requires $TRUNCATE --version
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="file-fd.pid file-fd.img $sock"
-rm -f $files
-cleanup_fn rm -f $files
+img=file-fd.img
+rm -f $img
+cleanup_fn rm -f $img
 
-$TRUNCATE -s 16384 file-fd.img
-exec 6<>file-fd.img
-start_nbdkit -P file-fd.pid -U $sock file fd=6
-
-nbdsh -u "nbd+unix://?socket=$sock" -c '
+define script <<'EOF'
 assert not h.is_read_only()
 assert h.get_size() == 16384
 
@@ -69,4 +65,11 @@ assert buf == buf0 + buf1 + buf2 + buf1 + buf2 + buf0*3
 h.zero(4096, 1024)
 buf = h.pread(8192, 0)
 assert buf == buf0*8
-'
+EOF
+export script
+
+# Create a small scratch file and attach it to nbdkit-file-plugin
+# using an opened fd.
+$TRUNCATE -s 16384 $img
+exec 6<>$img
+nbdkit file fd=6 --run ' nbdsh -u "$uri" -c "$script" '

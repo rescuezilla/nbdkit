@@ -45,8 +45,7 @@ requires_nbdsh_uri
 # not supported on all platforms.
 requires nbdkit null --timeout=10 --run true
 
-nbdkit -v --timeout=10 null size=512 \
-       --run 'nbdsh -u "$uri" -c -' <<'EOF'
+define script <<'EOF'
 import time
 # We have negotiated a session, so we should be able to
 # sleep here.
@@ -54,3 +53,7 @@ time.sleep(15)
 data = h.pread(512, 0)
 assert len(data) == 512
 EOF
+export script
+
+nbdkit -v --timeout=10 null size=512 \
+       --run ' nbdsh -u "$uri" -c "$script" '

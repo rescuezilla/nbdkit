@@ -43,7 +43,7 @@ requires nbdsh --base-allocation --version
 
 # Script a server that requires 512-byte aligned requests, reports only one
 # extent at a time, and with a hole placed unaligned to 4k bounds
-exts='
+define exts <<'EOF'
 if test $3 -gt $(( 32 * 1024 )); then
   echo "EINVAL request too large" 2>&1
   exit 1
@@ -57,11 +57,11 @@ if test $(( $4 >= 512 && $4 < 8 * 1024 )) = 1; then
   type=hole,zero
 fi
 echo $4 512 $type
-'
+EOF
 
 # We also need an nbdsh script to parse all extents, coalescing adjacent
 # types for simplicity, as well as testing some unaligned probes.
-export script='
+define script <<'EOF'
 size = h.get_size()
 offs = 0
 entries = []
@@ -97,7 +97,8 @@ entries=[]
 while offs < 4097:
     h.block_status(4097 - offs, offs, f, nbd.CMD_FLAG_REQ_ONE)
 assert entries == [(1, 0), (1, 3)]
-'
+EOF
+export script
 
 # Now run everything
 nbdkit --filter=blocksize eval minblock=4k maxlen=32k \

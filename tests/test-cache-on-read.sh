@@ -36,19 +36,9 @@ set -x
 
 requires_filter cache
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock cache-on-read.pid"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the caching filter and cache-on-read set.
-start_nbdkit -P cache-on-read.pid -U $sock \
-             --filter=cache \
-             memory 128K cache-on-read=true
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Write some pattern data to the overlay and check it reads back OK.
 buf = b"abcd" * 16384
 h.pwrite(buf, 32768)
@@ -56,4 +46,10 @@ zero = h.pread(32768, 0)
 assert zero == bytearray(32768)
 buf2 = h.pread(65536, 32768)
 assert buf == buf2
-'
+EOF
+export script
+
+# Run nbdkit with the caching filter and cache-on-read set.
+nbdkit --filter=cache \
+       memory 128K cache-on-read=true \
+       --run ' nbdsh -u "$uri" -c "$script" '

@@ -37,19 +37,9 @@ set -x
 requires_filter cache
 requires_filter delay
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock cache-on-read-caches.pid"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the cache filter, cache-on-read and a read delay.
-start_nbdkit -P cache-on-read-caches.pid -U $sock \
-             --filter=cache --filter=delay \
-             memory 64K cache-on-read=true rdelay=10
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 from time import time
 
 # First read should suffer a penalty.  Because we are reading
@@ -84,4 +74,10 @@ el = et-st
 print("elapsed time: %g" % el)
 assert el < 10
 assert buf == buf2
-'
+EOF
+export script
+
+# Run nbdkit with the cache filter, cache-on-read and a read delay.
+nbdkit --filter=cache --filter=delay \
+       memory 64K cache-on-read=true rdelay=10 \
+       --run ' nbdsh -u "$uri" -c "$script" '

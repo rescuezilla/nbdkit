@@ -45,10 +45,12 @@ requires_nbdsh_uri
 requires test -f disk
 requires_linux_kernel_version 6.0
 
+define script <<'EOF'
+import os
+assert(h.get_size() == os.path.getsize("disk"))
+buf = h.pread(512, 0)
+EOF
+export script
+
 nbdkit -r blkio io_uring path=disk \
-       --run '
-    nbdsh -u "$uri" \
-          -c "import os" \
-          -c "assert(h.get_size() == os.path.getsize(\"disk\"))" \
-          -c "buf = h.pread(512, 0)"
-'
+       --run ' nbdsh -u "$uri" -c "$script" '

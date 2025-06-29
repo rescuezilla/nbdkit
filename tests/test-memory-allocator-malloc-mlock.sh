@@ -39,6 +39,7 @@ source ./functions.sh
 set -e
 
 requires_nbdsh_uri
+requires_run
 
 if ! nbdkit memory --dump-plugin | grep -sq mlock=yes; then
     echo "$0: mlock not enabled in this build of nbdkit"
@@ -53,17 +54,7 @@ if test "$(ulimit -l)" != "unlimited" && test "$(ulimit -l)" -le 16; then
     exit 77
 fi
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="memory-allocator-malloc-mlock.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with memory plugin.
-start_nbdkit -P memory-allocator-malloc-mlock.pid -U $sock \
-             memory 10240 allocator=malloc,mlock=true
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Write some stuff.
 buf1 = b"1" * 512
 h.pwrite(buf1, 0)
@@ -87,4 +78,9 @@ buf44 = h.pread(len(buf4), 4096)
 assert buf4 == buf44
 buf55 = h.pread(len(buf5), 10240-len(buf5))
 assert buf5 == buf55
-'
+EOF
+export script
+
+# Run nbdkit with memory plugin.
+nbdkit memory 10240 allocator=malloc,mlock=true \
+       --run ' nbdsh -u "$uri" -c "$script" '

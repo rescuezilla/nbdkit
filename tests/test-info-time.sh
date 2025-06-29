@@ -37,21 +37,11 @@ set -e
 set -x
 
 requires nbdsh --version
+requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="info-time.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit.
-start_nbdkit -P info-time.pid -U $sock info mode=time
-
-export sock
-nbdsh -c - <<'EOF'
-import os
+define script <<'EOF'
 import time
-
-h.connect_unix(os.environ["sock"])
 
 size = h.get_size()
 assert size == 12
@@ -59,10 +49,14 @@ assert size == 12
 buf = h.pread(size, 0)
 secs = int.from_bytes(buf[0:8], byteorder='big')
 usecs = int.from_bytes(buf[8:12], byteorder='big')
-print("%d, %d" % (secs, usecs))
+print("time on server: %d, %d" % (secs, usecs))
 
 # Assume it's correct if it's within 60 seconds of
 # our time.  Obviously it should be much closer.
 expected = int(time.time())
 assert abs(secs - expected) <= 60
 EOF
+export script
+
+# Run nbdkit.
+nbdkit info mode=time --run ' nbdsh -u "$uri" -c "$script" '

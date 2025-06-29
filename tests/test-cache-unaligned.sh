@@ -36,22 +36,23 @@ set -x
 
 requires_filter cache
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="cache-unaligned.img $sock cache-unaligned.pid"
-rm -f $files
-cleanup_fn rm -f $files
+img=cache-unaligned.img
+rm -f $img
+cleanup_fn rm -f $img
 
 # Create an empty base image which is not a multiple of 4K.
 $TRUNCATE -s 130000 cache-unaligned.img
+export img
 
-# Run nbdkit with the caching filter.
-start_nbdkit -P cache-unaligned.pid -U $sock --filter=cache \
-             file cache-unaligned.img
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Write some pattern data to the overlay and check it reads back OK.
+
+import os
+
+img = os.getenv("img")
+
 buf = b"abcdefghijklm" * 10000
 h.pwrite(buf, 0)
 buf2 = h.pread(130000, 0)
@@ -60,7 +61,12 @@ assert buf == buf2
 # Flushing should write through to the underlying file.
 h.flush()
 
-with open("cache-unaligned.img", "rb") as file:
+with open(img, "rb") as file:
     buf2 = file.read(130000)
     assert buf == buf2
-'
+EOF
+export script
+
+# Run nbdkit with the caching filter.
+nbdkit --filter=cache file $img \
+       --run ' nbdsh -u "$uri" -c "$script" '

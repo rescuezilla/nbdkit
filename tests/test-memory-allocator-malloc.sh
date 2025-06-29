@@ -36,18 +36,9 @@ source ./functions.sh
 set -e
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="memory-allocator-malloc.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with memory plugin.
-start_nbdkit -P memory-allocator-malloc.pid -U $sock \
-             memory 16M allocator=malloc
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Write some stuff to the beginning, middle and end.
 buf1 = b"1" * 512
 h.pwrite(buf1, 0)
@@ -63,4 +54,8 @@ buf22 = h.pread(len(buf2), 8*1024*1024+1)
 assert buf2 == buf22
 buf33 = h.pread(len(buf3), 16*1024*1024-512)
 assert buf3 == buf33
-'
+EOF
+export script
+
+# Run nbdkit with memory plugin.
+nbdkit memory 16M allocator=malloc --run ' nbdsh -u "$uri" -c "$script" '

@@ -40,17 +40,16 @@ requires_plugin nbd
 requires nbdsh -c 'print(h.get_block_size)'
 requires_nbdsh_uri
 
+define script <<'EOF'
+assert h.get_block_size(nbd.SIZE_MINIMUM) == 64 * 1024
+assert h.get_block_size(nbd.SIZE_PREFERRED) == 128 * 1024
+assert h.get_block_size(nbd.SIZE_MAXIMUM) == 32 * 1024 * 1024
+EOF
+export script
+
 # Create an nbdkit eval plugin which presents block size constraints.
 # Check the advertised block size constraints can be read.
 nbdkit eval \
        block_size="echo 64K 128K 32M" \
        get_size="echo 0" \
-       --run '
-    nbdkit nbd $uri --run "
-        nbdsh \
-           -u \$uri \
-           -c \"assert h.get_block_size(nbd.SIZE_MINIMUM) == 64 * 1024\" \
-           -c \"assert h.get_block_size(nbd.SIZE_PREFERRED) == 128 * 1024\" \
-           -c \"assert h.get_block_size(nbd.SIZE_MAXIMUM) == 32 * 1024 * 1024\" \
-    "
-'
+       --run ' nbdkit nbd $uri --run " nbdsh -u \"$uri\" -c \"$script\" " '

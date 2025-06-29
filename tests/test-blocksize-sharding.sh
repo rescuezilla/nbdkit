@@ -71,7 +71,7 @@ cleanup_fn rm -f $files
 # but with no sharding.
 #
 # We also need an nbdsh script that kicks off parallel writes.
-export script='
+define script <<'EOF'
 import os
 import time
 
@@ -158,7 +158,8 @@ t = end_t - start_t
 print(t, flush=True)
 assert out in [b"5"*4 + b"6"*12, b"5"*16]
 assert t >= 8.0
-'
+EOF
+export script
 
 # Now run everything
 $TRUNCATE -s 16 blocksize-sharding.img

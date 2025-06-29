@@ -39,17 +39,18 @@ set -x
 requires_run
 requires_nbdsh_uri
 
-# Run nbdkit with pattern plugin and truncate filter in front.
-nbdkit --filter=truncate \
-       pattern 503 \
-       round-up=512 \
-       --run 'nbdsh -u "$uri" -c -' <<'EOF'
-
+define script <<'EOF'
 buf = h.pread(512, 0)
 expected = bytearray()
 for i in range(0, 512, 8):
     expected = expected + i.to_bytes(8, 'big')
 expected = expected[:503] + bytearray(9)
 assert buf == expected
-
 EOF
+export script
+
+# Run nbdkit with pattern plugin and truncate filter in front.
+nbdkit --filter=truncate \
+       pattern 503 \
+       round-up=512 \
+       --run ' nbdsh -u "$uri" -c "$script" '

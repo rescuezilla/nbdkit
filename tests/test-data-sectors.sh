@@ -40,9 +40,9 @@ set -x
 
 requires_nbdsh_uri
 requires $TRUNCATE --version
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="data-sectors.pid sector1 sector2 sector3 $sock"
+files="sector1 sector2 sector3"
 rm -f $files
 cleanup_fn rm -f $files
 
@@ -52,16 +52,16 @@ $TRUNCATE -s 1024 sector2
 printf "3" > sector3
 $TRUNCATE -s 513 sector3
 
-# Run nbdkit.
-start_nbdkit -P data-sectors.pid -U $sock \
-       data '<sector1 @^512 <sector2 @^512 <sector3 @^512'
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 assert h.get_size() == 512 + 1024 + 1024
 buf = h.pread(h.get_size(), 0)
 print("%r" % buf)
 assert buf[0] == 0x31
 assert buf[512] == 0x32
 assert buf[1536] == 0x33
-'
+EOF
+export script
+
+# Run nbdkit.
+nbdkit data '<sector1 @^512 <sector2 @^512 <sector3 @^512' \
+       --run ' nbdsh -u "$uri" -c "$script" '

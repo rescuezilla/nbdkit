@@ -130,6 +130,10 @@ New C<define> function in F<tests/functions.sh> which provides a
 simpler way to add inline plugins and scripts to tests, reducing
 concerns around quoting.
 
+Several tests were modified to use the I<--run> method to start the
+test client.  This improves performance and reduces fragility of the
+tests.
+
 =head2 Build
 
 The C<./configure> output has been beautified, which also helps to

@@ -38,20 +38,9 @@ set -x
 
 requires_nbdsh_uri
 requires test -r /dev/urandom
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="data-random-slice.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit.
-start_nbdkit -P data-random-slice.pid -U $sock \
-       data '
-</dev/urandom[:4]*4
-'
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 print("%d" % h.get_size())
 assert h.get_size() == 4*4
 
@@ -65,4 +54,8 @@ buf4 = h.pread(4, 12)
 assert buf1 == buf2
 assert buf2 == buf3
 assert buf3 == buf4
-'
+EOF
+export script
+
+# Run nbdkit.
+nbdkit data ' </dev/urandom[:4]*4 ' --run ' nbdsh -u "$uri" -c "$script" '

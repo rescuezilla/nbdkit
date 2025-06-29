@@ -35,21 +35,18 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock error-triggered.pid error-trigger"
-rm -f $files
-cleanup_fn rm -f $files
+trigger="error-trigger"
+rm -f $trigger
+cleanup_fn rm -f $trigger
 
-# Run nbdkit with the error filter.
-start_nbdkit -P error-triggered.pid -U $sock \
-             --filter=error \
-             pattern 1G \
-             error-rate=100% error-file=error-trigger error=ENOSPC
+export trigger
 
-nbdsh --connect "nbd+unix://?socket=$sock" \
-          -c '
+define script <<'EOF'
 import os
+
+trigger = os.getenv("trigger")
 
 # The first operations should be fine.
 h.pread(512, 0)
@@ -58,7 +55,7 @@ h.pread(512, 1024)
 
 # Then we create the error-trigger file which should cause
 # subsequent operations to fail with ENOSPC.
-open("error-trigger", "a").close()
+open(trigger, "a").close()
 
 try:
     h.pread(512, 0)
@@ -69,9 +66,16 @@ except nbd.Error as ex:
     assert ex.errno == "ENOSPC"
 
 # Remove the error-trigger file, operations should all succeed again.
-os.unlink("error-trigger")
+os.unlink(trigger)
 
 h.pread(512, 0)
 h.pread(512, 512)
 h.pread(512, 1024)
-'
+EOF
+export script
+
+# Run nbdkit with the error filter.
+nbdkit --filter=error \
+       pattern 1G \
+       error-rate=100% error-file=$trigger error=ENOSPC \
+       --run ' nbdsh -u "$uri" -c "$script" '

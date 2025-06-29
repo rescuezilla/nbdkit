@@ -37,6 +37,7 @@ set -x
 requires_filter cow
 requires_filter delay
 requires_nbdsh_uri
+requires_run
 
 # On Windows, calling ftruncate in the cow filter fails with:
 # nbdkit: memory[1]: error: ftruncate: File too large
@@ -45,18 +46,7 @@ if is_windows; then
    exit 77
 fi
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock cow-on-read-caches.pid"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the cow filter, cow-on-read and a read delay.
-start_nbdkit -P cow-on-read-caches.pid -U $sock \
-             --filter=cow --filter=delay \
-             memory 64K cow-on-read=true rdelay=10
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 from time import time
 
 # First read should suffer a penalty.  Because we are reading
@@ -91,4 +81,10 @@ el = et-st
 print("elapsed time: %g" % el)
 assert el < 10
 assert buf == buf2
-'
+EOF
+export script
+
+# Run nbdkit with the cow filter, cow-on-read and a read delay.
+nbdkit --filter=cow --filter=delay \
+       memory 64K cow-on-read=true rdelay=10 \
+       --run ' nbdsh -u "$uri" -c "$script" '

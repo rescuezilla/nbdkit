@@ -44,9 +44,9 @@ requires $SED --version
 # Get the version from --dump-plugin.  This is PACKAGE_STRING whereas
 # the version is NBDKIT_VERSION_STRING.  The two should be identical.
 v="$( nbdkit info --dump-plugin | grep ^version= | $SED 's/version=//' )"
-
 export v
-nbdkit info version --run 'nbdsh -u "$uri" -c -' <<'EOF'
+
+define script <<'EOF'
 import os
 
 actual = h.pread(h.get_size(), 0)
@@ -56,5 +56,7 @@ print("actual version = %r" % actual)
 print("expected version = %r" % expected)
 
 assert actual.decode("utf-8") == expected
-
 EOF
+export script
+
+nbdkit info version --run ' nbdsh -u "$uri" -c "$script" '

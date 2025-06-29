@@ -39,24 +39,13 @@ set -x
 requires_plugin ones
 requires_filter evil
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-pidfile=evil-stuck-low-bits.pid
-files="$sock $pidfile"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the evil filter.
-start_nbdkit -P $pidfile -U $sock \
-             --filter=evil \
-             ones 1G evil-probability=1/800000
-
+define script <<'EOF'
 # See description in test-evil-stuck-high-bits.sh.  This test uses the
 # ones plugin to test for stuck low bits.  The other parameters are
 # the same.
 
-nbdsh -u "nbd+unix://?socket=$sock" \
-      -c - <<EOF
 def count_bits(buf):
     r = 0
     for i in range(0, len(buf)-1):
@@ -80,5 +69,10 @@ assert(bits > 20 and bits < 80)
 i = find_bit(buf)
 buf1 = h.pread(1000, 32*1024*1024 + i)
 assert(buf1 == buf[i:i+1000])
-
 EOF
+export script
+
+# Run nbdkit with the evil filter.
+nbdkit --filter=evil \
+       ones 1G evil-probability=1/800000 \
+       --run ' nbdsh -u "$uri" -c "$script" '

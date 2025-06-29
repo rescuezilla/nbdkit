@@ -35,24 +35,24 @@ set -e
 set -x
 
 requires_filter cache
+requires_run
 requires_nbdsh_uri
 
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="cache-block-size.img $sock cache-block-size.pid"
-rm -f $files
-cleanup_fn rm -f $files
+img=cache-block-size.img
+rm -f $img
+cleanup_fn rm -f $img
 
 # Create an empty base image.
-$TRUNCATE -s 256K cache-block-size.img
+$TRUNCATE -s 256K $img
+export img
 
-# Run nbdkit with the caching filter.
-start_nbdkit -P cache-block-size.pid -U $sock --filter=cache \
-             file cache-block-size.img cache-min-block-size=128K \
-             cache-on-read=true
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Read half of cache-min-block-size
+
+import os
+
+img = os.getenv("img")
 
 zero = h.pread(64 * 1024, 0)
 assert zero == bytearray(64 * 1024)
@@ -60,13 +60,13 @@ assert zero == bytearray(64 * 1024)
 buf = b"abcd" * 16 * 1024
 
 # Write past the first read
-with open("cache-block-size.img", "wb") as file:
+with open(img, "wb") as file:
     file.seek(64 * 1024)
     file.write(buf * 2)
     file.truncate(256 * 1024)
 
 # Check that it got written
-with open("cache-block-size.img", "rb") as file:
+with open(img, "rb") as file:
     file.seek(64 * 1024)
     buf2 = file.read(128 * 1024)
     assert (buf * 2) == buf2
@@ -78,4 +78,11 @@ assert zero == bytearray(64 * 1024)
 # Read past that, the pattern should be visible there
 buf2 = h.pread(64 * 1024, 128 * 1024)
 assert buf == buf2
-'
+EOF
+export script
+
+# Run nbdkit with the caching filter.
+nbdkit --filter=cache \
+       file $img cache-min-block-size=128K \
+       cache-on-read=true \
+       --run ' nbdsh -u "$uri" -c "$script" '

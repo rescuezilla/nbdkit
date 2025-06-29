@@ -37,7 +37,9 @@ set -e
 set -x
 
 requires nbdsh --version
+requires_nbdsh_uri
 requires_plugin info
+requires_run
 
 # Test if mode=address is supported in this build.
 if ! nbdkit info --dump-plugin | grep -sq "info_address=yes"; then
@@ -45,26 +47,15 @@ if ! nbdkit info --dump-plugin | grep -sq "info_address=yes"; then
     exit 77
 fi
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="info-address.out info-address.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit.
-start_nbdkit -P info-address.pid -U $sock \
-       info mode=address
-
-export sock
-nbdsh -c - <<'EOF'
-import os
-import re
-
-h.connect_unix(os.environ["sock"])
-
+define script <<'EOF'
 size = h.get_size()
-assert size > 0
+assert size == 4
 
 buf = h.pread(size, 0)
 print("buf = %r" % buf)
 assert buf == b'unix'
 EOF
+export script
+
+# Run nbdkit.
+nbdkit info mode=address --run ' nbdsh -u "$uri" -c "$script" '

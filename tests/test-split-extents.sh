@@ -56,9 +56,7 @@ printf %$((512*1024))d 1 >> test-split-extents.1
 printf %$((512*1024))d 1 >> test-split-extents.2
 $TRUNCATE -s 1M test-split-extents.2
 
-# Test the split plugin
-nbdkit -v split test-split-extents.1 test-split-extents.2 \
-       --run 'nbdsh --base-allocation --uri "$uri" -c "
+define script <<'EOF'
 entries = []
 def f(metacontext, offset, e, err):
     global entries
@@ -73,4 +71,9 @@ entries = []
 # With req one, extents stop at file boundaries
 h.block_status(1024 * 1024, 768 * 1024, f, nbd.CMD_FLAG_REQ_ONE)
 assert entries == [ 256 * 1024, 0 ]
-       "'
+EOF
+export script
+
+# Test the split plugin
+nbdkit -v split test-split-extents.1 test-split-extents.2 \
+       --run ' nbdsh --base-allocation --uri "$uri" -c "$script" '

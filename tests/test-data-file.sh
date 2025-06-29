@@ -36,31 +36,33 @@ source ./functions.sh
 set -e
 set -x
 
+requires_filter partition
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="data-file.pid $sock data-hello.txt"
-rm -f $files
-cleanup_fn rm -f $files
+file="data-hello.txt"
+rm -f $file
+cleanup_fn rm -f $file
 
-rm -f data-hello.txt
 for i in {0..1000}; do
-    printf "hello " >> data-hello.txt
+    printf "hello " >> $file
 done
 
-# Run nbdkit.
-start_nbdkit -P data-file.pid -U $sock \
-       --filter=partition \
-       data partition=1 \
-       size=1M \
-       '
-   @0x1b8 178 190 207 221 0 0 0 0 2 0 131 32 32 0 1 0 0 0 255 7
-   @0x1fe 85 170
-   @0x200 <data-hello.txt
-   '
+define data <<'EOF'
+@0x1b8 178 190 207 221 0 0 0 0 2 0 131 32 32 0 1 0 0 0 255 7
+@0x1fe 85 170
+@0x200 <data-hello.txt
+EOF
 
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 buf = h.pread(900, 0)
 assert buf == b"hello " * 150
-'
+EOF
+export script
+
+# Run nbdkit.
+nbdkit --filter=partition \
+       data partition=1 \
+       size=1M \
+       "$data" \
+       --run ' nbdsh -u "$uri" -c "$script" '

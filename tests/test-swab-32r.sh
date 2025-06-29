@@ -37,17 +37,9 @@ set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$sock swab-32r.pid"
-rm -f $files
-cleanup_fn rm -f $files
-
-start_nbdkit -P swab-32r.pid -U $sock --filter=swab \
-             pattern size=$((128*1024)) swab-bits=32
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Read back part of the pattern and check it is byte-swapped.
 # Original pattern is:
 # 00 00 00 00 00 00 ff f8
@@ -65,4 +57,8 @@ assert buf == bytearray([0, 0, 0, 0, 0xf8, 0xff, 0, 0,
                          0, 0, 0, 0, 0,    0,    1, 0,
                          0, 0, 0, 0, 0x08, 0,    1, 0,
                          0, 0, 0, 0, 0x10, 0,    1, 0])
-'
+EOF
+export script
+
+nbdkit --filter=swab pattern size=$((128*1024)) swab-bits=32 \
+       --run ' nbdsh -u "$uri" -c "$script" '

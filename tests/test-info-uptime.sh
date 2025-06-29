@@ -37,21 +37,11 @@ set -e
 set -x
 
 requires nbdsh --version
+requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="info-uptime.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit.
-start_nbdkit -P info-uptime.pid -U $sock info mode=uptime
-
-export sock
-nbdsh -c - <<'EOF'
-import os
+define script <<'EOF'
 import time
-
-h.connect_unix(os.environ["sock"])
 
 size = h.get_size()
 assert size == 12
@@ -59,7 +49,11 @@ assert size == 12
 buf = h.pread(size, 0)
 secs = int.from_bytes(buf[0:8], byteorder='big')
 usecs = int.from_bytes(buf[8:12], byteorder='big')
-print("%d, %d" % (secs, usecs))
+print("server uptime: %d, %d" % (secs, usecs))
 
 assert abs(secs) <= 60
 EOF
+export script
+
+# Run nbdkit.
+nbdkit info mode=uptime --run ' nbdsh -u "$uri" -c "$script" '

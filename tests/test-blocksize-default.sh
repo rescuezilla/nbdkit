@@ -44,7 +44,7 @@ requires dd iflag=count_bytes </dev/null
 # Check that the blocksize filter advertises full access, that size is
 # truncated to minblock constraints, and underlying plugin access uses
 # read-modify-write at appropriate boundaries.
-export script='
+define script <<'EOF'
 import os
 
 sock = os.environ["unixsocket"]
@@ -70,7 +70,9 @@ assert hb.pread(1024 * 1024 + 1, 1) == b"\0" * (1024 * 1024 + 1)
 
 ha.shutdown()
 hb.shutdown()
-'
+EOF
+export script
+
 nbdkit -v --filter=blocksize eval \
     open='echo $3' \
     get_size="echo $((2 * 1024 * 1024 - 1))" \

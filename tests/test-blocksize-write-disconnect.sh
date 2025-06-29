@@ -49,6 +49,62 @@ requires dd iflag=count_bytes </dev/null
 # 32M+1 to 64M kill the connection (ENOTCONN visible to client), and
 # 64M+1 and above fails with ERANGE in libnbd.
 
+define script <<'EOF'
+import errno
+import sys
+
+def header(msg):
+  print("=== %s ===" % msg)
+  sys.stdout.flush()
+
+def check(h, size, expect_value, expect_traffic=True):
+  print("Testing size=%d" % size)
+  sys.stdout.flush()
+
+  assert h.aio_is_ready() is True
+
+  buf = b"0" * size
+  if hasattr(h, "stats_bytes_sent"):
+    start = h.stats_bytes_sent()
+  try:
+    h.pwrite(buf, 0)
+    assert expect_value == 0
+  except nbd.Error as ex:
+    assert expect_value == ex.errnum
+  if hasattr(h, "stats_bytes_sent"):
+    if expect_traffic:
+      assert h.stats_bytes_sent() > start
+    else:
+      assert h.stats_bytes_sent() == start
+
+h.set_strict_mode(0)  # Bypass client-side safety checks
+header("Beyond 64M")
+check(h, 64*1024*1024 + 1, errno.ERANGE, False)
+check(h, 64*1024*1024 + 2, errno.ERANGE, False)
+header("Small reads")
+check(h, 1, errno.EINVAL)
+check(h, 2, 0)
+header("Near 8M boundary")
+check(h, 8*1024*1024 - 2, 0)
+check(h, 8*1024*1024 - 1, errno.EINVAL)
+check(h, 8*1024*1024, 0)
+check(h, 8*1024*1024 + 1, errno.EINVAL)
+check(h, 8*1024*1024 + 2, errno.ENOMEM)
+header("Near 16M boundary")
+check(h, 16*1024*1024 - 2, errno.ENOMEM)
+check(h, 16*1024*1024 - 1, errno.EINVAL)
+check(h, 16*1024*1024, errno.ENOMEM)
+check(h, 16*1024*1024 + 1, errno.EINVAL)
+check(h, 16*1024*1024 + 2, errno.EINVAL)
+header("Near 32M boundary")
+check(h, 32*1024*1024 - 2, errno.EINVAL)
+check(h, 32*1024*1024 - 1, errno.EINVAL)
+check(h, 32*1024*1024, errno.EINVAL)
+check(h, 32*1024*1024 + 1, errno.ENOTCONN)
+assert h.aio_is_ready() is False
+EOF
+export script
+
 nbdkit -v eval \
        block_size="echo 2 4096 16M" \
        get_size="echo 64M" \
@@ -61,58 +117,4 @@ nbdkit -v eval \
        ' \
        --filter=blocksize-policy \
        blocksize-error-policy=error blocksize-write-disconnect=32M \
-       --run '
-nbdsh -u "$uri" -c "
-import errno
-import sys
-
-def header(msg):
-  print(\"=== %s ===\" % msg)
-  sys.stdout.flush()
-
-def check(h, size, expect_value, expect_traffic=True):
-  print(\"Testing size=%d\" % size)
-  sys.stdout.flush()
-
-  assert h.aio_is_ready() is True
-
-  buf = b\"0\" * size
-  if hasattr(h, \"stats_bytes_sent\"):
-    start = h.stats_bytes_sent()
-  try:
-    h.pwrite(buf, 0)
-    assert expect_value == 0
-  except nbd.Error as ex:
-    assert expect_value == ex.errnum
-  if hasattr(h, \"stats_bytes_sent\"):
-    if expect_traffic:
-      assert h.stats_bytes_sent() > start
-    else:
-      assert h.stats_bytes_sent() == start
-
-h.set_strict_mode(0)  # Bypass client-side safety checks
-header(\"Beyond 64M\")
-check(h, 64*1024*1024 + 1, errno.ERANGE, False)
-check(h, 64*1024*1024 + 2, errno.ERANGE, False)
-header(\"Small reads\")
-check(h, 1, errno.EINVAL)
-check(h, 2, 0)
-header(\"Near 8M boundary\")
-check(h, 8*1024*1024 - 2, 0)
-check(h, 8*1024*1024 - 1, errno.EINVAL)
-check(h, 8*1024*1024, 0)
-check(h, 8*1024*1024 + 1, errno.EINVAL)
-check(h, 8*1024*1024 + 2, errno.ENOMEM)
-header(\"Near 16M boundary\")
-check(h, 16*1024*1024 - 2, errno.ENOMEM)
-check(h, 16*1024*1024 - 1, errno.EINVAL)
-check(h, 16*1024*1024, errno.ENOMEM)
-check(h, 16*1024*1024 + 1, errno.EINVAL)
-check(h, 16*1024*1024 + 2, errno.EINVAL)
-header(\"Near 32M boundary\")
-check(h, 32*1024*1024 - 2, errno.EINVAL)
-check(h, 32*1024*1024 - 1, errno.EINVAL)
-check(h, 32*1024*1024, errno.EINVAL)
-check(h, 32*1024*1024 + 1, errno.ENOTCONN)
-assert h.aio_is_ready() is False
-"'
+       --run ' nbdsh -u "$uri" -c "$script" '

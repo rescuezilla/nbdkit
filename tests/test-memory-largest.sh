@@ -38,18 +38,9 @@ source ./functions.sh
 set -e
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="memory-largest.pid $sock"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with memory plugin.
-# size = 2^63-1
-start_nbdkit -P memory-largest.pid -U $sock memory 9223372036854775807
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 # Write some stuff to the beginning, middle and end.
 buf1 = b"1" * 512
 h.pwrite(buf1, 0)
@@ -65,4 +56,9 @@ buf22 = h.pread(len(buf2), 1000000001)
 assert buf2 == buf22
 buf33 = h.pread(len(buf3), 9223372036854775296)
 assert buf3 == buf33
-'
+EOF
+export script
+
+# Run nbdkit with memory plugin.
+# size = 2^63-1
+nbdkit memory 9223372036854775807 --run ' nbdsh -u "$uri" -c "$script" '

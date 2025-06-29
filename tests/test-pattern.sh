@@ -38,10 +38,7 @@ set -e
 requires_run
 requires_nbdsh_uri
 
-# Run nbdkit-pattern-plugin.  Use a disk > 4G so we can test 2G and 4G
-# boundaries.
-nbdkit pattern 5G --run 'nbdsh -u "$uri" -c -' <<'EOF'
-
+define script <<'EOF'
 # Generate the expected pattern in the given range.
 # This only works for 8-byte aligned ranges.
 def generated_expected(start, end):
@@ -108,5 +105,9 @@ offset = 5*1024*1024*1024 - 64
 expected = generated_expected(offset, offset+64)
 actual = h.pread(64, offset)
 check_same(actual, expected)
-
 EOF
+export script
+
+# Run nbdkit-pattern-plugin.
+# Use a disk > 4G so we can test 2G and 4G boundaries.
+nbdkit pattern 5G --run ' nbdsh -u "$uri" -c "$script" '

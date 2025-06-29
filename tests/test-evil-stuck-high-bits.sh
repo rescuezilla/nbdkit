@@ -40,18 +40,9 @@ requires_plugin null
 requires_filter evil
 requires_filter noextents
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-pidfile=evil-stuck-high-bits.pid
-files="$sock $pidfile"
-rm -f $files
-cleanup_fn rm -f $files
-
-# Run nbdkit with the evil filter.
-start_nbdkit -P $pidfile -U $sock \
-             --filter=evil --filter=noextents \
-             null 1G evil-probability=1/800000
-
+define script <<'EOF'
 # Since 1 in 800,000 bits are stuck (on average), for every 100,000
 # bytes that we read we expect about 1 stuck bit.  Note however that
 # bits are stuck randomly low or high, and against the null filter you
@@ -62,8 +53,6 @@ start_nbdkit -P $pidfile -U $sock \
 #
 # Also stuck bits should be consistent across reads.
 
-nbdsh -u "nbd+unix://?socket=$sock" \
-      -c - <<EOF
 def count_bits(buf):
     r = 0
     for i in range(0, len(buf)-1):
@@ -87,5 +76,10 @@ assert(bits > 20 and bits < 80)
 i = find_bit(buf)
 buf1 = h.pread(1000, i)
 assert(buf1 == buf[i:i+1000])
-
 EOF
+export script
+
+# Run nbdkit with the evil filter.
+nbdkit --filter=evil --filter=noextents \
+       null 1G evil-probability=1/800000 \
+       --run ' nbdsh -u "$uri" -c "$script" '

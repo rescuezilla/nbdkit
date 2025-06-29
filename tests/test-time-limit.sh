@@ -43,8 +43,7 @@ requires_nbdsh_uri
 # Test ordinary connection with the default (60s) timeout.
 nbdkit --filter=time-limit null --run 'nbdinfo "$uri"'
 
-nbdkit -v --filter=time-limit null size=4096 time-limit=10 \
-       --run 'nbdsh -u "$uri" -c -' <<'EOF'
+define script <<'EOF'
 import time
 
 # These should succeed.
@@ -60,5 +59,8 @@ try:
     assert False
 except Exception as ex:
     print("error (expected) = %r" % ex)
-
 EOF
+export script
+
+nbdkit -v --filter=time-limit null size=4096 time-limit=10 \
+       --run ' nbdsh -u "$uri" -c "$script" '
