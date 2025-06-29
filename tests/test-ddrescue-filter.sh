@@ -30,17 +30,14 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test the ip filter.  Necessarily this is rather limited because we
-# are only able to use the loopback connection.
-
 source ./functions.sh
 set -e
 set -x
 
 requires_nbdsh_uri
+requires_run
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="ddrescue.pid $sock ddrescue.txt ddrescue-test1.map"
+files="ddrescue.txt ddrescue-test1.map"
 rm -f $files
 cleanup_fn rm -f $files
 
@@ -57,16 +54,7 @@ echo "#
 0x00000200  0x00000200  -
 0x00000400  0x00000200  +" > ddrescue-test1.map
 
-
-# Run nbdkit.
-start_nbdkit -P ddrescue.pid -U $sock \
-       --filter=ddrescue data \
-       ddrescue-mapfile="ddrescue-test1.map"\
-       size=1M \
-       '@0x000 <ddrescue.txt'
-
-nbdsh --connect "nbd+unix://?socket=$sock" \
-      -c '
+define script <<'EOF'
 buf = h.pread(512, 0)
 assert buf == b"ddrescue" * 64
 try:
@@ -78,4 +66,12 @@ except nbd.Error as ex:
     assert ex.errno == "EIO"
 buf = h.pread(512, 2 * 512)
 assert buf == b"ddrescue" * 64
-'
+EOF
+export script
+
+# Run nbdkit.
+nbdkit --filter=ddrescue data \
+       ddrescue-mapfile="ddrescue-test1.map"\
+       size=1M \
+       '@0x000 <ddrescue.txt' \
+       --run ' nbdsh -u "$uri" -c "$script" '
