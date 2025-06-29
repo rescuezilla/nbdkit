@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # Test does not run on Windows because we must mark the test file
 # specially so that Windows recognizes it as sparse.  We do not have

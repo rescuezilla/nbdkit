@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # If these fail it's probably because you ran the script by hand.
 test -n "$srcdir"

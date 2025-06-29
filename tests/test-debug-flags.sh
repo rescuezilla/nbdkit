@@ -34,6 +34,7 @@
 
 source ./functions.sh
 set -x
+set -u
 
 requires_plugin example2
 requires_run

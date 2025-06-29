@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # Test informational error messages sent to the NBD client.
 # qemu-img supports this since at least 2.12.0.

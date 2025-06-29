@@ -36,6 +36,7 @@
 
 source ./functions.sh
 set -x
+set -u
 set -e
 
 requires $CUT --version

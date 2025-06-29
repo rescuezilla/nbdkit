@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_plugin ones
 requires_nbdsh_uri

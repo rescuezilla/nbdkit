@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 run_test ()
 {

@@ -42,6 +42,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_run
 requires perl --version

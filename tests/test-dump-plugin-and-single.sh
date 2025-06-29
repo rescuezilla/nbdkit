@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 out=dump-plugin-and-single.out
 err=dump-plugin-and-single.err

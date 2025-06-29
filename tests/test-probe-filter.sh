@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # Test that the probe command suggested in nbdkit-probing(1) works.
 

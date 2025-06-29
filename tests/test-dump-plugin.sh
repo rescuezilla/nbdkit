@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 run_test ()
 {
@@ -41,7 +42,7 @@ run_test ()
 
 do_test ()
 {
-    vg=; [ "$NBDKIT_VALGRIND" = "1" ] && vg="-valgrind"
+    vg=; [ "${NBDKIT_VALGRIND:-0}" = "1" ] && vg="-valgrind"
     case "$1$vg" in
         S3-valgrind | gcs-valgrind | python-valgrind | tcl-valgrind)
             echo "$0: skipping $1$vg because this language doesn't support valgrind"

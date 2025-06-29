@@ -36,6 +36,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # Cannot use kill pidfile below to test if the process is running on
 # Windows.

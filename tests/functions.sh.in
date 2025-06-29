@@ -37,6 +37,7 @@
 # source ./functions.sh
 # set -e
 # set -x
+# set -u
 
 #----------------------------------------------------------------------
 # Variable declarations.
@@ -471,7 +472,7 @@ requires_curl_protocol ()
 # Skip test under 'make check-valgrind'.  An optional reason can be given.
 skip_if_valgrind ()
 {
-    if [ "$NBDKIT_VALGRIND" = "1" ]; then
+    if [ "${NBDKIT_VALGRIND:-0}" = "1" ]; then
         echo "$0: skipping test under valgrind $@"
         exit 77
     fi

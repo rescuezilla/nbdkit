@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # Because below we are bypassing the wrapper, we also have to attempt
 # to rewrite the null plugin name.  This is difficult to predict, so

@@ -39,6 +39,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 skip_if_valgrind "because setting LD_LIBRARY_PATH breaks valgrind"
 requires_run

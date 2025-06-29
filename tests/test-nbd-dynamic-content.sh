@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # This test works with older libnbd, showing that dynamic mode affects
 # content.

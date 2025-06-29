@@ -32,6 +32,7 @@
 
 source ./functions.sh
 set -x
+set -u
 
 # test-timeout.sh tests the negative case where clients are timed out.
 # Test also the positive case: If we do negotiate NBD then we

@@ -36,6 +36,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 plugin="./test-ocaml-plugin.so"
 requires test -f $plugin

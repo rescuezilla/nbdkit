@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_run
 requires hexdump --version
@@ -44,7 +45,8 @@ skip_if_valgrind "because Python code leaks memory"
 # There is a fake boto3 module in test-S3/ which we use as a test
 # harness for the plugin.
 requires test -d test-S3
-export PYTHONPATH=$srcdir/test-S3:$PYTHONPATH
+prepend PYTHONPATH "$srcdir/test-S3"
+export PYTHONPATH
 
 file=S3.out
 rm -f $file

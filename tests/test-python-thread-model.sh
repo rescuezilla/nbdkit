@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 script="$abs_top_srcdir/tests/python-thread-model.py"
 test -f "$script"
@@ -51,7 +52,7 @@ requires sh -c "nbdkit python $script --dump-plugin |
 
 pid=test-python-thread-model.pid
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="$out $pid $sock"
+files="$pid $sock"
 rm -f $files
 cleanup_fn rm -f $files
 

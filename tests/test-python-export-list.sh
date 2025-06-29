@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 script=$abs_top_srcdir/tests/python-export-list.py
 test -f "$script"

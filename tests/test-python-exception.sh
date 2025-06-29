@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 skip_if_valgrind "because Python code leaks memory"
 

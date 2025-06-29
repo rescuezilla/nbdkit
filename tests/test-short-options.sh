@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 nbdkit --short-options
 nbdkit --short-options | grep '^-v'

@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_filter cache
 # Check that this is a Linux-like system supporting /proc/$pid/fd.

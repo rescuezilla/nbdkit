@@ -36,6 +36,7 @@ source ./functions.sh
 
 set -e
 set -x
+set -u
 
 script=$abs_top_srcdir/tests/test-cc-cpp.cpp
 if test ! -f "$script"; then

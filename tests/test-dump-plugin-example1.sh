@@ -39,5 +39,6 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 nbdkit example1 --dump-plugin

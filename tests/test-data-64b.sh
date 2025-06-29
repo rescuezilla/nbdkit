@@ -38,6 +38,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_nbdsh_uri
 requires_run

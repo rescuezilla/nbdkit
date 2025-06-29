@@ -32,6 +32,7 @@
 
 source ./functions.sh
 set -x
+set -u
 set -e
 
 output="$(nbdkit --dump-config)"

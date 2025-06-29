@@ -32,6 +32,7 @@
 
 source ./functions.sh
 set -x
+set -u
 
 # This test attempts to kill a Windows PID (it should use
 # "wine taskkill /f /pid $pid" instead).  As this requires

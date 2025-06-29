@@ -32,6 +32,7 @@
 
 source ./functions.sh
 set -x
+set -u
 
 # Cannot use kill pidfile below on Windows, but must use taskkill instead.
 if is_windows; then

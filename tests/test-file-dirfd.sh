@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # The dirfd parameter does not exist in the Windows version
 # of the file plugin.

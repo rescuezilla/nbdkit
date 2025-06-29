@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_plugin sh
 requires nbdsh -c 'print(h.set_full_info)'

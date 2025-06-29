@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_root
 requires_caps cap_sys_resource

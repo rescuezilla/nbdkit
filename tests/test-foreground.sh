@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # nbdkit -f works fine on Windows, but this test does not because it
 # tries to use job control.  We should probably find a better way to

@@ -36,6 +36,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # Makes no sense to run this test under valgrind.
 skip_if_valgrind

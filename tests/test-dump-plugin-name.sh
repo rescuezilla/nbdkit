@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 output="$(nbdkit example1 --dump-plugin)"
 if [[ ! ( "$output" =~ name\=example1 ) ]]; then

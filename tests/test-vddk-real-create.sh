@@ -33,9 +33,10 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_run
-requires test "x$vddkdir" != "x"
+requires test "${vddkdir:-}" != ""
 requires test -d "$vddkdir"
 requires test -f "$vddkdir/lib64/libvixDiskLib.so"
 requires test -f disk

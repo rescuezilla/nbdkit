@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 output="$(nbdkit --help)"
 if [[ ! ( "$output" =~ dump-config ) ]]; then

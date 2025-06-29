@@ -34,6 +34,7 @@ source ./functions.sh
 
 set -e
 set -x
+set -u
 
 requires $PYTHON --version
 requires $PYTHON -c 'import unittest'

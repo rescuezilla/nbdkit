@@ -134,6 +134,9 @@ Several tests were modified to use the I<--run> method to start the
 test client.  This improves performance and reduces fragility of the
 tests.
 
+Tests now use C<set -u> (error if an undefined variable is used) to
+reduce a common cause of errors.
+
 =head2 Build
 
 The C<./configure> output has been beautified, which also helps to

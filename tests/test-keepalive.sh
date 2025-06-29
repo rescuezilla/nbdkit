@@ -32,6 +32,7 @@
 
 source ./functions.sh
 set -x
+set -u
 
 requires_run
 requires_plugin null

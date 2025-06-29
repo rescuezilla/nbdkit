@@ -34,6 +34,7 @@
 
 source ./functions.sh
 set -x
+set -u
 
 export LANG=C
 

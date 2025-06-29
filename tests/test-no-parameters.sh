@@ -38,6 +38,7 @@
 source ./functions.sh
 #set -e  # no, need return codes below
 set -x
+set -u
 
 if is_windows; then
     echo "$0: scripts not supported on Windows"
@@ -74,7 +75,7 @@ run_test ()
 
 do_test ()
 {
-    vg=; [ "$NBDKIT_VALGRIND" = "1" ] && vg="-valgrind"
+    vg=; [ "${NBDKIT_VALGRIND:-0}" = "1" ] && vg="-valgrind"
     case "$1$vg" in
         example4-valgrind | gcs-valgrind | lua-valgrind | \
         python-valgrind | S3-valgrind | tcl-valgrind)

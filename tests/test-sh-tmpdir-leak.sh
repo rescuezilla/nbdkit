@@ -36,6 +36,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_run
 requires_plugin sh
@@ -48,7 +49,7 @@ nbdkit sh - --run 'if test -n "$tmpdir"; then exit 1; fi' </dev/null
 
 tmpdir=/nowhere nbdkit -v sh - \
     --run 'if test "$tmpdir" != /nowhere; then exit 1; fi' <<EOF
-if test "$tmpdir" = /nowhere; then
+if test "${tmpdir:-}" = /nowhere; then
   echo "$0: unexpected tmpdir" 2>&1
   exit 1
 fi

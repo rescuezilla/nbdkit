@@ -35,6 +35,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires nbdsh --version
 requires_nbdsh_uri

@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 # This is an executable C script using nbdkit-cc-plugin.
 requires_plugin cc

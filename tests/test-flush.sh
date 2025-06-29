@@ -32,6 +32,7 @@
 
 source ./functions.sh
 set -x
+set -u
 
 requires_single_mode
 requires nbdsh --version

@@ -36,6 +36,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_filter partition
 requires_nbdsh_uri

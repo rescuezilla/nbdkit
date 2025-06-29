@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_plugin ondemand
 requires guestfish --version
@@ -93,7 +94,7 @@ EOF
 
 # This part of the test fails under valgrind for unclear reasons which
 # appear to be a bug in valgrind.
-if [ "x$NBDKIT_VALGRIND" = "x1" ]; then exit 0; fi
+if [ "${NBDKIT_VALGRIND:-0}" = "1" ]; then exit 0; fi
 
 guestfish --ro --format=raw -a "nbd://?socket=$sock" -m /dev/sda <<EOF
   cat /test.txt

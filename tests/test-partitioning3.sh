@@ -37,6 +37,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires guestfish --version
 

@@ -37,6 +37,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 script=$abs_top_srcdir/tests/python-password.py
 test -f "$script"

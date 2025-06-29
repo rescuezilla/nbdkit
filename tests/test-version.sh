@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 output="$(nbdkit --version)"
 if [[ ! ( "$output" =~ ^nbdkit\ 1\. ) ]]; then

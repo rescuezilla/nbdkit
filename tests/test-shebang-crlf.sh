@@ -43,6 +43,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 script=./shebang-crlf.py
 if test ! -x "$script"; then

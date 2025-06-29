@@ -33,6 +33,7 @@
 source ./functions.sh
 set -e
 set -x
+set -u
 
 requires_run
 requires_plugin tmpdisk
@@ -46,6 +47,7 @@ nbdkit -f -v tmpdisk 0 a=2 a=1 b=1024 c="a ' b ' c" \
        TRUNCATE="$TRUNCATE" \
        command='
 set -x
+set -u
 set -e
 if [ $a -ne 1 ]; then exit 1; fi
 if [ "$c" != "a '\'' b '\'' c" ]; then exit 1; fi

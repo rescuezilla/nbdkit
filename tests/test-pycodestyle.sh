@@ -35,6 +35,7 @@
 
 set -e
 set -x
+set -u
 
 requires flake8 --version
 requires git --version
