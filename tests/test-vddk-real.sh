@@ -85,17 +85,12 @@ start_nbdkit -P $pid -U $sock -D vddk.stats=1 -D vddk.diskinfo=1 \
              vddk libdir="$vddkdir" $vmdk
 uri="nbd+unix:///?socket=$sock"
 
-# VDDK < 6.0 did not support flush, so disable flush test there.  Also
-# if nbdinfo doesn't support the --can flush syntax (added in libnbd
-# 1.10) then this is disabled.
-if nbdinfo --can flush "$uri"; then flush="--flush"; else flush=""; fi
-
 # Copy in and out some data.  This should exercise read, write,
 # extents and flushing.
 dd if=/dev/urandom of=$raw count=5 bs=$((1024*1024))
 $TRUNCATE -s 10M $raw
 
-nbdcopy $flush $raw "$uri"
+nbdcopy --flush $raw "$uri"
 nbdcopy "$uri" $raw2
 
 cmp $raw $raw2
