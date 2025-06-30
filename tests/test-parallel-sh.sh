@@ -31,6 +31,9 @@
 # SUCH DAMAGE.
 
 source ./functions.sh
+set -e
+set -x
+set -u
 
 requires_run
 requires test -f file-data
@@ -45,7 +48,7 @@ nbdkit --dump-plugin sh | grep -q ^thread_model=parallel ||
 # debuginfod breaks valgrinding of this test because it creates about
 # a dozen pipe file descriptors, which breaks the leaked fd
 # assumptions in the test below.
-if [ "$NBDKIT_VALGRIND" = "1" ]; then
+if [ "${NBDKIT_VALGRIND:-0}" = "1" ]; then
     requires test -z "$DEBUGINFOD_URLS"
 fi
 
