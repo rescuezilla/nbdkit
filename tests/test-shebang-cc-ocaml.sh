@@ -31,6 +31,9 @@
 # SUCH DAMAGE.
 
 source ./functions.sh
+set -e
+set -x
+set -u
 
 script=$abs_top_srcdir/tests/cc_shebang.ml
 if test ! -f "$script"; then

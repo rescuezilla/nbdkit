@@ -33,6 +33,7 @@
 # Test nbdkit-time-limit-filter.
 
 source ./functions.sh
+#set -e
 set -x
 set -u
 

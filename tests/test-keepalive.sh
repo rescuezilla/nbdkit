@@ -31,6 +31,7 @@
 # SUCH DAMAGE.
 
 source ./functions.sh
+set -e
 set -x
 set -u
 

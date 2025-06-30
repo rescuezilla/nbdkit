@@ -32,6 +32,8 @@
 
 source ./functions.sh
 set -e
+set -x
+set -u
 
 # We only really care that the plugin compiled, so we don't
 # need to run it properly.

@@ -31,8 +31,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-. ./functions.sh
-
+source ./functions.sh
 set -e
 set -x
 set -u

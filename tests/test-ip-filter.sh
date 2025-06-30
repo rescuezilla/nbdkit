@@ -35,6 +35,8 @@
 
 source ./functions.sh
 set -e
+set -x
+set -u
 
 requires ip -V
 requires_nbdinfo

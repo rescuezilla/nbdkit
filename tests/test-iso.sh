@@ -34,6 +34,8 @@
 
 source ./functions.sh
 set -e
+set -x
+set -u
 
 requires_plugin iso
 requires guestfish --version

@@ -33,6 +33,7 @@
 # Test a warning is generated if nbdkit forks in a golang plugin.
 
 source ./functions.sh
+#set -e
 set -x
 set -u
 

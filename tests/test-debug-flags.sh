@@ -33,6 +33,7 @@
 # Test nbdkit -D option.
 
 source ./functions.sh
+#set -e
 set -x
 set -u
 

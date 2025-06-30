@@ -32,6 +32,8 @@
 
 source ./functions.sh
 set -e
+set -x
+set -u
 
 requires_filter log
 requires qemu-io --version

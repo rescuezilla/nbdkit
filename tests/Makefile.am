@@ -215,6 +215,7 @@ TESTS += \
 	test-tests-requires-nbdinfo.sh \
 	test-tests-requires-nbdsh.sh \
 	test-tests-requires-run.sh \
+	test-tests-set-options.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-pycodestyle.sh \
@@ -223,6 +224,7 @@ EXTRA_DIST += \
 	test-tests-requires-nbdinfo.sh \
 	test-tests-requires-nbdsh.sh \
 	test-tests-requires-run.sh \
+	test-tests-set-options.sh \
 	$(NULL)
 
 #----------------------------------------------------------------------

@@ -30,37 +30,39 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# This tests the inline script example from nbdkit-cc-plugin(3) man
-# page, as well as the "shebang"-like behaviour.
+# Check that shell script tests generally use:
+#
+#   source ./functions.sh
+#   set -e
+#   set -x
+#   set -u
+#
+# But you're allowed to comment out the set directives if they don't
+# apply to the test.
 
 source ./functions.sh
 set -e
-set -x
+#set -x
 set -u
 
-script=$abs_top_srcdir/tests/cc-shebang.c
-if test ! -f "$script"; then
-    echo "$0: could not locate cc-shebang.c"
-    exit 1
-fi
+# Try to get a list of tests written in shell script.  An good
+# approximation is to see which ones include 'functions.sh'.
+tests="$( grep -l functions.sh $srcdir/test-*.sh )"
 
-requires_run
-requires_plugin cc
-requires guestfish --version
+errors=0
 
-# This variable is used by $script.
-export abs_top_srcdir
+for t in $tests; do
+    echo checking $t ...
+    if ! grep -Fsq -- "source ./functions.sh" $t ; then
+        echo "error: $t: test does not use 'source ./functions.sh'"
+        ((errors++)) ||:
+    fi
+    if ! grep -Fsq -- "set -e" $t ||
+       ! grep -Fsq -- "set -x" $t ||
+       ! grep -Fsq -- "set -u" $t ; then
+        echo "error: $t: test does not contain standard options set -e, set -x and set -u"
+        ((errors++)) ||:
+    fi
+done
 
-$script -fv \
-        EXTRA_CFLAGS="-I$abs_top_srcdir/include" \
-        --run '
-    guestfish \
-        add "" protocol:nbd server:unix:$unixsocket : \
-        run : \
-        part-disk /dev/sda mbr : \
-        mkfs ext4 /dev/sda1 : \
-        mount /dev/sda1 / : \
-        write /hello "hello,world" : \
-        cat /hello : \
-        fstrim /
-'
+if [ "$errors" -ge 1 ]; then exit 1; fi

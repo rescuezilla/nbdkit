@@ -33,6 +33,7 @@
 # Test the --log=/path (log to a file) option.
 
 source ./functions.sh
+set -e
 set -x
 set -u
 

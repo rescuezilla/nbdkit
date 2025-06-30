@@ -35,6 +35,8 @@
 
 source ./functions.sh
 set -e
+set -x
+set -u
 
 # This test fails for some plugins which on Windows have reduced
 # functionality (eg. nbdkit-file-plugin lacks fd, dirfd, etc.).  Since

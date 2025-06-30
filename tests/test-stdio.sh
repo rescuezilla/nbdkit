@@ -31,7 +31,9 @@
 # SUCH DAMAGE.
 
 source ./functions.sh
-set -xe
+set -e
+set -x
+set -u
 
 requires_run
 requires_nbdsh_uri

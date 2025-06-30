@@ -34,6 +34,8 @@
 
 source ./functions.sh
 set -e
+#set -x
+set -u
 
 # List of tests in this directory.
 tests="$( grep -l '\bmain\b' $srcdir/test-*.c )"

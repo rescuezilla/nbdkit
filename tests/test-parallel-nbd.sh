@@ -31,6 +31,9 @@
 # SUCH DAMAGE.
 
 source ./functions.sh
+#set -e
+set -x
+set -u
 
 requires_run
 requires test -f file-data

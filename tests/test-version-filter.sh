@@ -32,6 +32,8 @@
 
 source ./functions.sh
 set -e
+set -x
+set -u
 
 cmd="nbdkit --filter offset --filter=cow file --version"
 output="$($cmd)"

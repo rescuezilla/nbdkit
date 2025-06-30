@@ -38,6 +38,8 @@
 
 source ./functions.sh
 set -e
+#set -x
+set -u
 
 # Try to get a list of tests written in shell script.  An good
 # approximation is to see which ones include 'functions.sh'.

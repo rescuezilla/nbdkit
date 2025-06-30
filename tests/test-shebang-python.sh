@@ -31,6 +31,9 @@
 # SUCH DAMAGE.
 
 source ./functions.sh
+set -e
+set -x
+set -u
 
 pidfile=shebang-python.pid
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)

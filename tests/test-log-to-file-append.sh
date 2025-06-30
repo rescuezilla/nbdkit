@@ -33,6 +33,7 @@
 # Test the --log=/path option appends.
 
 source ./functions.sh
+set -e
 set -x
 set -u
 
