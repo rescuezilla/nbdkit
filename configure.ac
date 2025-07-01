@@ -143,7 +143,6 @@ filters="\
         blocksize-policy \
         bzip2 \
         cache \
-        cacheextents \
         checkwrite \
         cow \
         ddrescue \
@@ -1787,7 +1786,6 @@ AC_CONFIG_FILES([Makefile
                  filters/blocksize-policy/Makefile
                  filters/bzip2/Makefile
                  filters/cache/Makefile
-                 filters/cacheextents/Makefile
                  filters/checkwrite/Makefile
                  filters/cow/Makefile
                  filters/ddrescue/Makefile

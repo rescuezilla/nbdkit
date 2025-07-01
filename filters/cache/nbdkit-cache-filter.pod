@@ -29,10 +29,9 @@ does not have effective caching, or (with C<cache=unsafe>) to defeat
 flush requests from the client (which is unsafe and can cause data
 loss, as the name suggests).
 
-This filter only caches image contents.  To cache image metadata, use
-L<nbdkit-cacheextents-filter(1)> between this filter and the plugin.
-To accelerate sequential reads, use L<nbdkit-readahead-filter(1)> or
-L<nbdkit-scan-filter(1)> on top of this filter.
+This filter only caches image contents.  To accelerate sequential
+reads, use L<nbdkit-readahead-filter(1)> or L<nbdkit-scan-filter(1)>
+on top of this filter.
 
 =head1 PARAMETERS
 
@@ -181,7 +180,6 @@ C<nbdkit-cache-filter> first appeared in nbdkit 1.2.
 
 L<nbdkit(1)>,
 L<nbdkit-file-plugin(1)>,
-L<nbdkit-cacheextents-filter(1)>,
 L<nbdkit-cow-filter(1)>,
 L<nbdkit-readahead-filter(1)>,
 L<nbdkit-filter(3)>,

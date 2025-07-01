@@ -1694,10 +1694,6 @@ EXTRA_DIST += \
 	test-cache-unaligned.sh \
 	$(NULL)
 
-# cacheextents filter test.
-TESTS += test-cacheextents.sh
-EXTRA_DIST += test-cacheextents.sh
-
 # checkwrite filter test.
 TESTS += \
 	test-checkwrite.sh \

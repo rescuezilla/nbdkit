@@ -59,7 +59,7 @@ eg. C<@4M> to move the offset to 4194304 (Eric Blake).
 New L<nbdkit-openonce-filter(1)> which can be used to open the
 underlying plugin once, sharing the plugin across connections.
 
-L<nbdkit-cacheextents-filter(1)> I<has been deprecated>, and is
+I<nbdkit-cacheextents-filter has been deprecated>, and is
 expected to be removed in S<nbdkit 1.46>.
 
 L<nbdkit-cow-filter(1)> now understands that the NBD protocol export

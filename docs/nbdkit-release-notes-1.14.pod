@@ -50,7 +50,7 @@ plugin’s own choice of thread model.  Used to determine how the thread
 model affects performance, or to serialize plugins if required (Eric
 Blake).
 
-New L<nbdkit-cacheextents-filter(1)> to cache extents requests,
+New nbdkit-cacheextents-filter to cache extents requests,
 especially useful with VDDK which has a slow implementation of extents
 (Martin Kletzander).
 
