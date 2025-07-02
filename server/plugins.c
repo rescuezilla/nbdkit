@@ -808,6 +808,7 @@ plugin_zero (struct context *c,
     if (r == -1)
       break;
     count -= limit;
+    offset += limit;
   }
 
  done:
