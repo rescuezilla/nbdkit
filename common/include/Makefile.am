@@ -49,6 +49,7 @@ EXTRA_DIST = \
 	iszero.h \
 	minmax.h \
 	nextnonzero.h \
+	once.h \
 	random.h \
 	rounding.h \
 	static-assert.h \
@@ -71,6 +72,7 @@ TESTS = \
 	test-iszero \
 	test-minmax \
 	test-nextnonzero \
+	test-once \
 	test-random \
 	test-tvdiff \
 	$(NULL)
@@ -119,6 +121,10 @@ test_minmax_CFLAGS = $(WARNINGS_CFLAGS)
 test_nextnonzero_SOURCES = test-nextnonzero.c nextnonzero.h
 test_nextnonzero_CPPFLAGS = -I$(srcdir)
 test_nextnonzero_CFLAGS = $(WARNINGS_CFLAGS)
+
+test_once_SOURCES = test-once.c once.h
+test_once_CPPFLAGS = -I$(srcdir)
+test_once_CFLAGS = $(WARNINGS_CFLAGS)
 
 test_random_SOURCES = test-random.c random.h
 test_random_CPPFLAGS = -I$(srcdir)
