@@ -71,6 +71,7 @@
 #include "isaligned.h"
 #include "ispowerof2.h"
 #include "minmax.h"
+#include "once.h"
 #include "utils.h"
 
 static enum {
@@ -1165,7 +1166,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 
   /* Trigger a fall back to writing */
   if (file_debug_zero)
-    nbdkit_debug ("zero falling back to writing");
+    ONCE (nbdkit_debug ("%s: zero falling back to writing", h->name));
   errno = EOPNOTSUPP;
   return -1;
 
