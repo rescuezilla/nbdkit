@@ -71,6 +71,7 @@
 #include "isaligned.h"
 #include "ispowerof2.h"
 #include "minmax.h"
+#include "once.h"
 #include "utils.h"
 
 static enum {
@@ -1165,7 +1166,7 @@ file_zero (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 
   /* Trigger a fall back to writing */
   if (file_debug_zero)
-    nbdkit_debug ("zero falling back to writing");
+    ONCE (nbdkit_debug ("%s: zero falling back to writing", h->name));
   errno = EOPNOTSUPP;
   return -1;
 
@@ -1190,6 +1191,7 @@ file_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
 
     r = do_fallocate (h->fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
                       offset, count);
+    if (r == 0) goto out;
     if (r == -1) {
       if (!is_enotsup (errno)) {
         nbdkit_error ("fallocate: %s: offset=%" PRIu64 ", count=%" PRIu32 ":"
@@ -1213,6 +1215,7 @@ file_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
     uint64_t range[2] = {offset, count};
 
     r = ioctl (h->fd, BLKDISCARD, &range);
+    if (r == 0) goto out;
     if (r == -1) {
       if (!is_enotsup (errno)) {
         nbdkit_error ("ioctl: %s: offset=%" PRIu64 ", count=%" PRIu32 ":"
@@ -1226,6 +1229,15 @@ file_trim (void *handle, uint32_t count, uint64_t offset, uint32_t flags)
   }
 #endif
 
+  /* Trim is advisory.  If we got here, we were unable to trim. */
+  ONCE (nbdkit_debug ("%s: could not trim, no trim methods worked",
+                      h->name));
+  return 0;
+
+#ifdef __clang__
+  __attribute__ ((unused))
+#endif
+ out:
   if ((flags & NBDKIT_FLAG_FUA) && file_flush (handle, 0) == -1)
     return -1;
 

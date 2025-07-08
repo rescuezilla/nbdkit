@@ -13,6 +13,8 @@ C<nbdkit-stats-filter> is a filter that displays statistics about NBD
 operations, such as the number of bytes read and written.  Statistics
 are written to a file once when nbdkit exits.
 
+A lighter weight version of this is L<nbdkit-count-filter(1)>.
+
 =head1 EXAMPLE OUTPUT
 
  # nbdkit --filter=exitlast --filter=stats memory 25G statsfile=example.txt
@@ -113,6 +115,7 @@ C<nbdkit-stats-filter> first appeared in nbdkit 1.14.
 
 L<nbdkit(1)>,
 L<nbdkit-filter(3)>,
+L<nbdkit-count-filter(1)>,
 L<nbdkit-log-filter(1)>.
 
 =head1 AUTHORS
