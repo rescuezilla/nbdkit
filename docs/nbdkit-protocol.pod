@@ -276,12 +276,13 @@ filters do not work properly in this case.
    bzip2                   No
    cache                   No
    checkwrite              Yes
+   count                   Yes
    cow                     Yes, since 1.44
    delay                   Yes
    error                   Yes
    evil                    Yes
-   exitlast                Yes
 
+   exitlast                Yes
    exitwhen                Yes
    exportname              Yes
    ext2                    No
@@ -291,8 +292,8 @@ filters do not work properly in this case.
    ip                      Yes
    limit                   Yes
    log                     Yes
-   luks                    No
 
+   luks                    No
    lzip                    No
    multi-conn              Yes
    nocache                 Yes
@@ -302,8 +303,8 @@ filters do not work properly in this case.
    nozero                  Yes
    offset                  Yes, but unlikely to be useful
    openonce                Yes
-   partition               No
 
+   partition               No
    pause                   Yes
    protect                 Yes, but unlikely to be useful
    qcow2dec                No
@@ -313,8 +314,8 @@ filters do not work properly in this case.
    retry                   Yes
    retry-request           Yes
    rotational              Yes
-   scan                    Yes
 
+   scan                    Yes
    spinning                Yes
    stats                   Yes
    swab                    Yes

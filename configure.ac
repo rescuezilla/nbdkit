@@ -144,6 +144,7 @@ filters="\
         bzip2 \
         cache \
         checkwrite \
+        count \
         cow \
         ddrescue \
         delay \
@@ -1787,6 +1788,7 @@ AC_CONFIG_FILES([Makefile
                  filters/bzip2/Makefile
                  filters/cache/Makefile
                  filters/checkwrite/Makefile
+                 filters/count/Makefile
                  filters/cow/Makefile
                  filters/ddrescue/Makefile
                  filters/delay/Makefile

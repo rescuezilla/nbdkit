@@ -1706,6 +1706,10 @@ EXTRA_DIST += \
 	test-checkwrite-fail.sh \
 	$(NULL)
 
+# count filter test.
+TESTS += test-count.sh
+EXTRA_DIST += test-count.sh
+
 # cow filter test.
 if HAVE_MKE2FS_WITH_D
 TESTS += \
