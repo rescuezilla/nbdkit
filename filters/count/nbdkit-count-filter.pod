@@ -4,17 +4,19 @@ nbdkit-count-filter - count bytes read, written, zeroed and trimmed
 
 =head1 SYNOPSIS
 
- nbdkit --filter=count plugin
+ nbdkit -fv --filter=count plugin
 
 =head1 DESCRIPTION
 
 C<nbdkit-count-filter> is a filter for L<nbdkit(1)> that simply counts
 the number of bytes that are read, written, zeroed and trimmed, and
 reports this number in debugging output when the filter is unloaded
-(usually when nbdkit exits).
+(usually when nbdkit exits).  The filter output can only be seen when
+debugging is enabled (I<-v>) which usually implies using the
+foreground (I<-f>) option as well.
 
 This is a very simple and lightweight filter.  For much more
-comprehensive stats about and logging of operations, use
+comprehensive stats and logging of operations, use
 L<nbdkit-stats-filter(1)> or L<nbdkit-log-filter(1)> instead.
 
 =head1 PARAMETERS
