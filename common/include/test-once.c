@@ -34,28 +34,28 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
 
-#ifndef HAVE_STDATOMIC_H
+#if !defined(HAVE_STDATOMIC_H) || !defined(_POSIX_BARRIERS)
 
-/* Skip the test if no <stdatomic.h> */
+/* Skip the test if no <stdatomic.h> or pthread_barrier_t */
 
 int
 main (void)
 {
-  printf ("SKIP: no <stdatomic.h> on this platform\n");
+  fprintf (stderr,
+           "SKIP: no <stdatomic.h> or pthread_barrier_t on this platform\n");
   exit (77);
 }
 
-#else /* HAVE_STDATOMIC_H */
+#else
 
 #include <stdatomic.h>
 #include <errno.h>
-#include <unistd.h>
 
 #undef NDEBUG /* Keep test strong even for nbdkit built without assertions */
 #include <assert.h>
-
-#include <pthread.h>
 
 #include "once.h"
 
@@ -123,4 +123,4 @@ main (void)
   exit (EXIT_SUCCESS);
 }
 
-#endif /* HAVE_STDATOMIC_H */
+#endif
