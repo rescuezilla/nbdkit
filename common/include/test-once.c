@@ -37,9 +37,12 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#if !defined(HAVE_STDATOMIC_H) || !defined(_POSIX_BARRIERS)
+#if !defined(HAVE_STDATOMIC_H) || !defined(_POSIX_BARRIERS) || \
+  defined(__APPLE__)
 
-/* Skip the test if no <stdatomic.h> or pthread_barrier_t */
+/* Skip the test if no <stdatomic.h> or pthread_barrier_t or on macOS
+ * which defines _POSIX_BARRIERS but doesn't actually have them.
+ */
 
 int
 main (void)

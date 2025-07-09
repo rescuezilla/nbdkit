@@ -124,7 +124,8 @@ test_nextnonzero_CFLAGS = $(WARNINGS_CFLAGS)
 
 test_once_SOURCES = test-once.c once.h
 test_once_CPPFLAGS = -I$(srcdir)
-test_once_CFLAGS = $(WARNINGS_CFLAGS)
+test_once_CFLAGS = $(WARNINGS_CFLAGS) $(PTHREAD_CFLAGS)
+test_once_LDFLAGS = $(PTHREAD_LIBS)
 
 test_random_SOURCES = test-random.c random.h
 test_random_CPPFLAGS = -I$(srcdir)
