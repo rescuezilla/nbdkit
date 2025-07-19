@@ -19,6 +19,15 @@ This is a very simple and lightweight filter.  For much more
 comprehensive stats and logging of operations, use
 L<nbdkit-stats-filter(1)> or L<nbdkit-log-filter(1)> instead.
 
+=head1 EXAMPLE
+
+ $ nbdkit -fv null 4k --filter=count \
+          --run 'nbdsh -u "$uri" -c "h.pread(4096,0)"'
+ [lots of output]
+ nbdkit: debug: null: unload plugin
+ nbdkit: debug: count: unload filter
+ nbdkit: debug: count bytes: read 4096, written 0, zeroed 0, trimmed 0
+
 =head1 PARAMETERS
 
 There are no parameters specific to this filter.  All parameters are
