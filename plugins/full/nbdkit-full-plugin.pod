@@ -15,22 +15,18 @@ zero and trim fail with C<ENOSPC> S<(No space left on device)> error.
 In other words this behaves like a sparse (thin-provisioned) virtual
 disk which has run out of space on the host.
 
-=head2 Equivalent filters
+=head2 Equivalent nbdkit-error-filter command
 
-Although this is a standalone plugin, it is equivalent to using either
-L<nbdkit-readonly-filter(1)>:
-
- nbdkit --filter=readonly null SIZE
-
-or L<nbdkit-error-filter(1)>:
+Although this is a standalone plugin, it is equivalent to using
+L<nbdkit-error-filter(1)>:
 
  nbdkit --filter=error null SIZE \
                        error-pwrite=ENOSPC error-pwrite-rate=100% \
                        error-trim=ENOSPC error-trim-rate=100% \
                        error-zero=ENOSPC error-zero-rate=100%
 
-Those filters may be more flexible because you can place them on top
-of other plugins and you can control when to inject errors.
+nbdkit-error-filter can be more flexible because you can place it on
+top of other plugins and you can control when to inject errors.
 
 =head1 PARAMETERS
 
