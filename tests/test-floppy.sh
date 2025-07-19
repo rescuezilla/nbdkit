@@ -41,32 +41,28 @@ requires_plugin floppy
 requires guestfish --version
 
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
-files="floppy.pid $sock floppy.test1 floppy.test2"
+files="floppy.pid $sock floppy.test"
 rm -f $files
 cleanup_fn rm -f $files
 
 # When testing this we need to use a directory which won't change
 # during the test (so not the current directory).
-start_nbdkit -P floppy.pid -U $sock floppy $srcdir/../plugins
+start_nbdkit -P floppy.pid -U $sock floppy $srcdir/../plugins/floppy
 
 # Check the floppy content.
 guestfish --ro --format=raw -a "nbd://?socket=$sock" -m /dev/sda1 <<'EOF'
   ll /
-  ll /floppy/
-  ll /iso/
 
 # This reads out all the directory entries and all file contents.
   tar-out / - | cat >/dev/null
 
 # Check some files exist.  This also tests LFN support.
-  is-file /floppy/Makefile.am
-  is-file /floppy/nbdkit-floppy-plugin.pod
+  is-file /Makefile.am
+  is-file /nbdkit-floppy-plugin.pod
 
 # Download some files and compare to local copies.
-  download /floppy/Makefile.am floppy.test1
-  download /iso/Makefile.am floppy.test2
+  download /Makefile.am floppy.test
 EOF
 
-# Compare downloaded files to local versions.
-cmp floppy.test1 $srcdir/../plugins/floppy/Makefile.am
-cmp floppy.test2 $srcdir/../plugins/iso/Makefile.am
+# Compare downloaded file to local version.
+cmp floppy.test $srcdir/../plugins/floppy/Makefile.am

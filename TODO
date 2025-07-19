@@ -109,6 +109,9 @@ nbdkit-floppy-plugin:
 
 * Add multiple dir merging.
 
+* The test isn't very useful.  Try testing all the different file
+  types we support, and some limits, like maximum file size.
+
 nbdkit-linuxdisk-plugin:
 
 * Add multiple dir merging (in e2fsprogs mke2fs).
