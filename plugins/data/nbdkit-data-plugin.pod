@@ -319,13 +319,19 @@ pattern of 0x55, 0xAA for 512 (2×256) bytes do:
 
 =item expression B<[>NB<:>MB<]>
 
+=item expression B<[>startB<:]>
+
+=item expression B<[:>lenB<]>
+
 (nbdkit E<ge> 1.24)
 
 Take a slice of the expression.  Slices are S<B<[>startB<:>end+1B<]>>
 where I<start> and I<end> are the first and last byte offsets of the
-expression desired.  Either or both may be omitted.  S<B<[:>lenB<]>>
-means to take the first I<len> bytes.  S<B<[>startB<:]>> means to take
-bytes from offset I<start> to the end of the expression.
+expression desired.  Either or both may be omitted.
+
+S<B<[>startB<:]>> means to take bytes from offset I<start> to the end
+of the expression.  S<B<[:>lenB<]>> means truncate the expression to
+I<len> bytes.
 
 =item expression B<-E<gt> \>NAME
 
@@ -351,14 +357,13 @@ containing a boot signature at the end:
 Substitute command line parameters or environment variables.  The
 variable is written in the same language as the C<data> parameter, and
 when substituted it creates a nested scope like S<C<( ... )>>
-expressions.  These are all equivalent:
+expressions.  These three commands do the same thing:
 
  nbdkit data '$pattern*16' pattern='0x55 0xAA'
 
 =for paragraph
 
- export pattern='0x55 0xAA'
- nbdkit data '$pattern*16'
+ export pattern='0x55 0xAA' ; nbdkit data '$pattern*16'
 
 =for paragraph
 
