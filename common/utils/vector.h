@@ -149,18 +149,26 @@
                                                 n, sizeof (type));      \
   }                                                                     \
                                                                         \
+  /* Insert list at i'th element.  i=0 => beginning  i=len => append */ \
+  static inline int __attribute__ ((__unused__))                        \
+  name##_insert_array (name *v, type *elems, size_t nr_elems, size_t i) \
+  {                                                                     \
+    assert (i <= v->len);                                               \
+    if (v->len+nr_elems > v->cap) {                                     \
+      if (name##_reserve (v, nr_elems) == -1) return -1;                \
+    }                                                                   \
+    memmove (&v->ptr[i+nr_elems], &v->ptr[i],                           \
+             (v->len-i) * sizeof (elems[0]));                           \
+    memcpy (&v->ptr[i], elems, nr_elems * sizeof (elems[0]));           \
+    v->len += nr_elems;                                                 \
+    return 0;                                                           \
+  }                                                                     \
+                                                                        \
   /* Insert at i'th element.  i=0 => beginning  i=len => append */      \
   static inline int __attribute__ ((__unused__))                        \
   name##_insert (name *v, type elem, size_t i)                          \
   {                                                                     \
-    assert (i <= v->len);                                               \
-    if (v->len >= v->cap) {                                             \
-      if (name##_reserve (v, 1) == -1) return -1;                       \
-    }                                                                   \
-    memmove (&v->ptr[i+1], &v->ptr[i], (v->len-i) * sizeof (elem));     \
-    v->ptr[i] = elem;                                                   \
-    v->len++;                                                           \
-    return 0;                                                           \
+    return name##_insert_array (v, &elem, 1, i);                        \
   }                                                                     \
                                                                         \
   /* Append a new element to the end of the vector. */                  \
@@ -170,13 +178,27 @@
     return name##_insert (v, elem, v->len);                             \
   }                                                                     \
                                                                         \
+  /* Append list of new elements to the end of the vector. */           \
+  static inline int __attribute__ ((__unused__))                        \
+  name##_append_array (name *v, type *elems, size_t nr_elems)           \
+  {                                                                     \
+    return name##_insert_array (v, elems, nr_elems, v->len);            \
+  }                                                                     \
+                                                                        \
+  /* Remove [i..i+nr-1] elements.  i=0 => beginning  i=len-1 => end */  \
+  static inline void __attribute__ ((__unused__))                       \
+  name##_remove_range (name *v, size_t nr, size_t i)                    \
+  {                                                                     \
+    assert (i < v->len);                                                \
+    memmove (&v->ptr[i], &v->ptr[i+nr], (v->len-i-nr) * sizeof (type)); \
+    v->len -= nr;                                                       \
+  }                                                                     \
+                                                                        \
   /* Remove i'th element.  i=0 => beginning  i=len-1 => end */          \
   static inline void __attribute__ ((__unused__))                       \
   name##_remove (name *v, size_t i)                                     \
   {                                                                     \
-    assert (i < v->len);                                                \
-    memmove (&v->ptr[i], &v->ptr[i+1], (v->len-i-1) * sizeof (type));   \
-    v->len--;                                                           \
+    name##_remove_range (v, 1, i);                                      \
   }                                                                     \
                                                                         \
   /* Remove all elements and deallocate the vector. */                  \

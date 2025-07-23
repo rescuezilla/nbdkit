@@ -42,6 +42,7 @@
 #undef NDEBUG /* Keep test strong even for nbdkit built without assertions */
 #include <assert.h>
 
+#include "array-size.h"
 #include "bench.h"
 #include "const-string-vector.h"
 #include "nbdkit-string.h"
@@ -50,11 +51,46 @@
 
 #define APPENDS 1000000
 
+DEFINE_VECTOR_TYPE (int_vector, int);
 DEFINE_VECTOR_TYPE (int64_vector, int64_t);
 DEFINE_VECTOR_TYPE (uint32_vector, uint32_t);
 
+static void
+test_int_vector (void)
+{
+  int_vector v = empty_vector;
+  int data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  int r;
+  size_t i;
+
+  r = int_vector_append_array (&v, data, ARRAY_SIZE (data));
+  assert (r == 0);
+
+  assert (v.len == 10);
+  for (i = 0; i < 10; ++i)
+    assert (v.ptr[i] == i);
+
+  int_vector_remove_range (&v, 5, 3); /* remove elements [3..7] */
+
+  assert (v.len == 5);
+  assert (v.ptr[0] == 0);
+  assert (v.ptr[1] == 1);
+  assert (v.ptr[2] == 2);
+  assert (v.ptr[3] == 8);
+  assert (v.ptr[4] == 9);
+
+  r = int_vector_insert_array (&v, &data[3], 5, 3);
+  assert (r == 0);
+
+  assert (v.len == 10);
+  for (i = 0; i < 10; ++i)
+    assert (v.ptr[i] == i);
+
+  int_vector_reset (&v);
+}
+
 static int
-compare (const int64_t *a, const int64_t *b)
+compare_int64 (const int64_t *a, const int64_t *b)
 {
   return (*a > *b) - (*a < *b);
 }
@@ -73,7 +109,7 @@ test_int64_vector (void)
 
   for (i = 0; i < 10; ++i)
     assert (v.ptr[i] == 9 - i);
-  int64_vector_sort (&v, compare);
+  int64_vector_sort (&v, compare_int64);
   for (i = 0; i < 10; ++i)
     assert (v.ptr[i] == i);
 
@@ -82,10 +118,10 @@ test_int64_vector (void)
   assert (v.ptr[1] == 2);
 
   tmp = 10;
-  p = int64_vector_search (&v, &tmp, (void*) compare);
+  p = int64_vector_search (&v, &tmp, (void*) compare_int64);
   assert (p == NULL);
   tmp = 8;
-  p = int64_vector_search (&v, &tmp, (void*) compare);
+  p = int64_vector_search (&v, &tmp, (void*) compare_int64);
   assert (p == &v.ptr[7]);
 
   int64_vector_reset (&v);
@@ -283,6 +319,7 @@ main (int argc, char *argv[])
 
   if (!bench) {
     /* Do normal tests. */
+    test_int_vector ();
     test_int64_vector ();
     test_string ();
     test_string_exactly ();

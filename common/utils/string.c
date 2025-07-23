@@ -47,7 +47,7 @@ string_append_format (string *s, const char *fs, ...)
 {
   CLEANUP_FREE char *s2 = NULL;
   va_list ap;
-  size_t i, len;
+  size_t len;
   ssize_t need;
   int r;
 
@@ -64,8 +64,7 @@ string_append_format (string *s, const char *fs, ...)
   if (need > 0 && string_reserve (s, need) == -1)
     return -1;
 
-  for (i = 0; i < len; ++i)
-    string_append (s, s2[i]);
+  string_append_array (s, s2, len);
 
   /* Make sure the string is \0-terminated in the byte of space
    * reserved after the string.
