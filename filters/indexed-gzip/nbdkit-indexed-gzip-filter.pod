@@ -1,0 +1,62 @@
+=head1 NAME
+
+nbdkit-indexed-gzip-filter - indexed gzip filter
+
+=head1 SYNOPSIS
+
+nbdkit --filter=indexed-gzip plugin
+
+=head1 DESCRIPTION
+
+C<nbdkit-indexed-gzip-filter> is a filter for nbdkit that provides
+fast and
+efficient random access to gzip-compressed data.
+
+The standard C<nbdkit-gzip-filter> decompresses the entire archive to a
+temporary file, which means you need to have enough storage or
+memory.
+
+With this plugin, the entire archive still needs to be decompressed once,
+but an
+index file that may be 0.3% of the uncompressed size, allowing for
+random access
+decompression without needing to keep the uncompressed archive.
+
+Currently this index file must be created beforehand using gztool
+
+The underlying plugin should provide access to the compressed gzip data that
+corresponds to the index file.
+
+=head1 PARAMETERS
+
+=head1 NOTES
+
+=over 1
+
+=item B<gzip-index-path=>PATH
+
+The path to the complete gzip index file (created by gztool).
+
+=back
+
+=head1 VERSION
+
+C<nbdkit-indexed-gzip-filter> first appeared in nbdkit 1.XX.
+
+=head1 SEE ALSO
+
+L<nbdkit(1)>, L<nbdkit-filter(3)>, L<nbdkit-gzip-filter(1)>, L<gztool(1)>.
+
+=head1 AUTHORS
+
+Shasheen Ediriweera
+
+Based on gztool.c by Roberto S. Galende.
+
+gztool.c based on zran.c by zlib author Mark Adler
+
+=head1 COPYRIGHT
+
+Copyright Red Hat
+
+=cut

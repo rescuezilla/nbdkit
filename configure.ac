@@ -158,6 +158,7 @@ filters="\
         fua \
         gzip \
         ip \
+        indexed-gzip \
         limit \
         log \
         luks \
@@ -1802,6 +1803,7 @@ AC_CONFIG_FILES([Makefile
                  filters/fua/Makefile
                  filters/gzip/Makefile
                  filters/ip/Makefile
+                 filters/indexed-gzip/Makefile
                  filters/limit/Makefile
                  filters/log/Makefile
                  filters/luks/Makefile
@@ -1919,6 +1921,7 @@ echo
 feature "bzip2"               test "x$HAVE_BZLIB_TRUE" = "x"
 feature "ext2"                test "x$HAVE_EXT2_TRUE" = "x"
 feature "gzip"                test "x$HAVE_ZLIB_TRUE" = "x"
+feature "indexed-gzip"        test "x$HAVE_ZLIB_TRUE" = "x"
 feature "luks"                test "x$HAVE_GNUTLS_PBKDF2_TRUE" = "x"
 feature "lzip"                test "x$HAVE_LZMA_LZIP_DECODER_TRUE" = "x"
 feature "stats"               test "x$HAVE_CXX_TRUE" = "x"
