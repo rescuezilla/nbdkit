@@ -73,15 +73,12 @@ typedef struct expr expr_t;
 static string
 substring (string s, size_t offset, size_t len)
 {
-  size_t i;
   string r = empty_vector;
 
-  for (i = 0; i < len; ++i) {
-    assert (offset+i < s.len);
-    if (string_append (&r, s.ptr[offset+i]) == -1) {
-      nbdkit_error ("realloc: %m");
-      exit (EXIT_FAILURE);
-    }
+  assert (offset+len <= s.len);
+  if (string_append_array (&r, &s.ptr[offset], len) == -1) {
+    nbdkit_error ("realloc: %m");
+    exit (EXIT_FAILURE);
   }
 
   return r;
@@ -1234,11 +1231,9 @@ optimize_ast (node_id root, node_id *root_rtn)
       const string sub = get_node (id).string;
 
       for (i = 0; i < n; ++i) {
-        for (j = 0; j < sub.len; ++j) {
-          if (string_append (&s, sub.ptr[j]) == -1) {
-            nbdkit_error ("realloc: %m");
-            return -1;
-          }
+        if (string_append_array (&s, sub.ptr, sub.len) == -1) {
+          nbdkit_error ("realloc: %m");
+          return -1;
         }
       }
 
