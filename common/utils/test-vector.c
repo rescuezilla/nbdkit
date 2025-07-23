@@ -88,7 +88,7 @@ test_int64_vector (void)
   p = int64_vector_search (&v, &tmp, (void*) compare);
   assert (p == &v.ptr[7]);
 
-  free (v.ptr);
+  int64_vector_reset (&v);
 }
 
 static void
@@ -124,7 +124,7 @@ test_string (void)
 
   assert (strcmp (s.ptr, "hello world") == 0);
   assert (s.len == 12); /* hello + space + world + \0 */
-  free (s.ptr);
+  string_reset (&s);
 }
 
 /* Same as above, but using string_reserve_exactly. */
@@ -161,7 +161,7 @@ test_string_exactly (void)
 
   assert (strcmp (s.ptr, "hello world") == 0);
   assert (s.len == 12); /* hello + space + world + \0 */
-  free (s.ptr);
+  string_reset (&s);
 }
 
 static void
