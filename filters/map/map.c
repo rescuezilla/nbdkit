@@ -227,15 +227,14 @@ convert_to_regions (void)
     if (new_range_list.len > 0) {
       /* Shorten range[i] so it ends at the first new range. */
       range_list.ptr[i].end = new_range_list.ptr[0].start - 1;
+      /* Shorten each new range so it ends at the next new range. */
+      for (j = 0; j < new_range_list.len - 1; ++j)
+        new_range_list.ptr[j].end = new_range_list.ptr[j+1].start - 1;
       /* Append the new ranges to the end of the original list. */
-      for (j = 0; j < new_range_list.len; ++j) {
-        /* Shorten new range so it ends at the next new range. */
-        if (j < new_range_list.len - 1)
-          new_range_list.ptr[j].end = new_range_list.ptr[j+1].start - 1;
-        if (ranges_append (&range_list, new_range_list.ptr[j]) == -1) {
-          nbdkit_error ("realloc: %m");
-          exit (EXIT_FAILURE);
-        }
+      if (ranges_append_array (&range_list,
+                               new_range_list.ptr, new_range_list.len) == -1) {
+        nbdkit_error ("realloc: %m");
+        exit (EXIT_FAILURE);
       }
     }
 
