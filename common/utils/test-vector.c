@@ -264,6 +264,45 @@ test_overflow (void)
   assert (errno == ENOMEM);
 }
 
+/* Test vector_uniq function. */
+static int
+compare_int (const int *a, const int *b)
+{
+  return (*a > *b) - (*a < *b);
+}
+
+static void
+test_uniq (void)
+{
+  int_vector v = empty_vector;
+  int r;
+
+  int data1[] = { 1, 2, 2, 2, 3, 1, 1, 1, 4, 4 };
+  r = int_vector_append_array (&v, data1, ARRAY_SIZE (data1));
+  assert (r == 0);
+  int_vector_uniq (&v, compare_int);
+  assert (v.len == 5);
+  assert (v.ptr[0] == 1);
+  assert (v.ptr[1] == 2);
+  assert (v.ptr[2] == 3);
+  assert (v.ptr[3] == 1);
+  assert (v.ptr[4] == 4);
+  int_vector_reset (&v);
+
+  int data2[] = { 1, 2, 1, 2, 2, 2, 3, 1, 1, 1 };
+  r = int_vector_append_array (&v, data2, ARRAY_SIZE (data2));
+  assert (r == 0);
+  int_vector_uniq (&v, compare_int);
+  assert (v.len == 6);
+  assert (v.ptr[0] == 1);
+  assert (v.ptr[1] == 2);
+  assert (v.ptr[2] == 1);
+  assert (v.ptr[3] == 2);
+  assert (v.ptr[4] == 3);
+  assert (v.ptr[5] == 1);
+  int_vector_reset (&v);
+}
+
 static void
 bench_reserve (void)
 {
@@ -326,6 +365,7 @@ main (int argc, char *argv[])
     test_string_vector ();
     test_const_string_vector ();
     test_overflow ();
+    test_uniq ();
   }
 
   else {

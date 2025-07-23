@@ -230,12 +230,11 @@
   /* Remove duplicate adjacent elements (uniq). */                      \
   static inline void __attribute__ ((__unused__))                       \
   name##_uniq (name *v,                                                 \
-               int (*compare) (const type *p1, const type *p2))         \
+               int (*compare) (type const *p1, type const *p2))         \
   {                                                                     \
     size_t i;                                                           \
     for (i = 0; i < v->len - 1; ++i) {                                  \
-      if (compare ((const type *) &v->ptr[i],                           \
-                   (const type *) &v->ptr[i+1]) == 0) {                 \
+      if (compare (&v->ptr[i], &v->ptr[i+1]) == 0) {                    \
         name##_remove (v, i);                                           \
         i--;                                                            \
       }                                                                 \
