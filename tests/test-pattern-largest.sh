@@ -62,4 +62,4 @@ export script
 
 # Run nbdkit with pattern plugin.
 # size = 2^63-1
-nbdkit pattern 9223372036854775807 --run ' nbdsh -u "$uri" -c "$script" '
+nbdkit pattern $largest_disk --run ' nbdsh -u "$uri" -c "$script" '

@@ -60,6 +60,12 @@ SED="@SED@"
 STAT="@STAT@"
 TRUNCATE="@TRUNCATE@"
 
+# Largest size of disk that nbdkit supports, 2^63-1.
+#
+# Because we might be using a 32 bit shell, express this as a constant
+# rather than using $(()) calculations.
+largest_disk=9223372036854775807
+
 # Largest size of disk that qemu supports.
 #
 # Up to qemu 5.2.0 that was 2^63 - 512 (because of the requirement for
