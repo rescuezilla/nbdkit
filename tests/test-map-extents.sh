@@ -30,36 +30,52 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test the pattern plugin with the largest possible size supported by
-# nbdkit.  By using nbdsh (libnbd) as the client we are able to read
-# the final 511 byte "sector" which eludes qemu.
+# Test the map filter with extents.
 
 source ./functions.sh
 set -e
 set -x
 set -u
 
-requires_nbdsh_uri
 requires_run
+requires_plugin data
+requires_nbdinfo
 
-define script <<'EOF'
-# Construct what we expect to see in the last 511 bytes.
-expected = b""
-for i in range(0, 512-8, 8):
-    expected = expected + \
-               bytes([0x7f, 0xff, 0xff, 0xff, \
-                      0xff, 0xff, 0xfe + (i >> 8), i & 255])
-# final byte is truncated so we have to deal with last 7
-# bytes specially ...
-expected = expected + b"\x7f\xff\xff\xff\xff\xff\xff"
+out=map-extents.out
+rm -f $out
+cleanup_fn rm -f $out
 
-# Read and compare.
-buf = h.pread(511, 9223372036854775296)
-print("buf = %r\nexpected = %r\n" % (buf, expected))
-assert buf == expected
+define data <<'EOF'
+# Underlying plugin:
+# 0-1M  sparse
+# 1M-2M data
+@1M "1" * 1048576
+# 2M-3M sparse
+# 3M-4M data
+@3M "1" * 1048576
+# 4M-8M sparse
+@8M
 EOF
-export script
 
-# Run nbdkit with pattern plugin.
-# size = 2^63-1
-nbdkit pattern $largest_disk --run ' nbdsh -u "$uri" -c "$script" '
+# This will map 1M-2M to 0, so the data there will be hidden and
+# it should appear sparse.
+define map <<'EOF'
+--filter=map
+map=1048576-2097151:0
+EOF
+
+define expected <<'EOF'
+         0     3145728    3  hole,zero
+   3145728     1048576    0  data
+   4194304     4194304    3  hole,zero
+EOF
+
+# Run the test.
+export out
+nbdkit data "$data" $map \
+       --run ' nbdinfo --map "$uri" > $out '
+
+cat $out
+
+# Check map as expected.
+diff -uwB <(echo "$expected") $out

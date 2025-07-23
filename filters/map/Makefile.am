@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # nbdkit
 # Copyright Red Hat
 #
@@ -30,36 +29,48 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test the pattern plugin with the largest possible size supported by
-# nbdkit.  By using nbdsh (libnbd) as the client we are able to read
-# the final 511 byte "sector" which eludes qemu.
+include $(top_srcdir)/common-rules.mk
 
-source ./functions.sh
-set -e
-set -x
-set -u
+EXTRA_DIST = nbdkit-map-filter.pod
 
-requires_nbdsh_uri
-requires_run
+filter_LTLIBRARIES = nbdkit-map-filter.la
 
-define script <<'EOF'
-# Construct what we expect to see in the last 511 bytes.
-expected = b""
-for i in range(0, 512-8, 8):
-    expected = expected + \
-               bytes([0x7f, 0xff, 0xff, 0xff, \
-                      0xff, 0xff, 0xfe + (i >> 8), i & 255])
-# final byte is truncated so we have to deal with last 7
-# bytes specially ...
-expected = expected + b"\x7f\xff\xff\xff\xff\xff\xff"
+nbdkit_map_filter_la_SOURCES = \
+	map.c \
+	$(top_srcdir)/include/nbdkit-filter.h \
+	$(NULL)
 
-# Read and compare.
-buf = h.pread(511, 9223372036854775296)
-print("buf = %r\nexpected = %r\n" % (buf, expected))
-assert buf == expected
-EOF
-export script
+nbdkit_map_filter_la_CPPFLAGS = \
+	-I$(top_srcdir)/include \
+	-I$(top_builddir)/include \
+	-I$(top_srcdir)/common/include \
+	-I$(top_srcdir)/common/regions \
+	-I$(top_srcdir)/common/utils \
+	$(NULL)
+nbdkit_map_filter_la_CFLAGS = $(WARNINGS_CFLAGS)
+nbdkit_map_filter_la_LDFLAGS = \
+	-module -avoid-version -shared $(NO_UNDEFINED_ON_WINDOWS) \
+	$(NULL)
+if USE_LINKER_SCRIPT
+nbdkit_map_filter_la_LDFLAGS += \
+	-Wl,--version-script=$(top_srcdir)/filters/filters.syms
+endif
+nbdkit_map_filter_la_LIBADD = \
+	$(top_builddir)/common/regions/libregions.la \
+	$(top_builddir)/common/utils/libutils.la \
+	$(top_builddir)/common/replacements/libcompat.la \
+	$(IMPORT_LIBRARY_ON_WINDOWS) \
+	$(NULL)
 
-# Run nbdkit with pattern plugin.
-# size = 2^63-1
-nbdkit pattern $largest_disk --run ' nbdsh -u "$uri" -c "$script" '
+if HAVE_POD
+
+man_MANS = nbdkit-map-filter.1
+CLEANFILES += $(man_MANS)
+
+nbdkit-map-filter.1: nbdkit-map-filter.pod \
+		$(top_builddir)/podwrapper.pl
+	$(PODWRAPPER) --section=1 --man $@ \
+	    --html $(top_builddir)/html/$@.html \
+	    $<
+
+endif HAVE_POD

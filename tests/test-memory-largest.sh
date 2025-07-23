@@ -63,4 +63,4 @@ export script
 
 # Run nbdkit with memory plugin.
 # size = 2^63-1
-nbdkit memory 9223372036854775807 --run ' nbdsh -u "$uri" -c "$script" '
+nbdkit memory $largest_disk --run ' nbdsh -u "$uri" -c "$script" '

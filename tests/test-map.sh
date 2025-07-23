@@ -30,36 +30,57 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test the pattern plugin with the largest possible size supported by
-# nbdkit.  By using nbdsh (libnbd) as the client we are able to read
-# the final 511 byte "sector" which eludes qemu.
+# Simple tests of the map filter.
 
 source ./functions.sh
 set -e
 set -x
 set -u
 
-requires_nbdsh_uri
 requires_run
+requires_plugin pattern
+requires_nbdsh_uri
 
 define script <<'EOF'
-# Construct what we expect to see in the last 511 bytes.
-expected = b""
-for i in range(0, 512-8, 8):
-    expected = expected + \
-               bytes([0x7f, 0xff, 0xff, 0xff, \
-                      0xff, 0xff, 0xfe + (i >> 8), i & 255])
-# final byte is truncated so we have to deal with last 7
-# bytes specially ...
-expected = expected + b"\x7f\xff\xff\xff\xff\xff\xff"
+import random
 
-# Read and compare.
-buf = h.pread(511, 9223372036854775296)
-print("buf = %r\nexpected = %r\n" % (buf, expected))
-assert buf == expected
+# 0-511 and 512-1023 are mapped to the same data (at 0-511).
+b1 = h.pread(512, 0)
+b2 = h.pread(512, 512)
+assert b1 == b2
+assert b1[0:8] == b'\x00\x00\x00\x00\x00\x00\x00\x00'
+assert b1[8:16] == b'\x00\x00\x00\x00\x00\x00\x00\x08'
+assert b1[504:512] == b'\x00\x00\x00\x00\x00\x00\x01\xf8'
+
+# 2**63-512 through to 2**63-1 (511 bytes) is mapped to 0.
+b1 = h.pread(511, 0)
+b2 = h.pread(511, 2**63-512)
+assert b1 == b2
+assert b1[0:8] == b'\x00\x00\x00\x00\x00\x00\x00\x00'
+assert b1[8:16] == b'\x00\x00\x00\x00\x00\x00\x00\x08'
+assert b1[504:511] == b'\x00\x00\x00\x00\x00\x00\x01'
+
+# Other parts of the disk are 1-1 mapped.
+offset = random.randint(1024, 2**63-1024) & ~7
+len = random.randint(1, 512) & ~7
+b = h.pread(len, offset)
+for i in range(0, len, 8):
+    actual = b[i:i+8]
+    expected = (offset + i).to_bytes(8, 'big')
+    print("%r %r" % (actual, expected))
+    assert actual == expected
 EOF
 export script
 
-# Run nbdkit with pattern plugin.
-# size = 2^63-1
-nbdkit pattern $largest_disk --run ' nbdsh -u "$uri" -c "$script" '
+# 9223372036854775296 == 2**63-512, so the last (partial) sector is also
+# mapped.
+# Note the rule that the first map on the command line has precedence.
+define map <<'EOF'
+--filter=map
+map=512-1023:0
+map=512-1023:50000
+map=9223372036854775296-9223372036854775807:0
+EOF
+
+# Run the test.
+nbdkit pattern $largest_disk $map --run ' nbdsh -u "$uri" -c "$script" '

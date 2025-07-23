@@ -1957,6 +1957,20 @@ EXTRA_DIST += \
 	test-lzip-unaligned.sh \
 	$(NULL)
 
+# map filter test.
+TESTS += \
+	test-map.sh \
+	test-map-extents.sh \
+	test-map-out-of-range.sh \
+	test-map-random.sh \
+	$(NULL)
+EXTRA_DIST += \
+	test-map.sh \
+	test-map-extents.sh \
+	test-map-out-of-range.sh \
+	test-map-random.sh \
+	$(NULL)
+
 # multi-conn filter test.
 TESTS += \
 	test-multi-conn.sh \

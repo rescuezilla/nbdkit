@@ -30,36 +30,63 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test the pattern plugin with the largest possible size supported by
-# nbdkit.  By using nbdsh (libnbd) as the client we are able to read
-# the final 511 byte "sector" which eludes qemu.
+# Test how the filter behaves when used to map I/O out of range.
 
 source ./functions.sh
 set -e
 set -x
 set -u
 
-requires_nbdsh_uri
 requires_run
+requires_nbdsh_uri
+
+# In this map, sector 0 is mapped completely beyond the end
+# of the disk.  Sector 1 is mapped so that only the last byte
+# is beyond the end of the disk.
+define map <<'EOF'
+--filter=map
+map=0-511:1048576
+map=512-1023:1048065
+EOF
 
 define script <<'EOF'
-# Construct what we expect to see in the last 511 bytes.
-expected = b""
-for i in range(0, 512-8, 8):
-    expected = expected + \
-               bytes([0x7f, 0xff, 0xff, 0xff, \
-                      0xff, 0xff, 0xfe + (i >> 8), i & 255])
-# final byte is truncated so we have to deal with last 7
-# bytes specially ...
-expected = expected + b"\x7f\xff\xff\xff\xff\xff\xff"
+# Reading any part of sector 0 is expected to return EIO.
+try:
+    b = h.pread(512, 0);
+    assert False  # not reached
+except nbd.Error as ex:
+    assert ex.errno == "EIO"
+try:
+    h.pread(1, 0);
+    assert False  # not reached
+except nbd.Error as ex:
+    assert ex.errno == "EIO"
+try:
+    h.pread(1, 511);
+    assert False  # not reached
+except nbd.Error as ex:
+    assert ex.errno == "EIO"
 
-# Read and compare.
-buf = h.pread(511, 9223372036854775296)
-print("buf = %r\nexpected = %r\n" % (buf, expected))
-assert buf == expected
+# Reading the first 511 bytes of sector 1 should be fine.
+h.pread(511, 512);
+
+# Reading the last byte of sector 1 is expected to return EIO.
+try:
+    h.pread(1, 1023)
+    assert False  # not reached
+except nbd.Error as ex:
+    assert ex.errno == "EIO"
+try:
+    h.pread(512, 512)
+    assert False  # not reached
+except nbd.Error as ex:
+    assert ex.errno == "EIO"
+
+# Any other read should be fine.
+h.pread(2048, 2048)
+h.pread(100, 100000)
 EOF
 export script
 
-# Run nbdkit with pattern plugin.
-# size = 2^63-1
-nbdkit pattern $largest_disk --run ' nbdsh -u "$uri" -c "$script" '
+# Run the test.
+nbdkit null 1M $map --run ' nbdsh -u "$uri" -c "$script" '

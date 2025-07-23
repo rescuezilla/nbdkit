@@ -162,6 +162,7 @@ filters="\
         log \
         luks \
         lzip \
+        map \
         multi-conn \
         nocache \
         noextents \
@@ -1806,6 +1807,7 @@ AC_CONFIG_FILES([Makefile
                  filters/log/Makefile
                  filters/luks/Makefile
                  filters/lzip/Makefile
+                 filters/map/Makefile
                  filters/multi-conn/Makefile
                  filters/nocache/Makefile
                  filters/noextents/Makefile
