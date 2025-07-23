@@ -39,7 +39,6 @@ requires_filter cache
 requires_run
 requires_nbdsh_uri
 
-sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
 img=cache-block-size.img
 rm -f $img
 cleanup_fn rm -f $img
