@@ -257,9 +257,9 @@
   name##_duplicate (name *v, name *copy)                                \
   {                                                                     \
     /* Note it's allowed for v and copy to be the same pointer. */      \
-    type *vptr = v->ptr;                                                \
+    type const *vptr = v->ptr;                                          \
     type *newptr;                                                       \
-    size_t len = v->len * sizeof (type);                                \
+    const size_t len = v->len * sizeof (type);                          \
                                                                         \
     newptr = malloc (len);                                              \
     if (newptr == NULL) return -1;                                      \
