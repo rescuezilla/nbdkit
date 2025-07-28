@@ -666,6 +666,33 @@ has the same meaning as:
 
  nbdkit perl script=foo.pl [args...]
 
+=head2 @PATH
+
+If you need to pass a large number of key=value parameters, you can
+place them in an external file, for example:
+
+ $ cat partitions.txt
+ # The list of partitions to load:
+ file=partition1.img
+ file=partition2.img
+ file=partition3.img
+ $ nbdkit partitioning @./partitions.txt
+
+The pathname after the C<@> must contain at least one C</> character
+(this is to avoid compatibility problems with some existing plugins),
+so if the file is the current directory as in the example above, use
+C<@./filename>
+
+There must be one parameter per line.  Lines beginning with C<#> and
+blank lines are ignored.
+
+This only works for C<key=value> plugin & filter parameters (not for
+the plugin name or I<--options>).  You can use multiple C<@PATH>
+parameters.
+
+You or use C<@PATH> recursively in another C<@PATH> file.  The path in
+that case is taken relative to the containing file.
+
 =head2 Shebang scripts
 
 You can use C<#!> to run nbdkit plugins written in most scripting

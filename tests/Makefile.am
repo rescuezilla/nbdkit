@@ -317,6 +317,7 @@ TESTS += \
 	test-keepalive.sh \
 	test-log-to-file.sh \
 	test-log-to-file-append.sh \
+	test-at-file.sh \
 	$(NULL)
 if !IS_WINDOWS
 TESTS += \
@@ -324,6 +325,18 @@ TESTS += \
 	$(NULL)
 endif
 EXTRA_DIST += \
+	test-at-file.sh \
+	test-at-file/1.expected \
+	test-at-file/1.input \
+	test-at-file/2.expected \
+	test-at-file/2.input \
+	test-at-file/3.expected \
+	test-at-file/3a.input \
+	test-at-file/3b.input \
+	test-at-file/4.expected \
+	test-at-file/4a.input \
+	test-at-file/4b.input \
+	test-at-file/4c.input \
 	test-bad-filter-name.sh \
 	test-bad-plugin-name.sh \
 	test-captive-tls-certificates.sh \
