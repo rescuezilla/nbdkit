@@ -150,6 +150,7 @@ is_short_name (const char *filename)
     }
   }
 
+  /* Short names cannot contain the dir separator string. */
   return strstr (filename, DIR_SEPARATOR_STR) == NULL;
 }
 
