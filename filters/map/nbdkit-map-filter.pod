@@ -51,6 +51,10 @@ described then the first matching range on the command line takes
 precedence.  There is an implicit 1-1 mapping covering parts of the
 disk not covered by explicit C<map> parameters.
 
+If you have a large number of mappings, consider using the nbdkit
+C<@PATH> parameter to read them from an external file (see
+L<nbdkit(1)/@PATH>).
+
 =back
 
 =head1 FILES
