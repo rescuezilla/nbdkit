@@ -1147,7 +1147,7 @@ open_filter_so (struct backend *next, size_t i,
   return ret;
 }
 
-/* Call config and config_complete to parse the parameters.
+/* Call config() on each of the key=value plugin & filter parameters.
  *
  * If the plugin provides magic_config_key then any "bare" values
  * (ones not containing "=") are prefixed with this key.
