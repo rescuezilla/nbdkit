@@ -346,6 +346,12 @@ main (int argc, char *argv[])
       {
         struct filter_filename *t;
 
+        if (optarg[0] == '\0') {
+          fprintf (stderr, "%s: filter name cannot be an empty string\n",
+                   program_name);
+          exit (EXIT_FAILURE);
+        }
+
         t = malloc (sizeof *t);
         if (t == NULL) {
           perror ("malloc");
@@ -744,6 +750,11 @@ main (int argc, char *argv[])
    * help/version/plugin information.
    */
   filename = argv[optind++];
+  if (filename[0] == '\0') {
+    fprintf (stderr, "%s: plugin name cannot be an empty string\n",
+             program_name);
+    exit (EXIT_FAILURE);
+  }
   short_name = is_short_name (filename);
 
   /* Is there an executable script located in the plugindir?
