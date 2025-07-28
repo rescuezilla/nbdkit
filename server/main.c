@@ -90,6 +90,8 @@ static struct backend *open_filter_so (struct backend *next, size_t i,
                                        const char *filename, int short_name);
 static void parse_key_values (int argc, char **argv, bool is_first,
                               const char *magic_config_key);
+static void parse_key_value (const char *arg,
+                             bool is_first, const char *magic_config_key);
 static void start_serving (void);
 static void write_pidfile (void);
 static bool is_config_key (const char *key, size_t len);
@@ -1147,7 +1149,24 @@ open_filter_so (struct backend *next, size_t i,
   return ret;
 }
 
-/* Call config() on each of the key=value plugin & filter parameters.
+/* Call config() on each of the key=value plugin & filter parameters. */
+static void
+parse_key_values (int argc, char **argv, bool is_first,
+                  const char *magic_config_key)
+{
+  if (optind >= argc) return;
+
+  parse_key_value (argv[optind], is_first, magic_config_key);
+
+  ++optind;
+#if defined(__GNUC__) && __GNUC__ >= 15 && defined(__OPTIMIZE__)
+  /* Ensure this is optimized as a tail call. */
+  __attribute__((musttail)) return
+#endif
+  parse_key_values (argc, argv, false, magic_config_key);
+}
+
+/* Parse a single [key=]value, calling config().
  *
  * If the plugin provides magic_config_key then any "bare" values
  * (ones not containing "=") are prefixed with this key.
@@ -1163,12 +1182,9 @@ open_filter_so (struct backend *next, size_t i,
  * the keys, which are then freed at the end of main().
  */
 static void
-parse_key_values (int argc, char **argv, bool is_first,
-                  const char *magic_config_key)
+parse_key_value (const char *arg,
+                 bool is_first, const char *magic_config_key)
 {
-  if (optind >= argc) return;
-
-  const char *arg = argv[optind];
   const char *p, *key;
   size_t n;
 
@@ -1193,13 +1209,6 @@ parse_key_values (int argc, char **argv, bool is_first,
   else {                        /* magic config key */
     top->config (top, magic_config_key, arg);
   }
-
-  ++optind;
-#if defined(__GNUC__) && __GNUC__ >= 15 && defined(__OPTIMIZE__)
-  /* Ensure this is optimized as a tail call. */
-  __attribute__((musttail)) return
-#endif
-  parse_key_values (argc, argv, false, magic_config_key);
 }
 
 static void
