@@ -88,6 +88,8 @@ static struct backend *open_plugin_so (size_t i, const char *filename,
                                        int short_name);
 static struct backend *open_filter_so (struct backend *next, size_t i,
                                        const char *filename, int short_name);
+static void parse_key_values (int argc, char **argv, bool is_first,
+                              const char *magic_config_key);
 static void start_serving (void);
 static void write_pidfile (void);
 static bool is_config_key (const char *key, size_t len);
@@ -280,13 +282,11 @@ main (int argc, char *argv[])
   int tls_set_on_cli = false;
   bool short_name;
   const char *filename;
-  char *p;
   static struct filter_filename {
     struct filter_filename *next;
     const char *filename;
   } *filter_filenames = NULL;
   size_t i;
-  const char *magic_config_key;
 
   error_if_stdio_closed ();
   winsock_init ();
@@ -869,47 +869,8 @@ main (int argc, char *argv[])
     exit (EXIT_SUCCESS);
   }
 
-  /* Call config and config_complete to parse the parameters.
-   *
-   * If the plugin provides magic_config_key then any "bare" values
-   * (ones not containing "=") are prefixed with this key.
-   *
-   * For backwards compatibility with old plugins, and to support
-   * scripting languages, if magic_config_key == NULL then if the
-   * first parameter is bare it is prefixed with the key "script", and
-   * any other bare parameters are errors.
-   *
-   * Keys must live for the life of nbdkit.  Since we want to avoid
-   * modifying argv (so that /proc/PID/cmdline remains sane) but we
-   * need to create a key from argv[i] = "key=value" we must intern
-   * the keys, which are then freed at the end of main().
-   */
-  magic_config_key = top->magic_config_key (top);
-  for (i = 0; optind < argc; ++i, ++optind) {
-    size_t n;
-
-    p = strchr (argv[optind], '=');
-    n = p - argv[optind];
-    if (p && is_config_key (argv[optind], n)) { /* Is it key=value? */
-      const char *key = nbdkit_strndup_intern (argv[optind], n);
-      if (key == NULL)
-        exit (EXIT_FAILURE);
-      top->config (top, key, p+1);
-    }
-    else if (magic_config_key == NULL) {
-      if (i == 0)               /* magic script parameter */
-        top->config (top, "script", argv[optind]);
-      else {
-        fprintf (stderr,
-                 "%s: expecting key=value on the command line but got: %s\n",
-                 program_name, argv[optind]);
-        exit (EXIT_FAILURE);
-      }
-    }
-    else {                      /* magic config key */
-      top->config (top, magic_config_key, argv[optind]);
-    }
-  }
+  /* Parse key=value on the command line. */
+  parse_key_values (argc, argv, true, top->magic_config_key (top));
 
   /* This must run after parsing the parameters so that the script can
    * be loaded for scripting languages.  But it must be called before
@@ -1184,6 +1145,61 @@ open_filter_so (struct backend *next, size_t i,
     free (filename);
 
   return ret;
+}
+
+/* Call config and config_complete to parse the parameters.
+ *
+ * If the plugin provides magic_config_key then any "bare" values
+ * (ones not containing "=") are prefixed with this key.
+ *
+ * For backwards compatibility with old plugins, and to support
+ * scripting languages, if magic_config_key == NULL then if the
+ * first parameter is bare it is prefixed with the key "script", and
+ * any other bare parameters are errors.
+ *
+ * Keys must live for the life of nbdkit.  Since we want to avoid
+ * modifying argv (so that /proc/PID/cmdline remains sane) but we
+ * need to create a key from argv[i] = "key=value" we must intern
+ * the keys, which are then freed at the end of main().
+ */
+static void
+parse_key_values (int argc, char **argv, bool is_first,
+                  const char *magic_config_key)
+{
+  if (optind >= argc) return;
+
+  const char *arg = argv[optind];
+  const char *p, *key;
+  size_t n;
+
+  p = strchr (arg, '=');
+  n = p - arg;
+  if (p && is_config_key (arg, n)) { /* Is it key=value? */
+    key = nbdkit_strndup_intern (arg, n);
+    if (key == NULL)
+      exit (EXIT_FAILURE);
+    top->config (top, key, p+1);
+  }
+  else if (magic_config_key == NULL) {
+    if (is_first)               /* magic script parameter */
+      top->config (top, "script", arg);
+    else {
+      fprintf (stderr,
+               "%s: expecting key=value on the command line but got: %s\n",
+               program_name, arg);
+      exit (EXIT_FAILURE);
+    }
+  }
+  else {                        /* magic config key */
+    top->config (top, magic_config_key, arg);
+  }
+
+  ++optind;
+#if defined(__GNUC__) && __GNUC__ >= 15 && defined(__OPTIMIZE__)
+  /* Ensure this is optimized as a tail call. */
+  __attribute__((musttail)) return
+#endif
+  parse_key_values (argc, argv, false, magic_config_key);
 }
 
 static void
