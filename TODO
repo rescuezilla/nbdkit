@@ -340,8 +340,6 @@ nbdkit-map-filter:
   disk.  Maybe it can be combined with nbdkit-truncate-filter to do
   this, or instead it should have its own option (eg. map-size=1G).
 
-* Optional external file to read mappings from (eg. map=@file).
-
 * In theory it is possible to use this to convert disk formats without
   copying, eg. converting raw -> qcow2.  However to actually implement
   that we would need a way for this filter to inject new content (the

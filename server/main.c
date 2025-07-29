@@ -66,6 +66,8 @@
 #include "ascii-ctype.h"
 #include "ascii-string.h"
 #include "exit-with-parent.h"
+#include "get_current_dir_name.h"
+#include "getline.h"
 #include "nbd-protocol.h"
 #include "nbdkit-string.h"
 #include "open_memstream.h"
@@ -88,6 +90,15 @@ static struct backend *open_plugin_so (size_t i, const char *filename,
                                        int short_name);
 static struct backend *open_filter_so (struct backend *next, size_t i,
                                        const char *filename, int short_name);
+static void parse_key_values (int argc, char **argv, bool is_first,
+                              const char *magic_config_key,
+                              const char *cwd);
+static void parse_key_value (const char *arg,
+                             bool is_first, const char *magic_config_key,
+                             const char *cwd);
+static void parse_at_path (const char *filename,
+                           bool is_first, const char *magic_config_key,
+                           const char *cwd);
 static void start_serving (void);
 static void write_pidfile (void);
 static bool is_config_key (const char *key, size_t len);
@@ -280,13 +291,11 @@ main (int argc, char *argv[])
   int tls_set_on_cli = false;
   bool short_name;
   const char *filename;
-  char *p;
   static struct filter_filename {
     struct filter_filename *next;
     const char *filename;
   } *filter_filenames = NULL;
   size_t i;
-  const char *magic_config_key;
 
   error_if_stdio_closed ();
   winsock_init ();
@@ -345,6 +354,12 @@ main (int argc, char *argv[])
     case FILTER_OPTION:
       {
         struct filter_filename *t;
+
+        if (optarg[0] == '\0') {
+          fprintf (stderr, "%s: filter name cannot be an empty string\n",
+                   program_name);
+          exit (EXIT_FAILURE);
+        }
 
         t = malloc (sizeof *t);
         if (t == NULL) {
@@ -744,6 +759,11 @@ main (int argc, char *argv[])
    * help/version/plugin information.
    */
   filename = argv[optind++];
+  if (filename[0] == '\0') {
+    fprintf (stderr, "%s: plugin name cannot be an empty string\n",
+             program_name);
+    exit (EXIT_FAILURE);
+  }
   short_name = is_short_name (filename);
 
   /* Is there an executable script located in the plugindir?
@@ -858,46 +878,14 @@ main (int argc, char *argv[])
     exit (EXIT_SUCCESS);
   }
 
-  /* Call config and config_complete to parse the parameters.
-   *
-   * If the plugin provides magic_config_key then any "bare" values
-   * (ones not containing "=") are prefixed with this key.
-   *
-   * For backwards compatibility with old plugins, and to support
-   * scripting languages, if magic_config_key == NULL then if the
-   * first parameter is bare it is prefixed with the key "script", and
-   * any other bare parameters are errors.
-   *
-   * Keys must live for the life of nbdkit.  Since we want to avoid
-   * modifying argv (so that /proc/PID/cmdline remains sane) but we
-   * need to create a key from argv[i] = "key=value" we must intern
-   * the keys, which are then freed at the end of main().
-   */
-  magic_config_key = top->magic_config_key (top);
-  for (i = 0; optind < argc; ++i, ++optind) {
-    size_t n;
-
-    p = strchr (argv[optind], '=');
-    n = p - argv[optind];
-    if (p && is_config_key (argv[optind], n)) { /* Is it key=value? */
-      const char *key = nbdkit_strndup_intern (argv[optind], n);
-      if (key == NULL)
-        exit (EXIT_FAILURE);
-      top->config (top, key, p+1);
+  /* Parse key=value on the command line. */
+  {
+    CLEANUP_FREE char *cwd = get_current_dir_name ();
+    if (cwd == NULL) {
+      fprintf (stderr, "%s: get_current_dir_name: %m\n", program_name);
+      exit (EXIT_FAILURE);
     }
-    else if (magic_config_key == NULL) {
-      if (i == 0)               /* magic script parameter */
-        top->config (top, "script", argv[optind]);
-      else {
-        fprintf (stderr,
-                 "%s: expecting key=value on the command line but got: %s\n",
-                 program_name, argv[optind]);
-        exit (EXIT_FAILURE);
-      }
-    }
-    else {                      /* magic config key */
-      top->config (top, magic_config_key, argv[optind]);
-    }
+    parse_key_values (argc, argv, true, top->magic_config_key (top), cwd);
   }
 
   /* This must run after parsing the parameters so that the script can
@@ -1173,6 +1161,151 @@ open_filter_so (struct backend *next, size_t i,
     free (filename);
 
   return ret;
+}
+
+/* Call config() on each of the key=value plugin & filter parameters. */
+static void
+parse_key_values (int argc, char **argv, bool is_first,
+                  const char *magic_config_key,
+                  const char *cwd)
+{
+  if (optind >= argc) return;
+
+  parse_key_value (argv[optind], is_first, magic_config_key, cwd);
+
+  ++optind;
+#if defined(__GNUC__) && __GNUC__ >= 15 && defined(__OPTIMIZE__)
+  /* Ensure this is optimized as a tail call. */
+  __attribute__((musttail)) return
+#endif
+  parse_key_values (argc, argv, false, magic_config_key, cwd);
+}
+
+/* Parse a single [key=]value or @PATH parameter, calling config().
+ *
+ * If the plugin provides magic_config_key then any "bare" values
+ * (ones not containing "=") are prefixed with this key.
+ *
+ * For backwards compatibility with old plugins, and to support
+ * scripting languages, if magic_config_key == NULL then if the
+ * first parameter is bare it is prefixed with the key "script", and
+ * any other bare parameters are errors.
+ *
+ * Keys must live for the life of nbdkit.  Since we want to avoid
+ * modifying argv (so that /proc/PID/cmdline remains sane) but we
+ * need to create a key from argv[i] = "key=value" we must intern
+ * the keys, which are then freed at the end of main().
+ */
+static void
+parse_key_value (const char *arg,
+                 bool is_first, const char *magic_config_key, const char *cwd)
+{
+  if (arg[0] == '@' && strchr (arg, '/')) { /* @PATH */
+    parse_at_path (&arg[1], is_first, magic_config_key, cwd);
+  }
+  else {                        /* [key=]value */
+    const char *p, *key;
+    size_t n;
+
+    p = strchr (arg, '=');
+    n = p - arg;
+    if (p && is_config_key (arg, n)) { /* Is it key=value? */
+      key = nbdkit_strndup_intern (arg, n);
+      if (key == NULL)
+        exit (EXIT_FAILURE);
+      top->config (top, key, p+1);
+    }
+    else if (magic_config_key == NULL) {
+      if (is_first)             /* magic script parameter */
+        top->config (top, "script", arg);
+      else {
+        fprintf (stderr,
+                 "%s: expecting key=value on the command line but got: %s\n",
+                 program_name, arg);
+        exit (EXIT_FAILURE);
+      }
+    }
+    else {                      /* magic config key */
+      top->config (top, magic_config_key, arg);
+    }
+  }
+}
+
+/* Parse @PATH parameter. */
+static void
+parse_at_path (const char *filename,
+               bool is_first, const char *magic_config_key, const char *cwd)
+{
+  FILE *fp;
+  const char *p;
+  CLEANUP_FREE char *path = NULL, *new_cwd = NULL, *line = NULL;
+  size_t linelen = 0, i;
+  ssize_t len;
+  const char *arg;
+
+  /* Calculate the path relative to the context directory. */
+  if (filename[0] == '/') {
+    path = strdup (filename);
+    if (path == NULL) {
+      fprintf (stderr, "%s: strdup: %m\n", program_name);
+      exit (EXIT_FAILURE);
+    }
+  }
+  else {
+    if (asprintf (&path, "%s/%s", cwd, filename) == -1) {
+      fprintf (stderr, "%s: asprintf: %m\n", program_name);
+      exit (EXIT_FAILURE);
+    }
+  }
+
+  /* Calculate the new context directory in case this file contains
+   * any @PATH entries.  These are relative to this file.
+   */
+  p = strrchr (path, '/');
+  assert (p);
+  new_cwd = strndup (path, p-path);
+  if (new_cwd == NULL) {
+    fprintf (stderr, "%s: strndup: %m\n", program_name);
+    exit (EXIT_FAILURE);
+  }
+
+  /* Read the file line at a time, ignoring comments and blank lines. */
+  debug ("opening @%s", path);
+  fp = fopen (path, "r");
+  if (fp == NULL) {
+    fprintf (stderr, "%s: %s: %m\n", program_name, path);
+    exit (EXIT_FAILURE);
+  }
+
+  while ((len = getline (&line, &linelen, fp)) != -1) {
+    /* Ignore lines which are just whitespace or start with '#'. */
+    for (i = 0; i < len; ++i) {
+      if (line[i] == '#') {
+        i = len;
+        break;
+      }
+      if (!ascii_isspace (line[i]))
+        break;
+    }
+    if (i == len) continue;
+
+    /* Remove final \n if present. */
+    if (len > 0 && line[len-1] == '\n')
+      line[--len] = '\0';
+
+    /* We need to intern this string as it must live for the life of
+     * nbdkit.  This is freed at the end of main().
+     */
+    arg = nbdkit_strndup_intern (line, len);
+    if (arg == NULL)
+      exit (EXIT_FAILURE);
+
+    /* Parse it. */
+    parse_key_value (arg, is_first, magic_config_key, new_cwd);
+    is_first = false;
+  }
+
+  fclose (fp);
 }
 
 static void

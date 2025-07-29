@@ -131,6 +131,9 @@ is_short_name (const char *filename)
   const size_t n = strlen (filename);
   size_t i;
 
+  /* Empty string is not a short name. */
+  if (n == 0) return false;
+
   for (i = 0; i < n; ++i) {
     switch (filename[i]) {
     case '/': case '\\':        /* directory separators */
@@ -150,6 +153,7 @@ is_short_name (const char *filename)
     }
   }
 
+  /* Short names cannot contain the dir separator string. */
   return strstr (filename, DIR_SEPARATOR_STR) == NULL;
 }
 

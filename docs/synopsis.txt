@@ -16,7 +16,8 @@ nbdkit [-4|--ipv4-only] [-6|--ipv6-only]
        [--tls-psk=/path/to/pskfile] [--tls-verify-peer]
        [-U|--unix SOCKET|-] [-u|--user USER]
        [-v|--verbose] [--vsock]
-       PLUGIN [[KEY=]VALUE [KEY=VALUE [...]]]
+       PLUGIN
+       [[KEY=]VALUE [KEY=VALUE [...]]] | @PATH
 
 nbdkit --dump-config
 
