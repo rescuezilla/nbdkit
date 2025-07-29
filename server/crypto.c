@@ -809,20 +809,18 @@ get_peer_dn (const char *fn, get_dn3_fn get_dn3)
   char *ret = NULL;
 
   if (!session) {
-    nbdkit_debug ("nbdkit_peer_tls_dn: no TLS session");
+    debug ("nbdkit_peer_tls_dn: no TLS session");
     goto out_no_dn;
   }
 
   cred = gnutls_auth_get_type (session);
   if (cred != GNUTLS_CRD_CERTIFICATE) {
-    nbdkit_debug ("nbdkit_peer_tls_dn: "
-                  "TLS session not using certificates");
+    debug ("nbdkit_peer_tls_dn: TLS session not using certificates");
     goto out_no_dn;
   }
 
   if (gnutls_certificate_type_get (session) != GNUTLS_CRT_X509) {
-    nbdkit_debug ("nbdkit_peer_tls_dn: "
-                  "TLS session not using X.509 certificates");
+    debug ("nbdkit_peer_tls_dn: TLS session not using X.509 certificates");
     goto out_no_dn;
   }
 
@@ -832,8 +830,8 @@ get_peer_dn (const char *fn, get_dn3_fn get_dn3)
      * happen because gnutls cannot allocate the certificate list but
      * that should be a rare error.  Return no DN in this case.
      */
-    nbdkit_debug ("nbdkit_peer_tls_dn: "
-                  "no client certificates (is --tls-verify-peer set?)");
+    debug ("nbdkit_peer_tls_dn: "
+           "no client certificates (is --tls-verify-peer set?)");
     goto out_no_dn;
   }
 

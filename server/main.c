@@ -269,7 +269,7 @@ dump_environment (void)
   size_t i;
 
   for (i = 0; environ[i]; ++i)
-    nbdkit_debug ("%s", environ[i]);
+    debug ("%s", environ[i]);
 }
 
 int
@@ -814,7 +814,7 @@ main (int argc, char *argv[])
       }
     }
 
-    nbdkit_debug ("request processing: %s", s.ptr);
+    debug ("request processing: %s", s.ptr);
   }
 
   /* Apply nbdkit.* flags for the server. */

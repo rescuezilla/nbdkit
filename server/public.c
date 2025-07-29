@@ -1073,7 +1073,7 @@ nbdkit_peer_security_context (void)
   }
   else if (r == -1 && errno == ENOPROTOOPT) {
     /* This is not really an error so don't call nbdkit_error. */
-    nbdkit_debug ("getsockopt: SO_PEERSEC: %m");
+    debug ("getsockopt: SO_PEERSEC: %m");
     return NULL;
   }
   else if (r == -1 && errno != ERANGE) {

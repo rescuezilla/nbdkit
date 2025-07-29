@@ -208,6 +208,8 @@ extern struct backend *top;
 extern void debug_in_server (const char *msg, ...)
   ATTRIBUTE_FORMAT_PRINTF (1, 2);
 
+#define nbdkit_debug _Pragma("GCC error \"Use debug() instead of nbdkit_debug() inside the server\"")
+
 /* quit.c */
 extern volatile int quit;
 #ifndef WIN32

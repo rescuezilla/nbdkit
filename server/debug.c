@@ -45,6 +45,7 @@
 #include "utils.h"
 
 #include "internal.h"
+#undef nbdkit_debug
 
 static void
 prologue (FILE *fp)
