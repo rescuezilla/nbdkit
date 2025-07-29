@@ -71,6 +71,7 @@ expected=test-at-file/1.expected
 params="@$srcdir/test-at-file/1.input"
 
 rm -f "$out"
+touch "$out"
 nbdkit -fv sh - <<<"$plugin" out="$out" $params --run true
 diff -u $expected $out
 
@@ -78,6 +79,7 @@ expected=test-at-file/2.expected
 params="@$srcdir/test-at-file/2.input"
 
 rm -f "$out"
+touch "$out"
 nbdkit -fv sh - <<<"$plugin" out="$out" $params --run true
 diff -u $expected $out
 
@@ -85,6 +87,7 @@ expected=test-at-file/3.expected
 params="A=1 @$srcdir/test-at-file/3a.input B=2 @$srcdir/test-at-file/3b.input C=3"
 
 rm -f "$out"
+touch "$out"
 nbdkit -fv sh - <<<"$plugin" out="$out" $params --run true
 diff -u $expected $out
 
@@ -92,5 +95,6 @@ expected=test-at-file/4.expected
 params="A=1 @$srcdir/test-at-file/4a.input B=2 @$srcdir/test-at-file/4b.input C=3"
 
 rm -f "$out"
+touch "$out"
 nbdkit -fv sh - <<<"$plugin" out="$out" $params --run true
 diff -u $expected $out

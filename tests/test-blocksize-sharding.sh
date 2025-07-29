@@ -165,6 +165,7 @@ export script
 # Now run everything
 $TRUNCATE -s 16 blocksize-sharding.img
 export witness="$PWD/blocksize-sharding.tmp"
+touch "$witness"
 nbdkit --filter=blocksize --filter=delay eval delay-write=2 \
     config='ln -sf "$(realpath "$3")" $tmpdir/$2' \
     img="$PWD/blocksize-sharding.img" tmp="$PWD/blocksize-sharding.tmp" \
