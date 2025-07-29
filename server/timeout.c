@@ -52,7 +52,7 @@ connection_timeout (union sigval si)
 
   assert (conn != NULL);
 
-  nbdkit_debug ("connection timed out");
+  debug ("connection timed out");
 
   /* Note this is called asynchronously from a different thread,
    * making it difficult to do this safely.  The theory here is that

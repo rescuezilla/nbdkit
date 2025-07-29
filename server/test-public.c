@@ -42,6 +42,7 @@
 #include <unistd.h>
 
 #include "internal.h"
+#undef nbdkit_debug
 
 #include "array-size.h"
 
