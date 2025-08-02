@@ -5,6 +5,7 @@ nbdkit-map-filter - remap disk blocks
 =head1 SYNOPSIS
 
  nbdkit --filter=map PLUGIN [map=START-END:DEST [map=...]]
+                            [map-size=SIZE]
 
 =head1 DESCRIPTION
 
@@ -54,6 +55,16 @@ disk not covered by explicit C<map> parameters.
 If you have a large number of mappings, consider using the nbdkit
 C<@PATH> parameter to read them from an external file (see
 L<nbdkit(1)/@PATH>).
+
+=item B<map-size=>SIZE
+
+If this parameter is set, the size of the disk is set to C<SIZE>.
+Note if C<SIZE> is larger than the underlying plugin then you must map
+areas of the disk beyond the plugin up to C<SIZE>, otherwise accesses
+will return I/O errors.
+
+If this parameter is not set, the size of the underlying plugin is
+used.
 
 =back
 

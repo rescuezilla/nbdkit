@@ -336,10 +336,6 @@ nbdkit-openonce-filter:
 
 nbdkit-map-filter:
 
-* To make it really useful, it needs a way to change the size of the
-  disk.  Maybe it can be combined with nbdkit-truncate-filter to do
-  this, or instead it should have its own option (eg. map-size=1G).
-
 * In theory it is possible to use this to convert disk formats without
   copying, eg. converting raw -> qcow2.  However to actually implement
   that we would need a way for this filter to inject new content (the

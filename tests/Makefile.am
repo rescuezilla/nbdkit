@@ -1976,12 +1976,14 @@ TESTS += \
 	test-map-extents.sh \
 	test-map-out-of-range.sh \
 	test-map-random.sh \
+	test-map-size.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-map.sh \
 	test-map-extents.sh \
 	test-map-out-of-range.sh \
 	test-map-random.sh \
+	test-map-size.sh \
 	$(NULL)
 
 # multi-conn filter test.

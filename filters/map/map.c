@@ -47,6 +47,8 @@
 #include "regions.h"
 #include "vector.h"
 
+int64_t map_size = -1; /* map-size, -1 means use underlying plugin size */
+
 /* Range definition.
  *
  * A single struct range stores a range from start-end (inclusive).
@@ -109,8 +111,17 @@ static int
 map_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
             const char *key, const char *value)
 {
+  int r;
+
   if (strcmp (key, "map") == 0) {
     parse_range (value);
+    return 0;
+  }
+  else if (strcmp (key, "map-size") == 0) {
+    r = nbdkit_parse_size (value);
+    if (r == -1)
+      return -1;
+    map_size = r;
     return 0;
   }
   else
@@ -322,7 +333,18 @@ map_config_complete (nbdkit_next_config_complete *next, nbdkit_backend *nxdata)
 }
 
 #define map_config_help \
-  "map=<START>-<END>:<DEST>   Map START-END to DEST."
+  "map=<START>-<END>:<DEST>   Map START-END to DEST.\n" \
+  "map-size=<SIZE>            Set size to SIZE."
+
+static int64_t
+map_get_size (nbdkit_next *next, void *handle)
+{
+  /* If map-size is set, use that, otherwise use plugin size. */
+  if (map_size >= 0)
+    return map_size;
+  else
+    return next->get_size (next);
+}
 
 /* This higher order function performs the mapping for each operation. */
 static int
@@ -332,10 +354,10 @@ do_mapping (const char *op_name,
                        uint64_t original_offset),
             nbdkit_next *next, uint32_t count, uint64_t offset, int *err)
 {
-  int64_t size;
+  int64_t plugin_size;
 
-  size = next->get_size (next);
-  if (size == -1)
+  plugin_size = next->get_size (next);
+  if (plugin_size == -1)
     return -1;
 
   while (count > 0) {
@@ -356,7 +378,7 @@ do_mapping (const char *op_name,
     range = &range_list.ptr[i];
 
     /* Check the range lies within the plugin. */
-    if (range->dest + ofs + len > size) {
+    if (range->dest + ofs + len > plugin_size) {
       nbdkit_error ("%s: I/O access beyond end of plugin (from rule: %s)",
                     op_name, range->description);
       *err = EIO;
@@ -603,6 +625,7 @@ static struct nbdkit_filter filter = {
   .config            = map_config,
   .config_complete   = map_config_complete,
   .config_help       = map_config_help,
+  .get_size          = map_get_size,
   .pread             = map_pread,
   .pwrite            = map_pwrite,
   .trim              = map_trim,
