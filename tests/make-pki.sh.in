@@ -37,36 +37,36 @@ set -e
 # doesn't exist, just create an empty directory instead.
 # See also: requires_tls_certificates in functions.sh.in
 
-rm -rf pki pki-t
+pkidir="$1"
+test -n "$pkidir"
 
-mkdir pki-t
+mkdir "$pkidir"
 
 if ! @CERTTOOL@ --help >/dev/null 2>&1; then
     echo "$0: certtool not found, TLS tests will be skipped."
-    touch pki-t/.stamp
-    mv pki-t pki
+    touch "$pkidir"/.stamp
     exit 0
 fi
 
 # Create the CA.
-@CERTTOOL@ --generate-privkey > pki-t/ca-key.pem
-chmod 0600 pki-t/ca-key.pem
+@CERTTOOL@ --generate-privkey > "$pkidir"/ca-key.pem
+chmod 0600 "$pkidir"/ca-key.pem
 
-cat > pki-t/ca.info <<EOF
+cat > "$pkidir"/ca.info <<EOF
 cn = Test
 ca
 cert_signing_key
 EOF
 @CERTTOOL@ --generate-self-signed \
-           --load-privkey pki-t/ca-key.pem \
-           --template pki-t/ca.info \
-           --outfile pki-t/ca-cert.pem
+           --load-privkey "$pkidir"/ca-key.pem \
+           --template "$pkidir"/ca.info \
+           --outfile "$pkidir"/ca-cert.pem
 
 # Create the server certificate and key.
-@CERTTOOL@ --generate-privkey > pki-t/server-key.pem
-chmod 0600 pki-t/server-key.pem
+@CERTTOOL@ --generate-privkey > "$pkidir"/server-key.pem
+chmod 0600 "$pkidir"/server-key.pem
 
-cat > pki-t/server.info <<EOF
+cat > "$pkidir"/server.info <<EOF
 organization = Test
 cn = localhost
 dns_name = localhost
@@ -77,17 +77,17 @@ encryption_key
 signing_key
 EOF
 @CERTTOOL@ --generate-certificate \
-           --load-ca-certificate pki-t/ca-cert.pem \
-           --load-ca-privkey pki-t/ca-key.pem \
-           --load-privkey pki-t/server-key.pem \
-           --template pki-t/server.info \
-           --outfile pki-t/server-cert.pem
+           --load-ca-certificate "$pkidir"/ca-cert.pem \
+           --load-ca-privkey "$pkidir"/ca-key.pem \
+           --load-privkey "$pkidir"/server-key.pem \
+           --template "$pkidir"/server.info \
+           --outfile "$pkidir"/server-cert.pem
 
 # Create a client certificate and key.
-@CERTTOOL@ --generate-privkey > pki-t/client-key.pem
-chmod 0600 pki-t/client-key.pem
+@CERTTOOL@ --generate-privkey > "$pkidir"/client-key.pem
+chmod 0600 "$pkidir"/client-key.pem
 
-cat > pki-t/client.info <<EOF
+cat > "$pkidir"/client.info <<EOF
 country = US
 state = New York
 locality = New York
@@ -98,12 +98,11 @@ encryption_key
 signing_key
 EOF
 @CERTTOOL@ --generate-certificate \
-           --load-ca-certificate pki-t/ca-cert.pem \
-           --load-ca-privkey pki-t/ca-key.pem \
-           --load-privkey pki-t/client-key.pem \
-           --template pki-t/client.info \
-           --outfile pki-t/client-cert.pem
+           --load-ca-certificate "$pkidir"/ca-cert.pem \
+           --load-ca-privkey "$pkidir"/ca-key.pem \
+           --load-privkey "$pkidir"/client-key.pem \
+           --template "$pkidir"/client.info \
+           --outfile "$pkidir"/client-cert.pem
 
 # Finish off.
-touch pki-t/.stamp
-mv pki-t pki
+touch "$pkidir"/.stamp

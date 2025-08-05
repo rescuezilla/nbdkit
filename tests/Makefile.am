@@ -637,13 +637,17 @@ test_exit_with_parent_CFLAGS = \
 check_DATA += pki/.stamp
 EXTRA_DIST += make-pki.sh
 pki/.stamp: make-pki.sh
-	./make-pki.sh
+	rm -rf pki pki-t
+	./make-pki.sh pki-t
+	mv pki-t pki
 
 # PSK keys for the TLS-PSK tests.
 check_DATA += keys.psk
 EXTRA_DIST += make-psk.sh
 keys.psk: ./make-psk.sh
-	./make-psk.sh
+	rm -f $@ $@-t
+	./make-psk.sh $@-t
+	mv $@-t $@
 
 # Keys are expensive to recreate so only delete them when we do
 # ‘make distclean’.
