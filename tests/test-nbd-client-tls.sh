@@ -49,23 +49,11 @@ requires blockdev --version
 requires dd --version
 requires hexdump --version
 
+requires_tls_certificates
+
 # NBD support was added in 2.1.55!  Mainly we're using this to check
 # this is Linux.
 requires_linux_kernel_version 2.2
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
-
-# Did we create the PKI files?
-# Probably 'certtool' is missing.
-pkidir="$PWD/pki"
-if [ ! -f "$pkidir/ca-cert.pem" ]; then
-    echo "$0: PKI files were not created by the test harness"
-    exit 77
-fi
 
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
 pid=nbd-client-tls.pid
@@ -86,9 +74,9 @@ start_nbdkit -P $pid -U $sock \
 
 # Open a connection with nbd-client.
 nbd-client -unix $sock $nbddev \
-           -cacertfile $pkidir/ca-cert.pem \
-           -certfile $pkidir/client-cert.pem \
-           -keyfile $pkidir/client-key.pem
+           -cacertfile "$pkidir/ca-cert.pem" \
+           -certfile "$pkidir/client-cert.pem" \
+           -keyfile "$pkidir/client-key.pem"
 
 # Check the device exists.
 nbd-client -c $nbddev

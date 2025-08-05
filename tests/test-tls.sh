@@ -36,13 +36,8 @@ set -x
 set -u
 
 requires_run
+requires_tls_certificates
 requires_nbdinfo
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
 
 # RHEL 7 GnuTLS did not support --tls-verify-peer.
 requires nbdkit --tls-verify-peer null --run 'exit 0'
@@ -52,14 +47,6 @@ requires nbdkit --tls-verify-peer null --run 'exit 0'
 # if libnbd supports this, so just go off version number.  The libnbd
 # commit adding this feature was 847e0b9830, added in libnbd 1.9.5.
 requires_libnbd_version 1.10
-
-# Did we create the PKI files?
-# Probably 'certtool' is missing.
-pkidir="$PWD/pki"
-if [ ! -f "$pkidir/ca-cert.pem" ]; then
-    echo "$0: PKI files were not created by the test harness"
-    exit 77
-fi
 
 out="tls.out"
 rm -f $out

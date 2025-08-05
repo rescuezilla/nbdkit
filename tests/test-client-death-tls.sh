@@ -44,26 +44,14 @@ if is_windows; then
 fi
 
 requires nbdsh -c 'exit(not h.supports_tls())'
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
-
-# Did we create the PSK keys file?
-# Probably 'certtool' is missing.
-if [ ! -s keys.psk ]; then
-    echo "$0: PSK keys file was not created by the test harness"
-    exit 77
-fi
+requires_tls_psk
 
 sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
 files="client-death-tls.pid $sock"
 cleanup_fn rm -f $files
 
 # Start long-running nbdkit
-start_nbdkit -P client-death-tls.pid --tls require --tls-psk=keys.psk \
+start_nbdkit -P client-death-tls.pid --tls require --tls-psk="$pskfile" \
              -U $sock memory 2M
 
 pid=`cat client-death-tls.pid`
@@ -72,9 +60,12 @@ pid=`cat client-death-tls.pid`
 # Run a client that abandons several in-flight requests, each large enough
 # that we should see EPIPE on one handler while other handlers are still
 # waiting to send their response.
+export pskfile
 nbdsh -c '
+import os
+
 h.set_tls(nbd.TLS_REQUIRE)
-h.set_tls_psk_file("keys.psk")
+h.set_tls_psk_file(os.getenv("pskfile"))
 h.set_tls_username("qemu")
 h.connect_unix("'"$sock"'")
 

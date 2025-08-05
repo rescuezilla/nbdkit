@@ -36,22 +36,10 @@ set -x
 set -u
 
 requires_plugin sh
+requires_tls_psk
 requires nbdsh -c 'print(h.set_full_info)' -c 'exit(not h.supports_tls())'
 requires dd iflag=count_bytes </dev/null
 requires dd iflag=skip_bytes </dev/null
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
-
-# Did we create the PSK keys file?
-# Probably 'certtool' is missing.
-if [ ! -s keys.psk ]; then
-    echo "$0: PSK keys file was not created by the test harness"
-    exit 77
-fi
 
 export sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
 pid="tls-fallback.pid"
@@ -82,7 +70,7 @@ EOF
 
 # Run dual-mode server
 start_nbdkit -P $pid -U $sock \
-             --tls=on --tls-psk=keys.psk -D nbdkit.tls.session=1 \
+             --tls=on --tls-psk="$pskfile" -D nbdkit.tls.session=1 \
              --filter=tls-fallback \
              sh - <<<"$plugin" tlsreadme=$'dummy\n'
 
@@ -113,6 +101,7 @@ assert h.pread(5, 0) == b"dummy"
 '
 
 # Encrypted client sees desired volumes
+export pskfile
 nbdsh -c '
 import os
 
@@ -127,7 +116,7 @@ def f(name, desc):
 h.set_opt_mode(True)
 h.set_full_info(True)
 h.set_tls(nbd.TLS_REQUIRE)
-h.set_tls_psk_file("keys.psk")
+h.set_tls_psk_file(os.getenv("pskfile"))
 h.set_tls_username("qemu")
 h.connect_unix(os.environ["sock"])
 assert h.opt_list(f) == 2

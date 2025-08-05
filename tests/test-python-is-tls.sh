@@ -41,19 +41,12 @@ test -f "$script"
 skip_if_valgrind "because Python code leaks memory"
 requires_nbdinfo
 requires_run
+requires_tls_certificates
 requires jq --version
 
 out="test-python-is-tls.out"
 rm -f $out
 cleanup_fn rm -f $out
-
-# Did we create the PKI files?
-# Probably 'certtool' is missing.
-pkidir="$PWD/pki"
-if [ ! -f "$pkidir/ca-cert.pem" ]; then
-    echo "$0: PKI files were not created by the test harness"
-    exit 77
-fi
 
 # Test without TLS.
 nbdkit --tls=off python $script \
@@ -63,7 +56,7 @@ test "$( jq -c '.exports[0]."export-size"' $out )" -eq 0
 test "$( jq -c '."TLS"' $out )" = "false"
 
 # Test with TLS.
-nbdkit --tls=require --tls-certificates=$pkidir python $script \
+nbdkit --tls=require --tls-certificates="$pkidir" python $script \
        --run 'nbdinfo --json --no-content "$uri"' > $out
 cat $out
 test "$( jq -c '.exports[0]."export-size"' $out )" -eq 1

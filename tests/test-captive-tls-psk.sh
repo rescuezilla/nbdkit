@@ -38,27 +38,15 @@ set -x
 set -u
 
 requires_run
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
-
-# Did we create the PSK keys file?
-# Probably 'psktool' is missing.
-if [ ! -s keys.psk ]; then
-    echo "$0: PSK keys file was not created by the test harness"
-    exit 77
-fi
+requires_tls_psk
 
 out=test-captive-tls-psk.out
 cleanup_fn rm -f $out
 rm -f $out
 
 LANG=C \
-nbdkit --tls=require --tls-psk=keys.psk \
+nbdkit --tls=require --tls-psk="$pskfile" \
        null \
        --run 'echo OUTPUT: "$tls_psk"' > $out
 cat $out
-grep "OUTPUT: keys.psk" $out
+grep "OUTPUT: .*/keys.psk" $out

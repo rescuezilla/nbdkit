@@ -35,6 +35,7 @@ set -e
 
 # This creates the PKI files for the TLS tests.  However if certtool
 # doesn't exist, just create an empty directory instead.
+# See also: requires_tls_certificates in functions.sh.in
 
 rm -rf pki pki-t
 

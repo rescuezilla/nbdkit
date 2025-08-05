@@ -34,8 +34,8 @@
 set -e
 
 # This creates the PSK keys for the TLS-PSK tests.  However if psktool
-# doesn't exist, just create an empty directory instead.
-
+# doesn't exist, create an empty file instead.
+# See also: requires_tls_psk in functions.sh.in
 
 rm -f keys.psk
 

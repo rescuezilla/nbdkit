@@ -39,10 +39,7 @@ set -x
 set -u
 
 # Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
+requires_tls
 
 # This will only work for the glibc version, but that's fine.
 requires ldd --version

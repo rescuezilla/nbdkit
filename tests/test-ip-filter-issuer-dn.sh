@@ -39,26 +39,13 @@ set -u
 
 requires_nbdinfo
 requires_run
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
+requires_tls_certificates
 
 # RHEL 8 libnbd / nbdinfo doesn't support the tls-certificates
 # parameter in URIs, so connections always fail.  It's hard to detect
 # if libnbd supports this, so just go off version number.  The libnbd
 # commit adding this feature was 847e0b9830, added in libnbd 1.9.5.
 requires_libnbd_version 1.10
-
-# Did we create the PKI files?
-# Probably 'certtool' is missing.
-pkidir="$PWD/pki"
-if [ ! -f "$pkidir/ca-cert.pem" ]; then
-    echo "$0: PKI files were not created by the test harness"
-    exit 77
-fi
 
 # This is expected to succeed.
 nbdkit -v --tls=require --tls-certificates="$pkidir" --tls-verify-peer \

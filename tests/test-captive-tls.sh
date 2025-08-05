@@ -46,20 +46,7 @@ set -u
 requires_run
 requires_nbdinfo
 requires nbdsh -c 'exit(not h.supports_tls())'
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
-
-# Did we create the PKI files?
-# Probably 'certtool' is missing.
-pkidir="$PWD/pki"
-if [ ! -f "$pkidir/ca-cert.pem" ]; then
-    echo "$0: PKI files were not created by the test harness"
-    exit 77
-fi
+requires_tls_certificates
 
 out=test-captive-tls.out
 cleanup_fn rm -f $out

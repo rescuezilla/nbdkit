@@ -80,6 +80,14 @@ largest_disk=9223372036854775807
 # rather than using $(()) calculations.
 largest_qemu_disk=9223372035781033984
 
+# The TLS certificates directory.  However this is only valid if you
+# use 'requires_tls_certificates'.
+pkidir="@abs_top_builddir@/tests/pki"
+
+# The TLS PSK keys file.  However this is only valid if you use
+# 'requires_tls_psk'.
+pskfile="@abs_top_builddir@/tests/keys.psk"
+
 #----------------------------------------------------------------------
 # Cleanup primitives; functions to start and stop an nbdkit background
 # process.
@@ -302,6 +310,38 @@ requires_linux_kernel_version ()
     requires sort -V /dev/null
     kver=$(uname -r | $CUT -d. -f1-2)
     requires test "$(printf "$kver\n$min" | sort -V | head -n 1)" = "$min"
+}
+
+# For any test using TLS.
+requires_tls ()
+{
+    # Does the nbdkit binary support TLS?
+    if ! nbdkit --dump-config | grep -sq tls=yes; then
+        echo "$0: nbdkit built without TLS support"
+        exit 77
+    fi
+}
+
+# For tests that need the TLS certificates, use this.
+# Note that $pkidir points to the certificates directory.
+requires_tls_certificates ()
+{
+    requires_tls
+    if [ ! -f "$pkidir/ca-cert.pem" ]; then
+        echo "$0: PKI files were not created by the test harness"
+        exit 77
+    fi
+}
+
+# For tests that need the TLS PSK keys file.
+# Note that $pskfile points to the file.
+requires_tls_psk ()
+{
+    requires_tls
+    if [ ! -s "$pskfile" ]; then
+        echo "$0: PSK keys file was not created by the test harness"
+        exit 77
+    fi
 }
 
 # Test if nbdsh was compiled with support for URIs.
