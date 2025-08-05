@@ -65,7 +65,6 @@ out="tls.out"
 rm -f $out
 cleanup_fn rm -f $out
 
-export pkidir
 nbdkit --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
        -D nbdkit.tls.session=1 \
        example1 \
