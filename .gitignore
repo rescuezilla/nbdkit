@@ -141,6 +141,7 @@ plugins/*/*.3
 /tests/functions.sh
 /tests/keys.psk
 /tests/make-pki.sh
+/tests/make-psk.sh
 /tests/nbdkit
 /tests/partition-disk
 /tests/pki

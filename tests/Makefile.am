@@ -640,8 +640,8 @@ pki/.stamp: make-pki.sh
 # PSK keys for the TLS-PSK tests.
 check_DATA += keys.psk
 EXTRA_DIST += make-psk.sh
-keys.psk: $(srcdir)/make-psk.sh
-	SRCDIR=$(srcdir) $(srcdir)/make-psk.sh
+keys.psk: ./make-psk.sh
+	./make-psk.sh
 
 # Keys are expensive to recreate so only delete them when we do
 # ‘make distclean’.

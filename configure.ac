@@ -1723,6 +1723,8 @@ AC_CONFIG_FILES([common/protocol/generate-protostrings.sh],
                 [chmod +x,-w common/protocol/generate-protostrings.sh])
 AC_CONFIG_FILES([tests/make-pki.sh],
                 [chmod +x,-w tests/make-pki.sh])
+AC_CONFIG_FILES([tests/make-psk.sh],
+                [chmod +x,-w tests/make-psk.sh])
 AC_CONFIG_FILES([Makefile
                  bash-completion/Makefile
                  common/allocators/Makefile
