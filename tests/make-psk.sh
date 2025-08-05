@@ -32,7 +32,7 @@
 
 set -e
 
-# This creates the PSK keys for the TLS-PSK tests.  However if pkstool
+# This creates the PSK keys for the TLS-PSK tests.  However if psktool
 # doesn't exist, just create an empty directory instead.
 
 if [ -z "$SRCDIR" ] || [ ! -f "$SRCDIR/test-tls-psk.sh" ]; then
