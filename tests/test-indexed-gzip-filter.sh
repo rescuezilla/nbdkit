@@ -37,11 +37,6 @@ set -u
 
 requires_run
 
-# gztool is a third-party tool used to generate the index file
-# https://github.com/circulosmeos/gztool
-# TODO: Remove this dependency by making indexed-gzip filter capable of generating the index file itself
-requires gztool -h
-
 EXACTLY_20MiB_FILE="20MiB.img"
 # Useful to test non-aligned block boundaries
 SLIGHTLY_LESS_THAN_20MiB_FILE="slightly-less-than-20MiB.img"
@@ -55,7 +50,7 @@ files="$EXACTLY_20MiB_FILE \
        ${SLIGHTLY_LESS_THAN_20MiB_FILE}.gz \
        ${SLIGHTLY_LESS_THAN_20MiB_FILE}.gzi"
 rm -f $files
-#cleanup_fn rm -f $files
+cleanup_fn rm -f $files
 
 create_test_input_files() {
     SIZE_IN_BYTE=$1
@@ -69,9 +64,6 @@ create_test_input_files() {
 
     # Compress the input
     gzip $FILENAME
-    # Create index file, with a 1MiB span between each index point (rather than default 10MiB)
-    # TODO: Use indexed-gzip filter to directly create the index file, once it's capable
-    gztool -C "${FILENAME}.gz" -s 1M
 }
 
 # Sequentially dump the contents of the NBD URI, and validate all the contents are identical
@@ -84,10 +76,17 @@ check_output() {
        cat "${FILENAME}.nbdcopy" | sha256sum --check ${FILENAME}.sha256sum
 }
 
-create_test_input_files "$((1024 * 1024 * 20))" $EXACTLY_20MiB_FILE
-create_test_input_files "$((1024 * 1024 * 20 - 12345))" $SLIGHTLY_LESS_THAN_20MiB_FILE
+run_test() {
+    SIZE_IN_BYTES=$1
+    FILENAME=$2
 
-check_output $EXACTLY_20MiB_FILE
-check_output $SLIGHTLY_LESS_THAN_20MiB_FILE
+    create_test_input_files "$SIZE_IN_BYTES" "$FILENAME"
+    check_output "$FILENAME"
+    # Check out again, but this time load the index, not crete it
+    check_output "$FILENAME"
+}
+
+run_test "$((1024 * 1024 * 20))" $EXACTLY_20MiB_FILE
+run_test "$((1024 * 1024 * 20 - 12345))" $SLIGHTLY_LESS_THAN_20MiB_FILE
 
 # TODO: Testing random access blocks from the NBD URI. 

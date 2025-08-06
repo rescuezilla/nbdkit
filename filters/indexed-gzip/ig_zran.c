@@ -88,7 +88,7 @@
 int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbdkit_err) {
     struct handle *h = handle;
 
-    nbdkit_debug("ig_deflate_index_build: starting with span=%ld, compressed_size=%lu", 
+    nbdkit_debug("ig_deflate_index_build: starting with span=%ld, compressed_size=%lu",
                  span, h->compressed_size);
 
     // Create and initialize the index list.
@@ -118,7 +118,7 @@ int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbd
         if (index->strm.avail_in == 0) {
             // The final block is unlikely to align to the buf size, so carefully read the remainder
             size_t n = MIN (sizeof(buf), h->compressed_size - index->strm.total_in);
-            nbdkit_debug("ig_deflate_index_build: reading %zu bytes at offset %lu", 
+            nbdkit_debug("ig_deflate_index_build: reading %zu bytes at offset %lu",
                          n, index->strm.total_in);
             // ORIGINAL:
             // index->strm.avail_in = fread(buf, 1, sizeof(buf), in);
@@ -137,7 +137,7 @@ int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbd
             //    ret = Z_ERRNO;
             //    break;
             // }
-                
+
             if (mode == 0) {
                 // At the start of the input -- determine the type. Assume raw
                 // if it is neither zlib nor gzip. This could in theory result
@@ -148,7 +148,7 @@ int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbd
                        (index->strm.next_in[0] & 0xf) == 8 ? ZLIB :
                        index->strm.next_in[0] == 0x1f ? GZIP :
                        /* else */ RAW;
-                nbdkit_debug("ig_deflate_index_build: detected compression mode: %s (%d)", 
+                nbdkit_debug("ig_deflate_index_build: detected compression mode: %s (%d)",
                              mode == RAW ? "RAW" : mode == ZLIB ? "ZLIB" : "GZIP", mode);
                 index->strm.zalloc = Z_NULL;
                 index->strm.zfree = Z_NULL;
@@ -187,7 +187,7 @@ int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbd
             // very start for the first access point, or there has been span or
             // more uncompressed bytes since the last access point, so we want
             // to add an access point here.
-            nbdkit_debug("ig_deflate_index_build: adding access point at totout=%ld, have=%d", 
+            nbdkit_debug("ig_deflate_index_build: adding access point at totout=%ld, have=%d",
                          totout, index->have);
             index = add_point(index, totin - index->strm.avail_in, totout, beg,
                               win);
@@ -217,7 +217,7 @@ int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbd
     if (ret != Z_STREAM_END) {
         // An error was encountered. Discard the index and return a negative
         // error code.
-        nbdkit_error("ig_deflate_index_build: failed with ret=%d (expected Z_STREAM_END=%d)", 
+        nbdkit_error("ig_deflate_index_build: failed with ret=%d (expected Z_STREAM_END=%d)",
                      ret, Z_STREAM_END);
         deflate_index_free(index);
         return ret == Z_NEED_DICT ? Z_DATA_ERROR : ret;
@@ -227,7 +227,7 @@ int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbd
     index->mode = mode;
     index->length = totout;
     h->index = index;
-    nbdkit_debug("ig_deflate_index_build: completed successfully, have=%d, length=%ld", 
+    nbdkit_debug("ig_deflate_index_build: completed successfully, have=%d, length=%ld",
                  index->have, totout);
     return index->have;
 }
@@ -242,14 +242,14 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
     // Do a quick sanity check on the index.
     if (index == NULL || index->have < 1 || index->list[0].out != 0 ||
         index->strm.state == Z_NULL) {
-        nbdkit_error("ig_deflate_index_extract: sanity check failed - index=%p, have=%d, strm.state=%p", 
+        nbdkit_error("ig_deflate_index_extract: sanity check failed - index=%p, have=%d, strm.state=%p",
                      index, index ? index->have : -1, index ? index->strm.state : NULL);
         return Z_STREAM_ERROR;
     }
 
     // If nothing to extract, return zero bytes extracted.
     if (len == 0 || offset < 0 || offset >= index->length) {
-        nbdkit_debug("ig_deflate_index_extract: nothing to extract - len=%zu, offset=%ld, index->length=%ld", 
+        nbdkit_debug("ig_deflate_index_extract: nothing to extract - len=%zu, offset=%ld, index->length=%ld",
                      len, offset, index->length);
         return 0;
     }
@@ -265,8 +265,8 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
             lo = mid;
     }
     point += lo;
-    
-    nbdkit_debug("ig_deflate_index_extract: found access point %d - point->in=%ld, point->out=%ld, point->bits=%d", 
+
+    nbdkit_debug("ig_deflate_index_extract: found access point %d - point->in=%ld, point->out=%ld, point->bits=%d",
                  lo, point->in, point->out, point->bits);
 
     // Initialize the input file and prime the inflate engine to start there.
@@ -290,25 +290,21 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
     unsigned char discard[WINSIZE];
     offset -= point->out;       // number of bytes to skip to get to offset
     size_t left = len;          // number of bytes left to read after offset
-    
+
     nbdkit_debug("ig_deflate_index_extract: adjusted offset=%ld, left=%zu", offset, left);
-    
+
     do {
         if (offset) {
             // Discard up to offset uncompressed bytes.
             index->strm.avail_out = offset < WINSIZE ? (unsigned)offset :
                                                        WINSIZE;
             index->strm.next_out = discard;
-            nbdkit_debug("ig_deflate_index_extract: discarding mode - avail_out=%u, offset=%ld", 
-                         index->strm.avail_out, offset);
         }
         else {
             // Uncompress up to left bytes into buf.
             index->strm.avail_out = left < (unsigned)-1 ? (unsigned)left :
                                                           (unsigned)-1;
             index->strm.next_out = buf + len - left;
-            nbdkit_debug("ig_deflate_index_extract: reading mode - avail_out=%u, left=%zu", 
-                         index->strm.avail_out, left);
         }
 
         // Uncompress, setting got to the number of bytes uncompressed.
@@ -316,8 +312,6 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
             // Assure available input.
             // In original zran.c: index->strm.avail_in = fread(input, 1, CHUNK, in);
             size_t n = MIN (sizeof(input), h->compressed_size - index->strm.total_in);
-            nbdkit_debug("ig_deflate_index_extract: reading %zu bytes at total_in=%lu", 
-                         n, index->strm.total_in);
             if (next->pread (next, input, (uint32_t)n, index->strm.total_in, 0, err) == -1) {
                 nbdkit_debug("ig_deflate_index_extract: pread failed");
                 return Z_NBDKIT_ERROR;
@@ -326,12 +320,8 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
             index->strm.next_in = input;
         }
         unsigned got = index->strm.avail_out;
-        nbdkit_debug("ig_deflate_index_extract: before inflate - avail_in=%u, avail_out=%u, total_in=%lu, total_out=%lu", 
-                     index->strm.avail_in, index->strm.avail_out, index->strm.total_in, index->strm.total_out);
         ret = inflate(&index->strm, Z_NO_FLUSH);
         got -= index->strm.avail_out;
-        nbdkit_debug("ig_deflate_index_extract: after inflate - ret=%d, got=%u, avail_in=%u, avail_out=%u, total_in=%lu, total_out=%lu", 
-                     ret, got, index->strm.avail_in, index->strm.avail_out, index->strm.total_in, index->strm.total_out);
 
         // Update the appropriate count.
         if (offset) {
@@ -383,7 +373,7 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
                         //    break;
                         //}
                         size_t n = MIN (sizeof(input), h->compressed_size - index->strm.total_in);
-                        nbdkit_debug("ig_deflate_index_extract: reading %zu bytes for next gzip member at total_in=%lu", 
+                        nbdkit_debug("ig_deflate_index_extract: reading %zu bytes for next gzip member at total_in=%lu",
                                      n, index->strm.total_in);
                         if (next->pread (next, input, (uint32_t)n, index->strm.total_in, 0, err) == -1) {
                             // TODO: Improve ability to return the exact err in this circumstance
@@ -397,7 +387,7 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
                     index->strm.avail_out = WINSIZE;
                     index->strm.next_out = discard;
                     ret = inflate(&index->strm, Z_BLOCK);  // stop after header
-                    nbdkit_debug("ig_deflate_index_extract: inflate Z_BLOCK returned %d, data_type=0x%x", 
+                    nbdkit_debug("ig_deflate_index_extract: inflate Z_BLOCK returned %d, data_type=0x%x",
                                  ret, index->strm.data_type);
                 } while (ret == Z_OK && (index->strm.data_type & 0x80) == 0);
                 if (ret != Z_OK) {
@@ -415,7 +405,7 @@ ptrdiff_t ig_deflate_index_extract(nbdkit_next *next, void *handle, off_t offset
 
     // Return the number of uncompressed bytes read into buf, or the error.
     ptrdiff_t result = ret == Z_OK || ret == Z_STREAM_END ? len - left : ret;
-    nbdkit_debug("ig_deflate_index_extract: completed with result=%ld, ret=%d, len=%zu, left=%zu", 
+    nbdkit_debug("ig_deflate_index_extract: completed with result=%ld, ret=%d, len=%zu, left=%zu",
                  result, ret, len, left);
     return result;
 }
