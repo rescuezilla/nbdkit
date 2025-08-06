@@ -147,9 +147,8 @@ indexed_gzip_prepare(nbdkit_next *next, void *handle, int readonly)
         if (h->index == NULL) {
             nbdkit_error("Failed to load index from %s\n", gzip_index_path);
             return -1;
-        } else {
-            nbdkit_error("Loaded index from %s\n", gzip_index_path);
         }
+        nbdkit_debug("Loaded index from %s\n", gzip_index_path);
     }
 
     nbdkit_debug("Indexed gzip prepare completed successfully. Index has %d access points", h->index->have);

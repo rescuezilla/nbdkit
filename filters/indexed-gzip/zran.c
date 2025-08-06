@@ -426,6 +426,13 @@ struct deflate_index *deflate_index_deserialize(FILE *in) {
     index->strm.avail_in = 0;
     index->strm.avail_out = 0;
 
+    // Initialize the inflate state for the deserialized index
+    int ret = inflateInit2(&index->strm, RAW);
+    if (ret != Z_OK) {
+        free(index);
+        return NULL;
+    }
+
     // Read the header: have, mode, length
     if (fread(&index->have, sizeof(int), 1, in) != 1 ||
         fread(&index->mode, sizeof(int), 1, in) != 1 ||
