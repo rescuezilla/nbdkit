@@ -37,20 +37,25 @@ set -u
 
 requires_run
 
-EXACTLY_20MiB_FILE="20MiB.img"
-# Useful to test non-aligned block boundaries
-SLIGHTLY_LESS_THAN_20MiB_FILE="slightly-less-than-20MiB.img"
 
-files="$EXACTLY_20MiB_FILE \
-       ${EXACTLY_20MiB_FILE}.sha256sum \
-       ${EXACTLY_20MiB_FILE}.gz \
-       ${EXACTLY_20MiB_FILE}.gzi     \
-       $SLIGHTLY_LESS_THAN_20MiB_FILE \
-       ${SLIGHTLY_LESS_THAN_20MiB_FILE}.sha256sum \
-       ${SLIGHTLY_LESS_THAN_20MiB_FILE}.gz \
-       ${SLIGHTLY_LESS_THAN_20MiB_FILE}.gzi"
-rm -f $files
-cleanup_fn rm -f $files
+dir=$(mktemp -d /tmp/nbdkit-test-dir.XXXXXX)
+cleanup_fn rm -rf $dir
+
+# Initialization for NBD Device node copied from test-nbd-client.sh 
+# FIXME: Replace this with a tool for random access from an NBD URI without associating with a block device,
+# similar to nbdcopy. Perhaps create "nbddd" tool?
+nbddev=/dev/nbd1
+requires_root
+requires nbd-client --version
+requires_not nbd-client -c $nbddev
+requires blockdev --version
+requires dd --version
+requires_linux_kernel_version 2.2
+sock=$(mktemp -u /tmp/nbdkit-test-sock.XXXXXX)
+pid=nbd-client.pid
+rm -f $sock $pid
+cleanup_fn rm -f $sock $pid
+cleanup_fn nbd-client -d $nbddev
 
 create_test_input_files() {
     SIZE_IN_BYTE=$1
@@ -63,11 +68,11 @@ create_test_input_files() {
     cat "${FILENAME}" | sha256sum --binary > "${FILENAME}.sha256sum"
 
     # Compress the input
-    gzip $FILENAME
+    gzip --keep $FILENAME
 }
 
 # Sequentially dump the contents of the NBD URI, and validate all the contents are identical
-check_output() {
+assert_end_to_end_decompressed_data_identical() {
     FILENAME=$1
     nbdkit --filter=indexed-gzip file \
        file="${FILENAME}.gz" \
@@ -76,17 +81,43 @@ check_output() {
        cat "${FILENAME}.nbdcopy" | sha256sum --check ${FILENAME}.sha256sum
 }
 
+assert_random_access_decompressed_data_identical() {
+    FILENAME=$1
+    BLOCK_SIZE=$2
+    SKIP_IN_BLOCKS=$3
+
+    original_file_hexdump="${FILENAME}.bs$BLOCK_SIZE.skip.$SKIP_IN_BLOCKS.hexdump"
+    # Original file
+    dd if=$FILENAME bs=$BLOCK_SIZE count=1 skip=$SKIP_IN_BLOCKS | hexdump -C > $original_file_hexdump
+
+    nbdkit --filter=indexed-gzip file \
+       -P $pid -U $sock \
+       file="${FILENAME}.gz" \
+       gzip-index-path="${FILENAME}.gzi"
+    nbd-client -u "nbd+unix://${sock}" $nbddev
+    indexed_gzip_file_hexdump="${FILENAME}.bs$BLOCK_SIZE.skip.$SKIP_IN_BLOCKS.indexed-gzip.hexdump"
+    dd if=$nbddev bs=$BLOCK_SIZE count=1 skip=$SKIP_IN_BLOCKS | hexdump -C > $indexed_gzip_file_hexdump
+    nbd-client -d $nbddev
+    kill $pid
+
+    # Compare the two hexdumps
+    diff $original_file_hexdump $indexed_gzip_file_hexdump
+}
+
 run_test() {
     SIZE_IN_BYTES=$1
     FILENAME=$2
 
     create_test_input_files "$SIZE_IN_BYTES" "$FILENAME"
-    check_output "$FILENAME"
-    # Check out again, but this time load the index, not crete it
-    check_output "$FILENAME"
+    assert_end_to_end_decompressed_data_identical "$FILENAME"
+    assert_random_access_decompressed_data_identical "$FILENAME" 1024 0
+    assert_random_access_decompressed_data_identical "$FILENAME" 1024 10
+    assert_random_access_decompressed_data_identical "$FILENAME" 1024 100
+    assert_random_access_decompressed_data_identical "$FILENAME" 1024 1000
+    assert_random_access_decompressed_data_identical "$FILENAME" 1024 10000
 }
 
-run_test "$((1024 * 1024 * 20))" $EXACTLY_20MiB_FILE
-run_test "$((1024 * 1024 * 20 - 12345))" $SLIGHTLY_LESS_THAN_20MiB_FILE
+run_test "$((1024 * 1024 * 20))" "$dir/20MiB.img"
+run_test "$((1024 * 1024 * 20 - 12345))" "$dir/slightly-less-than-20MiB.img"
 
 # TODO: Testing random access blocks from the NBD URI. 
