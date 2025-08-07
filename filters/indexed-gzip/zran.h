@@ -63,6 +63,20 @@ ptrdiff_t deflate_index_extract(FILE *in, struct deflate_index *index,
 // Deallocate an index built by deflate_index_build().
 void deflate_index_free(struct deflate_index *index);
 
+// Serialize a deflate_index to a file. Returns 0 on success, or a negative
+// error code on failure. The z_stream state is not serialized and will need
+// to be reinitialized when the index is deserialized.
+//
+// Index file created with raw fwrite(), so serialized index tied to system
+// endianness
+int deflate_index_serialize(struct deflate_index *index, FILE *out);
+
+// Deserialize a deflate_index from a file. Returns a pointer to the
+// deserialized index on success, or NULL on failure. The z_stream state
+// is reinitialized but not set up for any particular mode - this will be
+// done automatically when deflate_index_extract() is called.
+struct deflate_index *deflate_index_deserialize(FILE *in);
+
 /*
 * Internal management functions
 */
