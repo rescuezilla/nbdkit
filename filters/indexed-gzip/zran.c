@@ -65,9 +65,6 @@
 #include "zlib.h"
 #include "zran.h"
 
-#define WINSIZE 32768U      // sliding window size
-#define CHUNK 16384         // file input buffer size
-
 // See comments in zran.h.
 void deflate_index_free(struct deflate_index *index) {
     if (index != NULL) {
@@ -84,9 +81,9 @@ void deflate_index_free(struct deflate_index *index) {
 // list and return NULL. index->mode is temporarily the allocated number of
 // access points, until it is time for deflate_index_build() to return. Then
 // index->mode is set to the mode of inflation.
-static struct deflate_index *add_point(struct deflate_index *index, off_t in,
-                                       off_t out, off_t beg,
-                                       unsigned char *window) {
+struct deflate_index *add_point(struct deflate_index *index, off_t in,
+                                 off_t out, off_t beg,
+                                 unsigned char *window) {
     if (index->have == index->mode) {
         // The list is full. Make it bigger.
         index->mode = index->mode ? index->mode << 1 : 8;
@@ -124,10 +121,6 @@ static struct deflate_index *add_point(struct deflate_index *index, off_t in,
     return index;
 }
 
-// Decompression modes. These are the inflateInit2() windowBits parameter.
-#define RAW -15
-#define ZLIB 15
-#define GZIP 31
 
 // See comments in zran.h.
 int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
@@ -142,7 +135,9 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
     index->have = 0;
     index->mode = 0;            // entries in index->list allocation
     index->list = NULL;
-    index->strm.state = Z_NULL; // so inflateEnd() can work
+    int ret = inflateInit2(&index->strm, RAW);
+    if (ret != Z_OK)
+        return ret;
 
     // Set up the inflation state.
     index->strm.avail_in = 0;
@@ -155,7 +150,6 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
     int mode = 0;               // mode: RAW, ZLIB, or GZIP (0 => not set yet)
 
     // Decompress from in, generating access points along the way.
-    int ret;                    // the return value from zlib, or Z_ERRNO
     off_t last;                 // last access point uncompressed offset
     do {
         // Assure available input, at least until reaching EOF.
@@ -248,94 +242,6 @@ int deflate_index_build(FILE *in, off_t span, struct deflate_index **built) {
     *built = index;
     return index->have;
 }
-
-#ifdef NOPRIME
-// Support zlib versions before 1.2.3 (July 2005), or incomplete zlib clones
-// that do not have inflatePrime().
-
-#  define INFLATEPRIME inflatePreface
-
-// Append the low bits bits of value to in[] at bit position *have, updating
-// *have. value must be zero above its low bits bits. bits must be positive.
-// This assumes that any bits above the *have bits in the last byte are zeros.
-// That assumption is preserved on return, as any bits above *have + bits in
-// the last byte written will be set to zeros.
-static inline void append_bits(unsigned value, int bits,
-                               unsigned char *in, int *have) {
-    in += *have >> 3;           // where the first bits from value will go
-    int k = *have & 7;          // the number of bits already there
-    *have += bits;
-    if (k)
-        *in |= value << k;      // write value above the low k bits
-    else
-        *in = value;
-    k = 8 - k;                  // the number of bits just appended
-    while (bits > k) {
-        value >>= k;            // drop the bits appended
-        bits -= k;
-        k = 8;                  // now at a byte boundary
-        *++in = value;
-    }
-}
-
-// Insert enough bits in the form of empty deflate blocks in front of the
-// low bits bits of value, in order to bring the sequence to a byte boundary.
-// Then feed that to inflate(). This does what inflatePrime() does, except that
-// a negative value of bits is not supported. bits must be in 0..16. If the
-// arguments are invalid, Z_STREAM_ERROR is returned. Otherwise the return
-// value from inflate() is returned.
-static int inflatePreface(z_stream *strm, int bits, int value) {
-    // Check input.
-    if (strm == Z_NULL || bits < 0 || bits > 16)
-        return Z_STREAM_ERROR;
-    if (bits == 0)
-        return Z_OK;
-    value &= (2 << (bits - 1)) - 1;
-
-    // An empty dynamic block with an odd number of bits (95). The high bit of
-    // the last byte is unused.
-    static const unsigned char dyn[] = {
-        4, 0xe0, 0x81, 8, 0, 0, 0, 0, 0x20, 0xa8, 0xab, 0x1f
-    };
-    const int dynlen = 95;          // number of bits in the block
-
-    // Build an input buffer for inflate that is a multiple of eight bits in
-    // length, and that ends with the low bits bits of value.
-    unsigned char in[(dynlen + 3 * 10 + 16 + 7) / 8];
-    int have = 0;
-    if (bits & 1) {
-        // Insert an empty dynamic block to get to an odd number of bits, so
-        // when bits bits from value are appended, we are at an even number of
-        // bits.
-        memcpy(in, dyn, sizeof(dyn));
-        have = dynlen;
-    }
-    while ((have + bits) & 7)
-        // Insert empty fixed blocks until appending bits bits would put us on
-        // a byte boundary. This will insert at most three fixed blocks.
-        append_bits(2, 10, in, &have);
-
-    // Append the bits bits from value, which takes us to a byte boundary.
-    append_bits(value, bits, in, &have);
-
-    // Deliver the input to inflate(). There is no output space provided, but
-    // inflate() can't get stuck waiting on output not ingesting all of the
-    // provided input. The reason is that there will be at most 16 bits of
-    // input from value after the empty deflate blocks (which themselves
-    // generate no output). At least ten bits are needed to generate the first
-    // output byte from a fixed block. The last two bytes of the buffer have to
-    // be ingested in order to get ten bits, which is the most that value can
-    // occupy.
-    strm->avail_in = have >> 3;
-    strm->next_in = in;
-    strm->avail_out = 0;
-    strm->next_out = in;                // not used, but can't be NULL
-    return inflate(strm, Z_NO_FLUSH);
-}
-
-#else
-#  define INFLATEPRIME inflatePrime
-#endif
 
 // See comments in zran.h.
 ptrdiff_t deflate_index_extract(FILE *in, struct deflate_index *index,
