@@ -40,6 +40,7 @@ set -u
 export LANG=C
 
 requires_run
+requires timeout 60s true
 
 plugin=../plugins/golang/examples/minimal/nbdkit-gominimal-plugin.so
 requires test -r $plugin
@@ -50,9 +51,10 @@ logfile="$PWD/golang-fork-warning.log"
 rm -f $logfile
 cleanup_fn rm -f $logfile
 
-# Using --run is sufficient to cause nbdkit to fork and trigger
-# the warning.
-nbdkit --log="$logfile" $plugin --run 'exit 0' ||:
+# Using --run is sufficient to cause nbdkit to fork and trigger the
+# warning.  It's possible that golang gets so messed up after fork
+# that it hangs, which is why we need the timeout.
+timeout 360s nbdkit --log="$logfile" $plugin --run 'exit 0' ||:
 
 # Check the log file was created.
 cat $logfile
