@@ -48,6 +48,7 @@ int ig_deflate_index_build(nbdkit_next *next, void* handle, off_t span, int* nbd
     // Set up the inflation state.
     index->strm.avail_in = 0;
     index->strm.avail_out = 0;
+    index->strm.total_in = 0;
     unsigned char buf[CHUNK];   // input buffer
     unsigned char win[WINSIZE] = {0};   // output sliding window
     off_t totin = 0;            // total bytes read from input. (Use this as our offset into the input)
