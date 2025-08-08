@@ -36,23 +36,11 @@ set -x
 set -u
 
 requires qemu-img --version
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
+requires_tls_psk
 
 # Does the nbd plugin support TLS?
 if ! nbdkit --dump-plugin nbd | grep -sq libnbd_tls=1; then
     echo "$0: nbd plugin built without TLS support"
-    exit 77
-fi
-
-# Did we create the PSK keys file?
-# Probably 'psktool' is missing.
-if [ ! -s keys.psk ]; then
-    echo "$0: PSK keys file was not created by the test harness"
     exit 77
 fi
 
@@ -72,7 +60,7 @@ cleanup_fn rm -f $files
 # read()ing on a blocking socket) if both sides are waiting for the other
 # to perform gnutls_bye() before closing the socket.
 start_nbdkit -P "$pid2" -U "$sock2" --tls=off nbd retry=10 \
-    tls=require tls-psk=keys.psk tls-username=qemu socket="$sock1"
+    tls=require tls-psk="$pskfile" tls-username=qemu socket="$sock1"
 
 # Run unencrypted client in background, so that retry will be required
 qemu-img info --output=json -f raw "nbd+unix:///?socket=$sock2" \
@@ -82,7 +70,7 @@ sleep 1
 
 # Run encrypted server
 start_nbdkit -P "$pid1" -U "$sock1" \
-    --tls=require --tls-psk=keys.psk -D nbdkit.tls.session=1 example1
+    --tls=require --tls-psk="$pskfile" -D nbdkit.tls.session=1 example1
 
 wait $info_pid
 cat nbd-tls-psk.out

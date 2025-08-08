@@ -89,8 +89,7 @@ nbdkit null --run 'qemu-io -r -f raw -c quit \
   nbd+unix:///'a$name4k'\?socket=$unixsocket' && fail=1
 
 # Use nbdsh to provoke an extremely large NBD_OPT_SET_META_CONTEXT.
-nbdkit -e $almost4k null --run 'export exportname uri
-nbdsh -c - <<\EOF
+define script <<'EOF'
 import os
 long = os.environ["exportname"]
 h.set_export_name(long)
@@ -102,7 +101,11 @@ h.add_meta_context("e" + long)
 h.connect_uri(os.environ["uri"])
 assert h.get_size() == 0
 EOF
-'
+
+export script
+nbdkit -e $almost4k null --run '
+    export exportname uri; nbdsh -c "$script"
+  '
 
 # See also test-eval-exports.sh for NBD_OPT_LIST with long name
 

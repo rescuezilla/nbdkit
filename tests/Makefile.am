@@ -215,6 +215,7 @@ TESTS += \
 	test-tests-requires-nbdinfo.sh \
 	test-tests-requires-nbdsh.sh \
 	test-tests-requires-run.sh \
+	test-tests-requires-tls.sh \
 	test-tests-set-options.sh \
 	$(NULL)
 EXTRA_DIST += \
@@ -224,6 +225,7 @@ EXTRA_DIST += \
 	test-tests-requires-nbdinfo.sh \
 	test-tests-requires-nbdsh.sh \
 	test-tests-requires-run.sh \
+	test-tests-requires-tls.sh \
 	test-tests-set-options.sh \
 	$(NULL)
 
@@ -635,13 +637,17 @@ test_exit_with_parent_CFLAGS = \
 check_DATA += pki/.stamp
 EXTRA_DIST += make-pki.sh
 pki/.stamp: make-pki.sh
-	./make-pki.sh
+	rm -rf pki pki-t
+	./make-pki.sh pki-t
+	mv pki-t pki
 
 # PSK keys for the TLS-PSK tests.
 check_DATA += keys.psk
 EXTRA_DIST += make-psk.sh
-keys.psk: $(srcdir)/make-psk.sh
-	SRCDIR=$(srcdir) $(srcdir)/make-psk.sh
+keys.psk: ./make-psk.sh
+	rm -f $@ $@-t
+	./make-psk.sh $@-t
+	mv $@-t $@
 
 # Keys are expensive to recreate so only delete them when we do
 # ‘make distclean’.

@@ -44,19 +44,7 @@ if is_windows; then
 fi
 
 requires nbdsh -c 'exit(not h.supports_tls())'
-
-# Does the nbdkit binary support TLS?
-if ! nbdkit --dump-config | grep -sq tls=yes; then
-    echo "$0: nbdkit built without TLS support"
-    exit 77
-fi
-
-# Did we create the PSK keys file?
-# Probably 'certtool' is missing.
-if [ ! -s keys.psk ]; then
-    echo "$0: PSK keys file was not created by the test harness"
-    exit 77
-fi
+requires_tls_psk
 
 plugin=.libs/test-disconnect-plugin.$SOEXT
 requires test -f $plugin
@@ -67,7 +55,7 @@ cleanup_fn rm -f $files
 
 # Start nbdkit with the disconnect plugin, which has delayed reads and
 # does disconnect on write based on export name.
-start_nbdkit -P disconnect-tls.pid --tls require --tls-psk=keys.psk \
+start_nbdkit -P disconnect-tls.pid --tls require --tls-psk="$pskfile" \
              -U $sock $plugin
 
 pid=`cat disconnect-tls.pid`
@@ -75,11 +63,13 @@ pid=`cat disconnect-tls.pid`
 # We can't use 'nbdsh -u "$uri" because of nbd_set_uri_allow_local_file.
 # Empty export name does soft disconnect on write; the write and the
 # pending read should still succeed, but second read attempt should fail.
+export pskfile
 nbdsh -c '
 import errno
+import os
 
 h.set_tls(nbd.TLS_REQUIRE)
-h.set_tls_psk_file("keys.psk")
+h.set_tls_psk_file(os.getenv("pskfile"))
 h.set_tls_username("qemu")
 h.connect_unix("'"$sock"'")
 
@@ -112,9 +102,10 @@ h.shutdown()
 # pending read should fail with lost connection.
 nbdsh -c '
 import errno
+import os
 
 h.set_tls(nbd.TLS_REQUIRE)
-h.set_tls_psk_file("keys.psk")
+h.set_tls_psk_file(os.getenv("pskfile"))
 h.set_tls_username("qemu")
 h.set_export_name("a")
 h.connect_unix("'"$sock"'")

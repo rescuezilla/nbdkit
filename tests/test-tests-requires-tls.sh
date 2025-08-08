@@ -30,40 +30,46 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Test the ip filter with dn: parameter.
+# Check that tests that use --tls-certificates or --tls-psk declare
+# requires_tls_certificates or requires_tls_psk respectively.
 
 source ./functions.sh
 set -e
-set -x
+#set -x
 set -u
 
-requires_nbdinfo
-requires_run
-requires_tls_certificates
+# Try to get a list of tests written in shell script.  A good
+# approximation is to see which ones include 'functions.sh'.
+tests="$( grep -l functions.sh $srcdir/test-*.sh )"
 
-# RHEL 8 libnbd / nbdinfo doesn't support the tls-certificates
-# parameter in URIs, so connections always fail.  It's hard to detect
-# if libnbd supports this, so just go off version number.  The libnbd
-# commit adding this feature was 847e0b9830, added in libnbd 1.9.5.
-requires_libnbd_version 1.10
+errors=0
 
-# This is expected to succeed.
-nbdkit -v --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
-       -D nbdkit.tls.session=1 \
-       null \
-       -D ip.rules=1 --filter=ip \
-       allow=dn:"*,O=Test,*,C=US" \
-       deny=all \
-       --run 'nbdinfo "$uri"'
+for t in $tests; do
+    echo checking $t ...
 
-# This is expected to fail.
-if nbdkit -v --tls=require --tls-certificates="$pkidir" --tls-verify-peer \
-       -D nbdkit.tls.session=1 \
-       null \
-       -D ip.rules=1 --filter=ip \
-       allow=dn:"CN=foobar,*,C=US" \
-       deny=all \
-       --run 'nbdinfo "$uri"'; then
-    echo "$0: expected test to fail"
-    exit 1
-fi
+    if grep -sq -- "--tls-certificates" $t; then
+        if ! grep -sq -- "requires_tls_certificates" $t; then
+            echo "error: $t: test uses --tls-certificates but does not declare 'requires_tls_certificates'"
+            ((errors++)) ||:
+        fi
+    else # and the negative:
+        if grep -sq -- "requires_tls_certificates" $t; then
+            echo "error: $t: test does not use --tls-certificates but declares 'requires_tls_certificates'"
+            ((errors++)) ||:
+        fi
+    fi
+
+    if grep -sq -- "--tls-psk" $t; then
+        if ! grep -sq -- "requires_tls_psk" $t; then
+            echo "error: $t: test uses --tls-psk but does not declare 'requires_tls_psk'"
+            ((errors++)) ||:
+        fi
+    else # and the negative:
+        if grep -sq -- "requires_tls_psk" $t; then
+            echo "error: $t: test does not use --tls-psk but declares 'requires_tls_psk'"
+            ((errors++)) ||:
+        fi
+    fi
+done
+
+if [ "$errors" -ge 1 ]; then exit 1; fi

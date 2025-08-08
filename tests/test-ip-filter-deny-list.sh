@@ -46,9 +46,7 @@ requires_run
 nbdkit -v null -D ip.rules=1 --filter=ip allow=all --run 'nbdinfo --list "$uri"'
 
 # Listing exports should be denied in the early filtering case.
-nbdkit -v null \
-       -D ip.rules=1 --filter=ip deny=all \
-       --run 'export uri; nbdsh -c -' <<'EOF'
+define script1 <<'EOF'
 import os
 uri = os.getenv('uri')
 h = nbd.NBD()
@@ -62,10 +60,13 @@ except:
     pass
 EOF
 
-# Same in the late filtering case.
+export script1
 nbdkit -v null \
-       -D ip.rules=1 --filter=ip allow=dn:123 deny=all \
-       --run 'export uri; nbdsh -c -' <<'EOF'
+       -D ip.rules=1 --filter=ip deny=all \
+       --run 'export uri; nbdsh -c "$script1"'
+
+# Same in the late filtering case.
+define script2 <<'EOF'
 import os
 uri = os.getenv('uri')
 h = nbd.NBD()
@@ -78,3 +79,8 @@ except:
     # Expect opt_list to fail.
     pass
 EOF
+
+export script2
+nbdkit -v null \
+       -D ip.rules=1 --filter=ip allow=dn:123 deny=all \
+       --run 'export uri; nbdsh -c "$script2"'
