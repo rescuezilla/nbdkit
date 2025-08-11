@@ -14,6 +14,7 @@ nbdkit-delay-filter - nbdkit delay filter
           delay-open=DELAY
           delay-close=DELAY
           delay-fast-zero=BOOL
+          delay-trigger=FILENAME
 
 =for paragraph
 
@@ -56,6 +57,13 @@ delay parameters, so a wide variety of formats are accepted, such as:
 
 In nbdkit E<le> 1.38, only a whole number of seconds, or a whole
 number of milliseconds (if suffixed by C<ms>) were allowed.
+
+=head1 TRIGGERED DELAYS
+
+Using the C<delay-trigger=FILENAME> option, you can disable this
+filter until the named F<FILENAME> is created.  If the file is
+deleted, then the filter is disabled again.  This allows you to boot
+up a virtual machine before turning on delays.
 
 =head1 PARAMETERS
 
@@ -109,6 +117,14 @@ Delay open (client connection) by C<DELAY>.
 Delay read operations by C<DELAY>.
 
 The two forms C<delay-read> and C<rdelay> work identically.
+
+=item B<delay-trigger=>FILENAME
+
+(nbdkit E<ge> 1.46)
+
+If this option is used, the filter is only enabled when the file
+called F<FILENAME> exists.  Therefore this file may be created and
+deleted while nbdkit is running to enable and disable delays.
 
 =item B<delay-trim=>DELAY
 
