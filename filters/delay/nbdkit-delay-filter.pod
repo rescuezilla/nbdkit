@@ -61,45 +61,27 @@ number of milliseconds (if suffixed by C<ms>) were allowed.
 
 =over 4
 
-=item B<rdelay=>DELAY
-
-=item B<delay-read=>DELAY
-
-Delay read operations by C<DELAY>.
-
-The two forms C<rdelay> and C<delay-read> work identically.
-
-=item B<delay-write=>DELAY
-
-Delay write operations by C<DELAY>.
-
-=item B<delay-zero=>DELAY
-
-(nbdkit E<ge> 1.10)
-
-Delay zero operations by C<DELAY>.  See also B<delay-fast-zero>.
-
-=item B<delay-trim=>DELAY
-
-(nbdkit E<ge> 1.10)
-
-Delay trim/discard operations by C<DELAY>.
-
-=item B<delay-extents=>DELAY
-
-(nbdkit E<ge> 1.12)
-
-Delay block status (extents) operations by C<DELAY>.
-
 =item B<delay-cache=>DELAY
 
 (nbdkit E<ge> 1.14)
 
 Delay advisory cache operations by C<DELAY>.
 
-=item B<wdelay=>DELAY
+=item B<delay-close=>DELAY
 
-Delay write, zero and trim operations by C<DELAY>.
+(nbdkit E<ge> 1.28)
+
+Delay close (client disconnection) by C<DELAY>.  This can also cause
+server shutdown to be delayed if clients are connected at the time.
+This only affects clients that gracefully disconnect (using
+C<NBD_CMD_DISC> / libnbd function L<nbd_shutdown(3)>).  Clients that
+abruptly disconnect from the server cannot be delayed.
+
+=item B<delay-extents=>DELAY
+
+(nbdkit E<ge> 1.12)
+
+Delay block status (extents) operations by C<DELAY>.
 
 =item B<delay-fast-zero=>BOOL
 
@@ -120,15 +102,36 @@ the plugin.
 
 Delay open (client connection) by C<DELAY>.
 
-=item B<delay-close=>DELAY
+=item B<delay-read=>DELAY
 
-(nbdkit E<ge> 1.28)
+=item B<rdelay=>DELAY
 
-Delay close (client disconnection) by C<DELAY>.  This can also cause
-server shutdown to be delayed if clients are connected at the time.
-This only affects clients that gracefully disconnect (using
-C<NBD_CMD_DISC> / libnbd function L<nbd_shutdown(3)>).  Clients that
-abruptly disconnect from the server cannot be delayed.
+Delay read operations by C<DELAY>.
+
+The two forms C<delay-read> and C<rdelay> work identically.
+
+=item B<delay-trim=>DELAY
+
+(nbdkit E<ge> 1.10)
+
+Delay trim/discard operations by C<DELAY>.
+
+=item B<delay-write=>DELAY
+
+Delay write operations by C<DELAY>.
+
+=item B<delay-zero=>DELAY
+
+(nbdkit E<ge> 1.10)
+
+Delay zero operations by C<DELAY>.  See also the C<delay-fast-zero>
+option.
+
+=item B<wdelay=>DELAY
+
+Delay write, zero and trim operations by C<DELAY>.  (This is the same
+as setting C<delay-write>, C<delay-zero> and C<delay-trim> options
+together.)
 
 =back
 
