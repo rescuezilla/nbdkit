@@ -62,7 +62,7 @@ assert b1[504:511] == b'\x00\x00\x00\x00\x00\x00\x01'
 
 # Other parts of the disk are 1-1 mapped.
 offset = random.randint(1024, 2**63-1024) & ~7
-len = random.randint(1, 512) & ~7
+len = random.randint(1, 64) * 8
 b = h.pread(len, offset)
 for i in range(0, len, 8):
     actual = b[i:i+8]
