@@ -14,6 +14,7 @@ nbdkit-delay-filter - nbdkit delay filter
           delay-open=DELAY
           delay-close=DELAY
           delay-fast-zero=BOOL
+          delay-trigger=FILENAME
 
 =for paragraph
 
@@ -57,39 +58,16 @@ delay parameters, so a wide variety of formats are accepted, such as:
 In nbdkit E<le> 1.38, only a whole number of seconds, or a whole
 number of milliseconds (if suffixed by C<ms>) were allowed.
 
+=head1 TRIGGERED DELAYS
+
+Using the C<delay-trigger=FILENAME> option, you can disable this
+filter until the named F<FILENAME> is created.  If the file is
+deleted, then the filter is disabled again.  This allows you to boot
+up a virtual machine before turning on delays.
+
 =head1 PARAMETERS
 
 =over 4
-
-=item B<rdelay=>DELAY
-
-=item B<delay-read=>DELAY
-
-Delay read operations by C<DELAY>.
-
-The two forms C<rdelay> and C<delay-read> work identically.
-
-=item B<delay-write=>DELAY
-
-Delay write operations by C<DELAY>.
-
-=item B<delay-zero=>DELAY
-
-(nbdkit E<ge> 1.10)
-
-Delay zero operations by C<DELAY>.  See also B<delay-fast-zero>.
-
-=item B<delay-trim=>DELAY
-
-(nbdkit E<ge> 1.10)
-
-Delay trim/discard operations by C<DELAY>.
-
-=item B<delay-extents=>DELAY
-
-(nbdkit E<ge> 1.12)
-
-Delay block status (extents) operations by C<DELAY>.
 
 =item B<delay-cache=>DELAY
 
@@ -97,9 +75,21 @@ Delay block status (extents) operations by C<DELAY>.
 
 Delay advisory cache operations by C<DELAY>.
 
-=item B<wdelay=>DELAY
+=item B<delay-close=>DELAY
 
-Delay write, zero and trim operations by C<DELAY>.
+(nbdkit E<ge> 1.28)
+
+Delay close (client disconnection) by C<DELAY>.  This can also cause
+server shutdown to be delayed if clients are connected at the time.
+This only affects clients that gracefully disconnect (using
+C<NBD_CMD_DISC> / libnbd function L<nbd_shutdown(3)>).  Clients that
+abruptly disconnect from the server cannot be delayed.
+
+=item B<delay-extents=>DELAY
+
+(nbdkit E<ge> 1.12)
+
+Delay block status (extents) operations by C<DELAY>.
 
 =item B<delay-fast-zero=>BOOL
 
@@ -120,15 +110,44 @@ the plugin.
 
 Delay open (client connection) by C<DELAY>.
 
-=item B<delay-close=>DELAY
+=item B<delay-read=>DELAY
 
-(nbdkit E<ge> 1.28)
+=item B<rdelay=>DELAY
 
-Delay close (client disconnection) by C<DELAY>.  This can also cause
-server shutdown to be delayed if clients are connected at the time.
-This only affects clients that gracefully disconnect (using
-C<NBD_CMD_DISC> / libnbd function L<nbd_shutdown(3)>).  Clients that
-abruptly disconnect from the server cannot be delayed.
+Delay read operations by C<DELAY>.
+
+The two forms C<delay-read> and C<rdelay> work identically.
+
+=item B<delay-trigger=>FILENAME
+
+(nbdkit E<ge> 1.46)
+
+If this option is used, the filter is only enabled when the file
+called F<FILENAME> exists.  Therefore this file may be created and
+deleted while nbdkit is running to enable and disable delays.
+
+=item B<delay-trim=>DELAY
+
+(nbdkit E<ge> 1.10)
+
+Delay trim/discard operations by C<DELAY>.
+
+=item B<delay-write=>DELAY
+
+Delay write operations by C<DELAY>.
+
+=item B<delay-zero=>DELAY
+
+(nbdkit E<ge> 1.10)
+
+Delay zero operations by C<DELAY>.  See also the C<delay-fast-zero>
+option.
+
+=item B<wdelay=>DELAY
+
+Delay write, zero and trim operations by C<DELAY>.  (This is the same
+as setting C<delay-write>, C<delay-zero> and C<delay-trim> options
+together.)
 
 =back
 

@@ -38,6 +38,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <unistd.h>
 #include <limits.h>
 #include <time.h>
 
@@ -56,6 +57,14 @@ static struct delay delay_close_;   /* close delay */
 
 static int delay_fast_zero = 1; /* whether delaying zero includes fast zero */
 
+static char *delay_trigger;         /* trigger file */
+
+static void
+delay_unload (void)
+{
+  free (delay_trigger);
+}
+
 static int
 parse_delay (const char *key, const char *value, struct delay *r)
 {
@@ -65,6 +74,8 @@ parse_delay (const char *key, const char *value, struct delay *r)
 static int
 delay (struct delay delay, int *err)
 {
+  if (delay_trigger != NULL && access (delay_trigger, F_OK) == -1)
+    return 0;
   if (nbdkit_nanosleep (delay.sec, delay.nsec) == -1) {
     *err = errno;
     return -1;
@@ -180,6 +191,12 @@ delay_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
       return -1;
     return 0;
   }
+  else if (strcmp (key, "delay-trigger") == 0) {
+    delay_trigger = nbdkit_absolute_path (value);
+    if (delay_trigger == NULL)
+      return -1;
+    return 0;
+  }
   else
     return next (nxdata, key, value);
 }
@@ -195,7 +212,8 @@ delay_config (nbdkit_next_config *next, nbdkit_backend *nxdata,
   "wdelay=<NN>[ms]                Write, zero and trim delay in secs/msecs.\n" \
   "delay-fast-zero=<BOOL>         Delay fast zero requests (default true).\n" \
   "delay-open=<NN>[ms]            Open delay in seconds/milliseconds.\n" \
-  "delay-close=<NN>[ms]           Close delay in seconds/milliseconds."
+  "delay-close=<NN>[ms]           Close delay in seconds/milliseconds.\n" \
+  "delay-trigger=FILENAME         Enable the filter when FILENAME exists."
 
 /* Override the plugin's .can_fast_zero if needed */
 static int
@@ -333,6 +351,7 @@ delay_cache (nbdkit_next *next,
 static struct nbdkit_filter filter = {
   .name              = "delay",
   .longname          = "nbdkit delay filter",
+  .unload            = delay_unload,
   .config            = delay_config,
   .config_help       = delay_config_help,
   .can_fast_zero     = delay_can_fast_zero,

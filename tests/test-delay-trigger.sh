@@ -30,57 +30,52 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# Simple tests of the map filter.
-
 source ./functions.sh
 set -e
 set -x
 set -u
 
 requires_run
-requires_plugin pattern
+requires_plugin null
+requires_filter delay
 requires_nbdsh_uri
 
+trigger=delay-trigger
+rm -f $trigger
+cleanup_fn rm -f $trigger
+
 define script <<'EOF'
-import random
+import time
+import os
 
-# 0-511 and 512-1023 are mapped to the same data (at 0-511).
-b1 = h.pread(512, 0)
-b2 = h.pread(512, 512)
-assert b1 == b2
-assert b1[0:8] == b'\x00\x00\x00\x00\x00\x00\x00\x00'
-assert b1[8:16] == b'\x00\x00\x00\x00\x00\x00\x00\x08'
-assert b1[504:512] == b'\x00\x00\x00\x00\x00\x00\x01\xf8'
+trigger = os.getenv("trigger")
 
-# 2**63-512 through to 2**63-1 (511 bytes) is mapped to 0.
-b1 = h.pread(511, 0)
-b2 = h.pread(511, 2**63-512)
-assert b1 == b2
-assert b1[0:8] == b'\x00\x00\x00\x00\x00\x00\x00\x00'
-assert b1[8:16] == b'\x00\x00\x00\x00\x00\x00\x00\x08'
-assert b1[504:511] == b'\x00\x00\x00\x00\x00\x00\x01'
+# With no trigger file, reads should be quick.
+start = time.time()
+h.pread(512, 0)
+end = time.time()
+print("%r %r" % (start, end), file=sys.stderr, flush=True)
+assert (end-start) < 10
 
-# Other parts of the disk are 1-1 mapped.
-offset = random.randint(1024, 2**63-1024) & ~7
-len = random.randint(1, 64) * 8
-b = h.pread(len, offset)
-for i in range(0, len, 8):
-    actual = b[i:i+8]
-    expected = (offset + i).to_bytes(8, 'big')
-    print("%r %r" % (actual, expected))
-    assert actual == expected
+# With the trigger file, reads should take >= 10 seconds.
+open(trigger, "a").close()
+start = time.time()
+h.pread(512, 0)
+end = time.time()
+print("%r %r" % (start, end), file=sys.stderr, flush=True)
+assert (end-start) >= 10
+
+# Removing the trigger file should make things fast again.
+os.unlink(trigger)
+start = time.time()
+h.pread(512, 0)
+end = time.time()
+print("%r %r" % (start, end), file=sys.stderr, flush=True)
+assert (end-start) < 10
+
 EOF
-export script
+export script trigger
 
-# 9223372036854775296 == 2**63-512, so the last (partial) sector is also
-# mapped.
-# Note the rule that the first map on the command line has precedence.
-define map <<'EOF'
---filter=map
-map=512-1023:0
-map=512-1023:50000
-map=9223372036854775296-9223372036854775807:0
-EOF
-
-# Run the test.
-nbdkit pattern $largest_disk $map --run ' nbdsh -u "$uri" -c "$script" '
+nbdkit null 100k \
+       --filter=delay rdelay=10 delay-trigger=$trigger \
+       --run 'nbdsh -u "$uri" -c "$script"'

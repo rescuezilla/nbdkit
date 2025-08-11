@@ -1766,11 +1766,13 @@ TESTS += \
 	test-delay-close.sh \
 	test-delay-open.sh \
 	test-delay-shutdown.sh \
+	test-delay-trigger.sh \
 	$(NULL)
 EXTRA_DIST += \
 	test-delay-close.sh \
 	test-delay-open.sh \
 	test-delay-shutdown.sh \
+	test-delay-trigger.sh \
 	$(NULL)
 LIBNBD_TESTS += test-delay
 
