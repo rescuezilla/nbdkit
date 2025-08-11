@@ -7,13 +7,6 @@ nbdkit-client - how to mount NBD filesystems on a client machine
 For NBD exports that contain filesystems there are several approaches
 to mounting them on a client machine.
 
-To ensure the nbd kernel module is loaded you may need to do:
-
- # echo nbd > /etc/modules-load.d/nbd.conf
-
-This will not take effect until you reboot, so also do:
-
- # modprobe nbd
 
 =head2 Easy mounting at boot time
 
@@ -69,7 +62,20 @@ You can either reboot now or do:
 Other systemd services which need this mount point can depend on this
 mount unit.
 
-=head1 LIMITATIONS
+=head1 LOADING THE LINUX KERNEL MODULE
+
+The native Linux NBD client is a kernel module called C<nbd.ko>.  It
+is not always loaded on demand.  To ensure it is loaded you may need
+to do:
+
+ # echo nbd > /etc/modules-load.d/nbd.conf
+
+This will not take effect until you reboot, so to load it right away
+do:
+
+ # modprobe nbd
+
+=head2 RHEL and nbd.ko
 
 Red Hat Enterprise Linux 8 enabled the C<nbd.ko> Linux kernel module
 but only for Unix domain sockets (ie. local connections).  This means
